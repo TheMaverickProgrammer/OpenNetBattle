@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
-using std::cerr;
+using std::cout;
 using std::endl;
+using std::cin;
 #include <string>
 using std::string;
 using std::to_string;
@@ -29,7 +30,6 @@ public:
   }
 
   static void Log(string _message) {
-    //cerr << _message << endl;
     logs.push(_message);
   }
 
@@ -49,13 +49,14 @@ public:
     std::string ret(buffer);
     va_end(vl);
     delete[] buffer;
-   // cerr << ret << endl;
     logs.push(ret);
-
   }
 
-  static string ToString(float _number) {
-    return to_string(_number);
+  template<typename ... Args>
+  static void Failf(const string& _format, Args... args) {
+    fprintf_s(stderr, ("ERROR: " + _format).c_str(), args...);
+    cin.ignore(); // Allows us to see the error before the window closes
+    exit(EXIT_FAILURE);
   }
 
 private:

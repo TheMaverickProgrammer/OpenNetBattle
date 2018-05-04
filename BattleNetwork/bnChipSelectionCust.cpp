@@ -30,7 +30,7 @@ ChipSelectionCust::ChipSelectionCust(int cap) {
   chipCard.setPosition(2.f*16.f, 48.f);
 
   if (!greyscale.loadFromFile(SHADER_FRAG_PATH, sf::Shader::Fragment)) {
-    Logger::Log("Error loading shader: " SHADER_FRAG_PATH);
+    Logger::Logf("Error loading shader: %s\n", SHADER_FRAG_PATH);
   }
 
   sf::Font* font = TextureResourceManager::GetInstance().LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");

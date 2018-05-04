@@ -27,11 +27,10 @@ void TextureResourceManager::LoadAllTextures(unsigned &status) {
 Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
   Texture* texture = new Texture();
   if (!texture->loadFromFile(_path)) {
-    Logger::Log("Failed loading texture: " + _path);
-    exit(EXIT_FAILURE);
-    return nullptr;
+    Logger::Failf("Failed loading texture: %s\n", _path.c_str());
+  } else {
+    Logger::Logf("Loaded texture: %s\n", _path.c_str());
   }
-  Logger::Log("Loaded texture: " + _path);
   return texture;
 }
 
@@ -52,11 +51,10 @@ sf::IntRect TextureResourceManager::GetIconRectFromChipID(unsigned ID) {
 Font* TextureResourceManager::LoadFontFromFile(string _path) {
   Font* font = new Font();
   if (!font->loadFromFile(_path)) {
-    Logger::Log("Failed loading font: " + _path);
-    exit(EXIT_FAILURE);
-    return nullptr;
+    Logger::Failf("Failed loading font: %s\n", _path.c_str());
+  } else {
+    Logger::Logf("Loaded font: %s\n", _path.c_str());
   }
-  Logger::Log("Loaded font: " + _path);
   return font;
 }
 

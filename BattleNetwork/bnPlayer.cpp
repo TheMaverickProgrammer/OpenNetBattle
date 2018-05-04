@@ -224,8 +224,7 @@ int Player::GetStateFromString(string _string) {
       return static_cast<PlayerState>(i);
     }
   }
-  Logger::Log(string("Failed to find corresponding enum: " + _string));
-  assert(false);
+  Logger::Failf("Failed to find corresponding enum: %s\n", _string);
   return -1;
 }
 

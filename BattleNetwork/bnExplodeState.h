@@ -49,7 +49,7 @@ ExplodeState<Any>::ExplodeState() : AIState<Any>() {
   explosion = nullptr;
 
   if (!whiteout.loadFromFile(SHADER_FRAG_PATH, sf::Shader::Fragment)) {
-    Logger::Log("Error loading shader: " SHADER_FRAG_PATH);
+    Logger::Logf("Error loading shader: %s\n", SHADER_FRAG_PATH);
   }
   else {
     whiteout.setUniform("texture", sf::Shader::CurrentTexture);

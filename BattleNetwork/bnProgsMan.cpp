@@ -65,7 +65,7 @@ ProgsMan::ProgsMan(void)
   animationComponent.load();
 
   if (!whiteout.loadFromFile(SHADER_FRAG_PATH, sf::Shader::Fragment)) {
-    Logger::Log("Error loading shader: " SHADER_FRAG_PATH);
+    Logger::Logf("Error loading shader: %s\n", SHADER_FRAG_PATH);
   } else {
     whiteout.setUniform("texture", sf::Shader::CurrentTexture);
   }
@@ -383,14 +383,12 @@ vector<Drawable*> ProgsMan::GetMiscComponents() {
 int ProgsMan::GetStateFromString(string _string) {
   int size = 5;
   string MOB_STATE_STRINGS[] = { "MOB_MOVING", "MOB_IDLE", "MOB_HIT", "MOB_ATTACKING", "MOB_THROW" };
-
   for (int i = 0; i < size; i++) {
     if (_string == MOB_STATE_STRINGS[i]) {
       return static_cast<MobState>(i);
     }
   }
-  Logger::Log(string("Failed to find corresponding enum: " + _string));
-  assert(false);
+  Logger::Failf("Failed to find corresponding enum: %s\n", _string);
   return -1;
 }
 

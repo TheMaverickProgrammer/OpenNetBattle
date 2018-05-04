@@ -68,10 +68,9 @@ void AudioResourceManager::LoadAllSources(unsigned &status) {
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   if (!sources[type].loadFromFile(path)) {
-    Logger::Log("Failed loading audio: " + path);
-    exit(EXIT_FAILURE);
+    Logger::Failf("Failed loading audio: %s\n", path.c_str());
   } else {
-    Logger::Log("Loaded audio: " + path);
+    Logger::Logf("Loaded audio: %s\n", path.c_str());
   }
 }
 

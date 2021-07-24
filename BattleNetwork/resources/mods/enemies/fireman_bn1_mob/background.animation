@@ -1,0 +1,4 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/mods/enemies/fireman_bn1_mob/background.png"
+
+animation state="BG"
+frame duration="0.05" x="0" y="0" w="240" h="160" originx="0" originy="0" flipx="0" flipy="0" 

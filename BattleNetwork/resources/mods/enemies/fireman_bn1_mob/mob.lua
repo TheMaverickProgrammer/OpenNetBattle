@@ -13,9 +13,9 @@ end
 
 function build(mob) 
     print("_modpath is: ".._modpath)
-    local texPath = _modpath.."background.png"
+    local texPath = _modpath.."background.gif"
     local animPath = _modpath.."background.animation"
-    mob:SetBackground(texPath, animPath, -1.4, 0.0)
+    mob:SetBackground(texPath, animPath, 0.0, 0.0)
     mob:StreamMusic(_modpath.."music.ogg")
 
     local fireman_bn1_spawner = mob:CreateSpawner("Example.Fireman_bn1")

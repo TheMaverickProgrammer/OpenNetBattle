@@ -109,7 +109,7 @@ function battle_init(self)
     texture = LoadTexture(_modpath.."fireman_atlas.png")
 
     print("modpath: ".._modpath)
-    self:SetName("FireMan BN1")
+    self:SetName("FireManBN1")
     self:SetHealth(300)
     self:SetTexture(texture, true)
     self:SetHeight(60)

@@ -15,13 +15,12 @@
 #define RESOURCE_PATH "resources/spells/protoman_summon.animation"
 
 ProtoManSummon::ProtoManSummon(Character* user, int damage) : 
+  damage(damage),
   user(user),
-  Spell(user->GetTeam())
+  Artifact()
 {
-  SetPassthrough(true);
-  random = rand() % 20 - 20;
-
-  int lr = (team == Team::red) ? 1 : -1;
+  int lr = (user->GetTeam() == Team::red) ? 1 : -1;
+  SetTeam(user->GetTeam());
   setScale(2.0f*lr, 2.0f);
 
   Audio().Play(AudioType::APPEAR);
@@ -39,12 +38,6 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
     };
     animationComponent->SetAnimation("MOVE", handleAttack);
   });
-
-  auto props = GetHitboxProperties();
-  props.damage = damage;
-  props.flags |= Hit::flash;
-  props.aggressor = user->GetID();
-  SetHitboxProperties(props);
 }
 
 ProtoManSummon::~ProtoManSummon() {
@@ -64,15 +57,12 @@ void ProtoManSummon::DoAttackStep() {
 
     animationComponent->SetAnimation("ATTACK", [this, prev] {
       animationComponent->SetAnimation("MOVE", [this, prev] {
-      DoAttackStep();
+        DoAttackStep();
       });
     });
 
-    animationComponent->AddCallback(4,  [this]() {
-      for (auto entity : targets[0]->FindCharacters([](Entity* e) { return true; })) {
-        entity->GetTile()->AffectEntities(this);
-      }
-
+    animationComponent->AddCallback(4, [this]() {
+      this->DropHitboxes(*(*targets.begin()));
       targets.erase(targets.begin());
     }, true);
   }
@@ -121,44 +111,43 @@ void ProtoManSummon::OnSpawn(Battle::Tile& start)
   }
 }
 
-void ProtoManSummon::OnUpdate(double _elapsed) {
-  if (tile != nullptr) {
-    setPosition(tile->getPosition());
-  }
-}
-
-void ProtoManSummon::Attack(Character* _entity) {
+void ProtoManSummon::DropHitboxes(Battle::Tile& tile)
+{
   auto field = GetField();
-
-  auto tile = _entity->GetTile();
 
   SwordEffect* e = new SwordEffect;
 
-  if (_entity->GetFacing() == Direction::right) {
+  if (GetTeam() == Team::blue) {
     e->setScale(-2.f, 2.f);
   }
 
   e->SetAnimation("WIDE");
-  field->AddEntity(*e, tile->GetX(), tile->GetY());
+  field->AddEntity(*e, tile.GetX(), tile.GetY());
 
-  BasicSword* b = new BasicSword(GetTeam(), 0);
-  auto props = this->GetHitboxProperties();
-  props.aggressor = user->GetID();
-  b->SetHitboxProperties(props);
+  auto hitboxProps = Hit::DefaultProperties;
+  hitboxProps.damage = damage;
+  hitboxProps.flags |= Hit::flash;
+  hitboxProps.aggressor = user->GetID();
 
-  Audio().Play(AudioType::SWORD_SWING);
-  field->AddEntity(*b, tile->GetX(),tile->GetY());
+  BasicSword* b;
+  
+  b = new BasicSword(GetTeam(), 0);
+  b->SetHitboxProperties(hitboxProps);
+  field->AddEntity(*b, tile.GetX(), tile.GetY());
 
   b = new BasicSword(GetTeam(), 0);
-  props = this->GetHitboxProperties();
-  props.aggressor = user->GetID();
-  b->SetHitboxProperties(props);
-  field->AddEntity(*b,tile->GetX(), tile->GetY() + 1);
+  b->SetHitboxProperties(hitboxProps);
+  field->AddEntity(*b, tile.GetX(), tile.GetY() + 1);
 
   b = new BasicSword(GetTeam(), 0);
-  props = this->GetHitboxProperties();
-  props.aggressor = user->GetID();
-  field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);
+  b->SetHitboxProperties(hitboxProps);
+  field->AddEntity(*b, tile.GetX(), tile.GetY() - 1);
 
   Audio().Play(AudioType::SWORD_SWING);
+}
+
+void ProtoManSummon::OnUpdate(double _elapsed) {
+  if (tile != nullptr) {
+    setPosition(tile->getPosition());
+  }
 }

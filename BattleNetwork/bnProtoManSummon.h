@@ -1,16 +1,14 @@
 /*! \brief Protoman appears and attacks every enemy he can reach
  * 
- * NOTE: The card summon system is going under major refactoring and this
- * code will not be the same
  */
 
 #pragma once
-#include "bnSpell.h"
+#include "bnArtifact.h"
 #include "bnAnimationComponent.h"
 
 class Character;
 
-class ProtoManSummon : public Spell {
+class ProtoManSummon : public Artifact {
 public:
   
   /**
@@ -31,14 +29,6 @@ public:
   void OnUpdate(double _elapsed) override;
   
   /**
-   * @brief Deals damage to the enemy with recoil
-   * @param _entity
-   * 
-   * Spawns a sword slash artifact on top
-   */
-  void Attack(Character* _entity) override;
-  
-  /**
    * @brief Attacks the next enemy when the animation ends
    * 
    * Configures the animation callback to approach the next tile
@@ -55,9 +45,11 @@ public:
 
   void OnSpawn(Battle::Tile& start) override;
 
+  void DropHitboxes(Battle::Tile& tile);
+
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
-  int random;
+  int damage{};
   Character* user{ nullptr };
   AnimationComponent* animationComponent;
 };

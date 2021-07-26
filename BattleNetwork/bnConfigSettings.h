@@ -67,6 +67,21 @@ public:
   void SetGamepadIndex(int index);
 
   /**
+  * @brief Set the keyboard game bindings
+  */
+  void SetKeyboardHash(const KeyboardHash key);
+
+  /**
+  * @brief Set the gamepad game bindings
+  */
+  void SetGamepadHash(const GamepadHash gamepad);
+
+  /**
+  * @brief Set the web server info
+  */
+  void SetWebServerInfo(const std::string& url, int port, const std::string& version);
+
+  /**
    * @brief Get inverted thumbstick setting
    */
   bool GetInvertThumbstick() const;
@@ -121,9 +136,6 @@ public:
 
   const KeyboardHash& GetKeyboardHash();
   const GamepadHash& GetGamepadHash();
-
-  void SetKeyboardHash(const KeyboardHash key);
-  void SetGamepadHash(const GamepadHash gamepad);
 
   ConfigSettings(const ConfigSettings& rhs);
   ConfigSettings();

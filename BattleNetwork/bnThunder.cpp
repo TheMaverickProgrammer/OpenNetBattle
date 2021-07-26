@@ -54,7 +54,9 @@ void Thunder::OnUpdate(double _elapsed) {
     auto list = field->FindEntities(query);
 
     for (auto l : list) {
-      if (!target) { target = l; }
+      if (!target) { 
+        target = l; 
+      }
       else {
         // If the distance to one enemy is shorter than the other, target the shortest enemy path
         int currentDist = abs(tile->GetX() - l->GetTile()->GetX()) + abs(tile->GetY() - l->GetTile()->GetY());
@@ -62,15 +64,19 @@ void Thunder::OnUpdate(double _elapsed) {
 
         if (currentDist < targetDist) {
           target = l;
-
-          auto targetRemoveCallback = [](Entity& target, Entity& observer) {
-            Thunder& self = dynamic_cast<Thunder&>(observer);
-            self.target = nullptr;
-          };
-
-          field->NotifyOnDelete(target->GetID(), this->GetID(), targetRemoveCallback);
         }
       }
+    }
+
+    // We have found a target
+    // Create a notifier so we can null the target when they are deleted
+    if (target) {
+      auto targetRemoveCallback = [](Entity& target, Entity& observer) {
+        Thunder& self = dynamic_cast<Thunder&>(observer);
+        self.target = nullptr;
+      };
+
+      field->NotifyOnDelete(target->GetID(), this->GetID(), targetRemoveCallback);
     }
   }
 

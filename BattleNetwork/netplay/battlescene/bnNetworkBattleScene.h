@@ -30,7 +30,6 @@
 #include "../../bnField.h"
 #include "../../bnPlayer.h"
 #include "../../bnSelectedCardsUI.h"
-#include "../../bnPlayerCardUseListener.h"
 #include "../../bnCounterHitListener.h"
 #include "../../bnCharacterDeleteListener.h"
 #include "../../bnNaviRegistration.h"
@@ -83,9 +82,7 @@ private:
   std::vector<Player*> players; //!< Track all players
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
   SpriteProxyNode pingIndicator;
-  NetworkCardUseListener* networkCardUseListener{ nullptr };
   SelectedCardsUI* remoteCardUsePublisher{ nullptr };
-  PlayerCardUseListener* remoteCardUseListener{ nullptr };
   Battle::Card** remoteHand{ nullptr }; // TODO: THIS IS HACKING TO GET IT TO WORK PLS REMOVE LATER
   Player *remotePlayer{ nullptr }; //!< their player pawn
   Mob* mob{ nullptr }; //!< Our managed mob structure for PVP

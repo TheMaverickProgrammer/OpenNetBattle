@@ -6,6 +6,8 @@
  */
 class MettaurAttackState : public AIState<Mettaur>
 {
+  bool usingCard = false;
+
 public:
  
   /**

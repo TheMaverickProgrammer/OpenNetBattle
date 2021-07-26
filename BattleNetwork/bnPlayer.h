@@ -52,7 +52,6 @@ private:
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;
-  friend class PlayerCardUseListener;
 
   void SaveStats();
   void RevertStats();
@@ -80,6 +79,9 @@ public:
    * @param _elapsed for secs
    */
   virtual void OnUpdate(double _elapsed);
+
+  void MakeActionable() override final;
+  bool IsActionable() const override final;
 
   /**
    * @brief Fires a buster

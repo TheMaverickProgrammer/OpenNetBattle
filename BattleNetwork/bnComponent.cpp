@@ -10,6 +10,8 @@ Component::~Component() { ; }
 
 Entity* Component::GetOwner() { return owner; }
 
+const Entity* Component::GetOwner() const { return owner; }
+
 const bool Component::Injected() { return Scene() != nullptr; }
 
 BattleSceneBase* Component::Scene() { return scene; }

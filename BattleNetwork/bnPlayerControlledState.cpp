@@ -23,7 +23,7 @@ PlayerControlledState::~PlayerControlledState()
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
-  player.SetAnimation("PLAYER_IDLE");
+  player.MakeActionable();
   replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
@@ -60,10 +60,8 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   }
 
   // Actions with animation lockout controls take priority over movement
-  auto anim = player.GetFirstComponent<AnimationComponent>();
-  std::string animationStr = anim->GetAnimationString();
   bool lockout = player.IsLockoutAnimationComplete();
-  bool actionable = animationStr == "PLAYER_IDLE";
+  bool actionable = player.IsActionable();
 
   // One of our ongoing animations is preventing us from charging
   if (!lockout) {
@@ -76,9 +74,10 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (InputQueueHas(InputEvents::pressed_use_chip)) {
-    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
+      player.chargeEffect.SetCharging(false);
       isChargeHeld = false;
     }
     // If the card used was successful, we may have a card in queue
@@ -131,13 +130,15 @@ void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
 
   if(direction != Direction::none && actionable) {
     auto next_tile = player.GetTile() + direction;
+    auto anim = player.GetFirstComponent<AnimationComponent>();
+
     auto onMoveBegin = [player = &player, next_tile, this, anim] {
       const std::string& move_anim = player->GetMoveAnimHash();
 
       anim->CancelCallbacks();
 
-      auto idle_callback = [anim]() {
-        anim->SetAnimation("PLAYER_IDLE");
+      auto idle_callback = [player]() {
+        player->MakeActionable();
       };
 
       anim->SetAnimation(move_anim, [idle_callback] {

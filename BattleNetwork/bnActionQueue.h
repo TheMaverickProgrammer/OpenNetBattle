@@ -85,7 +85,7 @@ private:
   std::map<ActionTypes, ActionDiscardOp> discardFilters;
   std::map<ActionOrder, ActionOrder> priorityFilters;
   std::vector<Index> indices;
-  std::function<void()> actionableCallback;
+  std::function<void()> idleCallback;
 
   ActionOrder ApplyPriorityFilter(const ActionOrder& in);
   Index ApplyDiscardFilter(const Index& in);
@@ -103,7 +103,7 @@ public:
   void Process();
   void Pop();
   void ClearQueue(CleanupType cleanup);
-  void SetActionableCallback(const std::function<void()>& callback);
+  void SetIdleCallback(const std::function<void()>& callback);
 
   template<typename T>
   struct NoDeleter {

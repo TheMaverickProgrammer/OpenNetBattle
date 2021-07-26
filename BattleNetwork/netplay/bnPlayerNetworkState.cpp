@@ -26,8 +26,7 @@ void PlayerNetworkState::OnEnter(Player& player) {
 void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   player.SetHealth(netflags.remoteHP);
 
-  auto anim = player.GetFirstComponent<AnimationComponent>();
-  bool actionable = anim->GetAnimationString() == "PLAYER_IDLE";
+  bool actionable = player.IsActionable();
 
   // Actions with animation lockout controls take priority over movement
   bool canMove = player.IsLockoutAnimationComplete();
@@ -43,9 +42,10 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (InputQueueHas(InputEvents::pressed_use_chip)) {
-    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    auto cardsUI = player.GetFirstComponent<PlayerSelectedCardsUI>();
     if (cardsUI && player.CanAttack()) {
       cardsUI->UseNextCard();
+      player.Charge(false);
       isChargeHeld = false;
     }
     // If the card used was successful, we may have a card in queue
@@ -98,13 +98,15 @@ void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
 
   if (direction != Direction::none && actionable) {
     auto next_tile = player.GetTile() + direction;
-    auto onMoveBegin = [player = &player, next_tile, this, anim] {
+    auto onMoveBegin = [player = &player, next_tile, this] {
+      auto anim = player->GetFirstComponent<AnimationComponent>();
+
       const std::string& move_anim = player->GetMoveAnimHash();
 
       anim->CancelCallbacks();
 
-      auto idle_callback = [anim]() {
-        anim->SetAnimation("PLAYER_IDLE");
+      auto idle_callback = [player]() {
+        player->MakeActionable();
       };
 
       anim->SetAnimation(move_anim, [idle_callback] {

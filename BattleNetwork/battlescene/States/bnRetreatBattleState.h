@@ -8,8 +8,6 @@
     \brief This state handles the retreat textbox and outcome
 */
 
-class Player;
-
 struct RetreatBattleState final : public BattleSceneState {
   bool escaped{};
   AnimatedTextBox& textbox;

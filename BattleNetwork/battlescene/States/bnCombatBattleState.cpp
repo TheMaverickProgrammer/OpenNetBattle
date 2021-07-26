@@ -2,6 +2,8 @@
 
 #include "../bnBattleSceneBase.h"
 
+#include "../../bnPlayer.h"
+#include "../../bnPlayerSelectedCardsUI.h"
 #include "../../bnMob.h"
 #include "../../bnTeam.h"
 #include "../../bnEntity.h"
@@ -123,7 +125,7 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 void CombatBattleState::onUpdate(double elapsed)
 {  
   if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
-    auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
+    auto cardUI = tracked[0]->GetFirstComponent<PlayerSelectedCardsUI>();
 
     if (cardUI) {
       cardUI->Hide();

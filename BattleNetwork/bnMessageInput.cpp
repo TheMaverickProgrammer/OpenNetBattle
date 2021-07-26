@@ -2,10 +2,9 @@
 
 MessageInput::MessageInput(const std::string& initialText, size_t characterLimit) :
   MessageInterface("", nullptr),
-  characterLimit(characterLimit),
-  latestCapture(initialText.substr(0, characterLimit))
+  characterLimit(characterLimit)
 {
-  prevCaretPosition = latestCapture.size();
+  SetCaptureText(initialText);
 }
 
 MessageInput::~MessageInput() {
@@ -17,6 +16,17 @@ MessageInput::~MessageInput() {
 void MessageInput::ProtectPassword(bool isPassword)
 {
   password = isPassword;
+}
+
+void MessageInput::SetHint(const std::string& hint)
+{
+  this->hint = hint;
+}
+
+void MessageInput::SetCaptureText(const std::string& capture)
+{
+  latestCapture = capture.substr(0, characterLimit);
+  prevCaretPosition = latestCapture.size();
 }
 
 bool MessageInput::IsDone() {
@@ -160,6 +170,15 @@ void MessageInput::HandleClick(sf::Vector2f mousePos) {
 void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   auto textbox = GetTextBox();
 
+  if (!hint.empty() && latestCapture.empty()) {
+    Text hintTxt = textbox->MakeTextObject(hint);
+    hintTxt.setPosition(textbox->GetTextPosition());
+    hintTxt.setScale(textbox->getScale());
+    hintTxt.SetColor(sf::Color::Blue);
+    target.draw(hintTxt, states);
+    return;
+  }
+
   if (password) {
     textbox->ReplaceText(std::string(this->latestCapture.size(), '*'));
     textbox->CompleteCurrentBlock();
@@ -169,7 +188,7 @@ void MessageInput::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
   if (!enteredView) {
     // we have not initialized yet
-    // we can not trust the data in Input().GetInputTextBuffer()d
+    // we can not trust the data in Input().GetInputTextBuffer()
     return;
   }
 

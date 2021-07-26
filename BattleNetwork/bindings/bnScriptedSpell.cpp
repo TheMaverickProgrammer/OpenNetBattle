@@ -39,6 +39,12 @@ void ScriptedSpell::OnDelete() {
   Remove();
 }
 
+void ScriptedSpell::OnCollision(const Character* other)
+{
+  ScriptedSpell& ss = *this;
+  collisionCallback ? collisionCallback(ss, const_cast<Character&>(*other)) : (void)0;
+}
+
 void ScriptedSpell::Attack(Character* other) {
   other->Hit(GetHitboxProperties());
   ScriptedSpell& ss = *this;

@@ -28,6 +28,12 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
   return canMoveToCallback? canMoveToCallback(*next) : false;
 }
 
+void ScriptedObstacle::OnCollision(const Character* other)
+{
+  ScriptedObstacle& so = *this;
+  collisionCallback ? collisionCallback(so, const_cast<Character&>(*other)) : (void)0;
+}
+
 void ScriptedObstacle::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedObstacle::scriptedOffset.x,
     tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedObstacle::scriptedOffset.y);

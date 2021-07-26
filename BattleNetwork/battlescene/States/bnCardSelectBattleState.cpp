@@ -5,7 +5,7 @@
 #include "../../bnCard.h"
 #include "../../bnPlayer.h"
 #include "../../bnText.h"
-#include "../../bnSelectedCardsUI.h"
+#include "../../bnPlayerSelectedCardsUI.h"
 #include "../../bnInputManager.h"
 
 // modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
@@ -195,7 +195,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           auto newCards = cardCust.GetCards();
 
           Player* player = tracked[0];
-          SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
+          SelectedCardsUI* ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
           if (ui && hasNewHand) {
             cards = newCards;

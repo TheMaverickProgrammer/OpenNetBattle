@@ -65,13 +65,13 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
 }
 
 void Elecpulse::OnUpdate(double _elapsed) {
+  int step = 1;
+  if (GetTeam() == Team::blue) {
+    step = -1;
+  }
+
   if (hasHitbox) {
     GetTile()->AffectEntities(this);
-
-    int step = 1;
-    if (GetTeam() == Team::blue) {
-      step = -1;
-    }
 
     auto& tile = *GetTile();
     auto top = tile.Offset(step, -1);
@@ -85,7 +85,9 @@ void Elecpulse::OnUpdate(double _elapsed) {
     bottom ? bottom->RequestHighlight(flashMode) : (void)0;
   }
 
-  setPosition(tile->getPosition()+sf::Vector2f(70.0f, -60.0f));
+  float flip = 1.0;
+
+  setPosition(tile->getPosition()+sf::Vector2f(70.0f*step, -60.0f));
 }
 
 void Elecpulse::OnDelete()

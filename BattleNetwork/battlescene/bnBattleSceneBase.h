@@ -20,8 +20,8 @@
 #include "../bnHitListener.h"
 #include "../bnCharacterDeleteListener.h"
 #include "../bnCardUseListener.h"
-#include "../bnPlayerCardUseListener.h"
-#include "../bnSelectedCardsUI.h"
+#include "../bnRealtimeCardUseListener.h"
+#include "../bnPlayerSelectedCardsUI.h"
 #include "../bnCardSelectionCust.h"
 #include "../bnPlayerEmotionUI.h"
 #include "../bnBattleResults.h"
@@ -88,8 +88,8 @@ private:
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
-  PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
-  SelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
+  RealtimeCardUseListener cardListener; /*!< Card use listener handles one card at a time */
+  PlayerSelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
   PlayerEmotionUI* emotionUI{ nullptr }; /*!< Player's Emotion Window */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
@@ -103,6 +103,7 @@ private:
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<SceneNode*> scenenodes; /*!< ui components. DO NOT DELETE. */
   std::vector<Component*> components; /*!< Components injected into the scene to track. DO NOT DELETE. */
+  std::vector<std::reference_wrapper<CardUsePublisher>> cardUseSubscriptions; /*!< Share subscriptions with other CardListeners states*/
   BattleResults battleResults{};
   BattleResultsFunc onEndCallback;
 
@@ -272,6 +273,10 @@ public:
   void SetCustomBarProgress(double percentage);
   void SetCustomBarDuration(double maxTimeSeconds);
 
+  void SubscribeToCardEvents(CardUsePublisher& publisher);
+  void UnsubscribeFromCardEvents(CardUsePublisher& publisher);
+  const std::vector<std::reference_wrapper<CardUsePublisher>>& GetCardUseSubscriptions() const;
+
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.
     * @return true if all mob enemies are marked as deleted
@@ -325,7 +330,7 @@ public:
   Field* GetField();
   const Field* GetField() const;
   CardSelectionCust& GetCardSelectWidget();
-  SelectedCardsUI& GetSelectedCardsUI();
+  PlayerSelectedCardsUI& GetSelectedCardsUI();
   PlayerEmotionUI& GetEmotionWindow();
   Camera& GetCamera();
   PA& GetPA();
@@ -357,6 +362,12 @@ public:
     * @param other
     */
   void Inject(MobHealthUI& other);
+
+  /**
+  * @brief Inject uses double-visitor design pattern. BattleScene subscribes to the selected card ui.
+  * @param cardUI
+  */
+  void Inject(SelectedCardsUI& cardUI);
 
   /**
     * @brief Inject uses double-visitor design pattern. This is default case.

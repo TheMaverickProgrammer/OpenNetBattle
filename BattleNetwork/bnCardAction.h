@@ -53,6 +53,7 @@ public:
     Attachment& UseAnimation(Animation&);
     void Update(double elapsed);
     void SetOffset(const sf::Vector2f& pos);
+    void SetScale(const sf::Vector2f& scale);
     void AttachAllPendingNodes();
     Animation& GetParentAnim();
     Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);

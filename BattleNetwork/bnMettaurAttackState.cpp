@@ -3,25 +3,38 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnMettaurIdleState.h"
+#include "bnOwnedCardsUI.h"
 
 MettaurAttackState::MettaurAttackState() : AIState<Mettaur>() { ; }
 MettaurAttackState::~MettaurAttackState() { ; }
 
 void MettaurAttackState::OnEnter(Mettaur& met) {
   auto metPtr = &met;
-  auto onAttack = [this, metPtr]() {DoAttack(*metPtr); };
-  auto onFinish = [this, metPtr]() { metPtr->ChangeState<MettaurIdleState>(); };
+  int r = rand() % 10;
 
-  auto& animation = *met.GetFirstComponent<AnimationComponent>();
+  // proof of concept using cards
+  if (SelectedCardsUI* ui = met.GetFirstComponent<OwnedCardsUI>(); ui && ui->Peek().has_value() && r > 1) {
+    ui->UseNextCard();
+    this->usingCard = true;
+  }
+  else {
+    auto onAttack = [this, metPtr]() {DoAttack(*metPtr); };
+    auto onFinish = [this, metPtr]() { metPtr->ChangeState<MettaurIdleState>(); };
 
-  animation.SetAnimation("ATTACK", onFinish);
+    auto& animation = *met.GetFirstComponent<AnimationComponent>();
 
-  animation.AddCallback(10, onAttack, true);
-  animation.SetCounterFrameRange(6, 11);
+    animation.SetAnimation("ATTACK", onFinish);
+
+    animation.AddCallback(10, onAttack, true);
+    animation.SetCounterFrameRange(6, 11);
+  }
 }
 
 void MettaurAttackState::OnUpdate(double _elapsed, Mettaur& met) {
-  /* Nothing, just wait the animation out*/
+  if (this->usingCard) {
+    met.IsLockoutAnimationComplete();
+    met.ChangeState<MettaurIdleState>();
+  }
 }
 
 void MettaurAttackState::OnLeave(Mettaur& met) { 

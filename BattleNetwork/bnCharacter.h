@@ -128,6 +128,8 @@ public:
   void ResolveFrameBattleDamage();
 
   virtual void OnUpdate(double elapsed) = 0;
+  virtual void MakeActionable();
+  virtual bool IsActionable() const;
 
   const bool IsLockoutAnimationComplete();
 

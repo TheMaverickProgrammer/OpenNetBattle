@@ -18,6 +18,7 @@ public:
   
   void OnUpdate(double _elapsed) override;
   void OnDelete() override;
+  void OnCollision(const Character* other) override;
   bool CanMoveTo(Battle::Tile * next) override;
   void Attack(Character* e) override;
   void OnSpawn(Battle::Tile& spawn) override;
@@ -33,6 +34,7 @@ public:
 
   std::function<void(ScriptedSpell&, Battle::Tile&)> spawnCallback;
   std::function<void(ScriptedSpell&, Character&)> attackCallback;
+  std::function<void(ScriptedSpell&, Character&)> collisionCallback;
   std::function<bool(Battle::Tile&)> canMoveToCallback;
   std::function<void(ScriptedSpell&)> deleteCallback;
   std::function<void(ScriptedSpell&, double)> updateCallback;

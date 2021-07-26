@@ -65,11 +65,11 @@ Player::Player() :
 
   FinishConstructor();
 
-  // When we are actionable we should be in IDLE state
-  actionQueue.SetActionableCallback([this] {
-    if (animationComponent->GetAnimationString() != "PLAYER_IDLE") {
+  // When we have no upcoming actions we should be in IDLE state
+  actionQueue.SetIdleCallback([this] {
+    if (!IsActionable()) {
       auto finish = [this] {
-        SetAnimation("PLAYER_IDLE");
+        MakeActionable();
       };
 
       animationComponent->OnFinish(finish);
@@ -110,6 +110,17 @@ void Player::OnUpdate(double _elapsed) {
   chargeEffect.Update(_elapsed);
 
   fullyCharged = chargeEffect.IsFullyCharged();
+}
+
+void Player::MakeActionable()
+{
+  animationComponent->CancelCallbacks();
+  animationComponent->SetAnimation("PLAYER_IDLE");
+}
+
+bool Player::IsActionable() const
+{
+    return animationComponent->GetAnimationString() == "PLAYER_IDLE";
 }
 
 void Player::Attack() {

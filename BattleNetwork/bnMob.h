@@ -54,7 +54,6 @@ private:
   bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   bool isBoss{ false }; /*!< Flag to change rank and music */
   std::string music; /*!< Override with custom music */
-  std::vector<Component*> components; /*!< Components to inject into the battle scene */
   std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
   std::vector<Character*> tracked; /*! Enemies that may or may not be spawned through the mob class but need to be considered */
   std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
@@ -214,11 +213,6 @@ public:
    * @brief Changes all enemies state to their default state
    */
   void DefaultState();
-
-  // todo: take both of these out
-  void DelegateComponent(Component* component);
-
-  std::vector<Component*> GetComponents();
 
   /**
    * @brief Get the next unspawned enemy

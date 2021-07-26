@@ -24,6 +24,11 @@ CardAction::CardAction(Character& actor, const std::string& animation) :
 
       anim->CancelCallbacks();
 
+      if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
+        this->animation = prevState;
+        Logger::Logf("Character %s did not have animation %s, reverting to last anim", this->actor.GetName().c_str(), this->animation.c_str());
+      }
+
       anim->SetAnimation(this->animation, [this]() {
         RecallPreviousState();
       });
@@ -104,7 +109,12 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       prevState = anim->GetAnimationString();;
       Logger::Logf("(override animation) prevState was %s", prevState.c_str());
 
-      anim->OverrideAnimationFrames(animation, frameData, uuid);
+      if (!anim->GetAnimationObject().HasAnimation(this->animation)) {
+        this->animation = prevState;
+        Logger::Logf("(override animation) Character %s did not have animation %s, reverting to last anim", this->actor.GetName().c_str(), this->animation.c_str());
+      }
+
+      anim->OverrideAnimationFrames(this->animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
         RecallPreviousState();
       });
@@ -140,7 +150,9 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(parent), point, std::ref(node) }));
 
   if (started) {
-    this->GetActor().AddNode(&node);
+    auto& actor = this->GetActor();
+    actor.AddNode(&node);
+    
     // inform any new attachments they can and should attach immediately
     iter->second.started = true;
   }
@@ -171,6 +183,17 @@ void CardAction::Update(double _elapsed)
     baseOffset = baseOffset - origin;
 
     node.SetOffset(baseOffset);
+
+    /*
+      NOTE: (7/25/2021)
+      This is hacky. Should have a standard that everything faces right per default
+      and engine flips everything based on Team and Facing direction.
+      May come to haunt me later so here's a reminder to take this out.
+    */
+    if (this->actor.GetFacing() == Direction::left) {
+      auto scale = sf::Vector2f{ -1.0, 1.0 };
+      node.SetScale(scale);
+    }
   }
 
   if (!started) return;
@@ -301,6 +324,11 @@ void CardAction::Attachment::Update(double elapsed)
 void CardAction::Attachment::SetOffset(const sf::Vector2f& pos)
 {
   this->spriteProxy.get().setPosition(pos);
+}
+
+void CardAction::Attachment::SetScale(const sf::Vector2f& scale)
+{
+  this->spriteProxy.get().setScale(scale);
 }
 
 void CardAction::Attachment::AttachAllPendingNodes()

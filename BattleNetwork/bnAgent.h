@@ -1,6 +1,6 @@
 #pragma once
 
-class Entity;
+class Character;
 
 /**
  * @class Agent
@@ -11,9 +11,9 @@ class Entity;
  */
 class Agent {
 private:
-  Entity * target;
+  Character* target;
 public:
-  void SetTarget(Entity* _target) {
+  void SetTarget(Character* _target) {
     target = _target;
   }
 
@@ -21,5 +21,5 @@ public:
     SetTarget(nullptr);
   }
 
-  Entity* GetTarget() const { return target; }
+  Character* GetTarget() const { return target; }
 };

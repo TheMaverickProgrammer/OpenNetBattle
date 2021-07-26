@@ -358,7 +358,8 @@ void ConfigScene::ToggleLogin() {
     }
   }
   else {
-    LoginStep(UserInfo::states::entering_username);
+    // Begin login state from the beginning
+    LoginStep(UserInfo::states::entering_server);
   }
 }
 
@@ -504,6 +505,7 @@ void ConfigScene::onUpdate(double elapsed)
         configSettings.SetMusicLevel(musicLevel);
         configSettings.SetSFXLevel(sfxLevel);
         configSettings.SetInvertMinimap(invertMinimap);
+        configSettings.SetWebServerInfo(user.server_url, user.port, user.version);
 
         ConfigWriter writer(configSettings);
         writer.Write("config.ini");
@@ -609,12 +611,25 @@ void ConfigScene::onUpdate(double elapsed)
           inputInterface = nullptr;
 
           switch (user.currState) {
+          case UserInfo::states::entering_server:
+            user.server_url = entry;
+            LoginStep(UserInfo::states::entering_port);
+            break;
+          case UserInfo::states::entering_port:
+            user.port = std::atoi(entry.c_str());
+            LoginStep(UserInfo::states::entering_version_num);
+            break;
+          case UserInfo::states::entering_version_num:
+            user.version = entry;
+            LoginStep(UserInfo::states::entering_username);
+            break;
           case UserInfo::states::entering_username:
             user.username = entry;
             LoginStep(UserInfo::states::entering_password);
             break;
           case UserInfo::states::entering_password:
             user.password = entry;
+            WEBCLIENT.ConnectToWebServer(user.version.c_str(), user.server_url.c_str(), user.port);
             user.result = WEBCLIENT.SendLoginCommand(user.username, user.password);
             LoginStep(UserInfo::states::pending);
             break;
@@ -857,21 +872,48 @@ void ConfigScene::LoginStep(UserInfo::states next)
 
   if (next == UserInfo::states::complete) {
     Audio().Play(AudioType::NEW_GAME);
-
     return;
   }
 
   user.currState = next;
 
-  std::string dummy;
-  if (next == UserInfo::states::entering_username) {
-    dummy = "Enter Username";
-  }
+  inputInterface = new MessageInput("", 20);
 
-  inputInterface = new MessageInput(dummy, 20);
+  switch(user.currState) {
+    case UserInfo::states::entering_server:
+    {
+      inputInterface->SetHint("Enter Server URL");
+      inputInterface->SetCaptureText(configSettings.GetWebServerInfo().URL);
+      break;
+    }
+    case UserInfo::states::entering_port:
+    {
+      inputInterface->SetHint("Enter Server Port");
+      int port = configSettings.GetWebServerInfo().port;
 
-  if (next == UserInfo::states::entering_password) {
-    inputInterface->ProtectPassword(true);
+      if (port > 0) {
+        inputInterface->SetCaptureText(std::to_string(port));
+      }
+
+      break;
+    }
+    case UserInfo::states::entering_version_num:
+    {
+      inputInterface->SetHint("Enter Server Version");
+      inputInterface->SetCaptureText(configSettings.GetWebServerInfo().version);
+      break;
+    }
+    case UserInfo::states::entering_username:
+    {
+      inputInterface->SetHint("Enter Username");
+      break;
+    }
+    case UserInfo::states::entering_password: 
+    {
+      inputInterface->ProtectPassword(true);
+      inputInterface->SetHint("Enter Password");
+      break;
+    }
   }
 
   textbox.EnqueMessage(inputInterface);

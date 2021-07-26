@@ -1,6 +1,6 @@
 #include "bnDefenseObstacleBody.h"
 
-DefenseObstacleBody::DefenseObstacleBody() : DefenseRule(Priority(0), DefenseOrder::collisionOnly) {
+DefenseObstacleBody::DefenseObstacleBody() : DefenseRule(Priority(1), DefenseOrder::collisionOnly) {
 }
 
 DefenseObstacleBody::~DefenseObstacleBody() { }

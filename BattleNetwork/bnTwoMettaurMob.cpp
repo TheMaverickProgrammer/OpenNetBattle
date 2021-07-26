@@ -3,6 +3,25 @@
 #include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
 #include "bnFadeInState.h"
+#include "bnOwnedCardsUI.h"
+
+namespace {
+  static std::vector<Battle::Card> GenCards() {
+    auto list = BuiltInCards::AsList;
+
+    int rand_size = (rand() % 4)+1;
+
+    std::vector<Battle::Card> cards;
+
+    while (rand_size > 0) {
+      int offset = rand() % list.size();
+      cards.push_back(WEBCLIENT.MakeBattleCardFromWebCardData(*(list.begin() + offset)));
+      rand_size--;
+    }
+
+    return cards;
+  }
+}
 
 TwoMettaurMob::TwoMettaurMob(Field* field) : MobFactory(field)
 {
@@ -37,42 +56,20 @@ Mob* TwoMettaurMob::Build() {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
-        //tile->SetState(TileState(rand()%int(TileState::size)));
-
-        /*if (tile->GetTeam() == Team::red) {
-          if (i == 1 && j == 1) {
-            tile->SetState(TileState::directionRight);
-          }
-        }
-
-        if (tile->GetTeam() == Team::blue) {
-          switch (j) {
-          case 0:
-            tile->SetState(TileState::directionLeft);
-            break;
-          case 1:
-          {
-            if (i == 3)
-              tile->SetState(TileState::directionDown);
-            else if (i == 5)
-              tile->SetState(TileState::directionUp);
-          }
-            break;
-          case 2:
-          {
-            if (i == 5)
-              tile->SetState(TileState::directionUp);
-            else
-              tile->SetState(TileState::directionRight);
-          }
-            break;
-          }
-        }*/
-
         if (tile->IsWalkable() && !tile->IsReservedByCharacter() && tile->GetTeam() == Team::blue) {
           if (rand() % 50 > 25 && count-- > 0) {
-            auto spawner = mob->CreateSpawner<Mettaur>(Mettaur::Rank::EX);
-            spawner.SpawnAt<FadeInState>(i + 1, j + 1);
+            auto spawner = mob->CreateSpawner<Mettaur>(Mettaur::Rank::Rare2);
+            Mob::Mutator* mutator = spawner.SpawnAt<FadeInState>(i + 1, j + 1);
+
+            // randomly spawn met with random card list
+            // provided from our available built-in card list
+            if (rand() % 50 > 25) {
+              mutator->Mutate([mob](Character& in) {
+                OwnedCardsUI* ui = in.CreateComponent<OwnedCardsUI>(&in);
+                ui->AddCards(::GenCards());
+                ui->setPosition(0, -in.GetHeight());
+                });
+            }
           }
         }
       }

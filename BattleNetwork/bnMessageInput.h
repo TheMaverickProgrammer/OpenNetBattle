@@ -12,6 +12,8 @@ public:
   ~MessageInput();
 
   void ProtectPassword(bool isPassword);
+  void SetHint(const std::string& hint);
+  void SetCaptureText(const std::string& capture);
 
   bool IsDone();
   void HandleClick(sf::Vector2f mousePos);
@@ -29,5 +31,6 @@ private:
   size_t characterLimit{};
   size_t prevCaretPosition{};
   std::string latestCapture;
+  std::string hint;
 };
 

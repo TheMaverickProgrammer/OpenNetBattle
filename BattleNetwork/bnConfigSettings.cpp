@@ -168,6 +168,13 @@ void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
   ConfigSettings::gamepad = gamepad;
 }
 
+void ConfigSettings::SetWebServerInfo(const std::string& url, int port, const std::string& version)
+{
+  this->webServer.URL = url;
+  this->webServer.port = port;
+  this->webServer.version = version;
+}
+
 ConfigSettings::ConfigSettings(const ConfigSettings& rhs)
 {
   this->operator=(rhs);

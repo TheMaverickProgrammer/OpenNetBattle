@@ -80,5 +80,5 @@ void Mettaur::OnUpdate(double _elapsed) {
 }
 
 const float Mettaur::GetHeight() const {
-  return hitHeight;
+  return 22.f;
 }

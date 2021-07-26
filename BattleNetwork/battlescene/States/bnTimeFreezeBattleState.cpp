@@ -15,7 +15,6 @@ TimeFreezeBattleState::TimeFreezeBattleState()
 
 TimeFreezeBattleState::~TimeFreezeBattleState()
 {
-  CleanupStuntDouble();
 }
 
 const bool TimeFreezeBattleState::FadeInBackdrop()

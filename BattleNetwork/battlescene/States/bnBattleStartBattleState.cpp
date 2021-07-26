@@ -1,8 +1,10 @@
 #include "bnBattleStartBattleState.h"
 
+#include "../../bnPlayer.h"
 #include "../bnBattleSceneBase.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
+#include "../../bnPlayerSelectedCardsUI.h"
 
 BattleStartBattleState::BattleStartBattleState(std::vector<Player*>& tracked) : tracked(tracked) {
   battleStart = sf::Sprite(*LOAD_TEXTURE(BATTLE_START));
@@ -23,7 +25,7 @@ void BattleStartBattleState::onStart(const BattleSceneState*)
   battleStartTimer.start();
 
   // only reveal first player's UI widget to them
-  auto ui = GetScene().GetPlayer()->GetFirstComponent<SelectedCardsUI>();
+  auto ui = GetScene().GetPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
 
   if (ui) {
     ui->Reveal();

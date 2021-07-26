@@ -112,7 +112,7 @@ void WindRackCardAction::OnExecute(Character* user)
 
     SwordEffect* e = new SwordEffect;
 
-    if (actor->GetFacing() == Direction::right) {
+    if (actor->GetFacing() == Direction::left) {
       e->setScale(-2.f, 2.f);
     }
 

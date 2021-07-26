@@ -45,7 +45,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   yellowShader(*Shaders().GetShader(ShaderType::YELLOW)),
   heatShader(*Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(*Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
-  cardListener(props.player),
+  cardListener(),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI({ props.folder, 8, 8 }),
   mobFont(Font::Style::thick),
@@ -97,8 +97,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   }
 
   // Card UI for player
-  cardUI = player->CreateComponent<SelectedCardsUI>(player);
-  cardListener.Subscribe(*cardUI);
+  cardUI = player->CreateComponent<PlayerSelectedCardsUI>(player);
+  // cardListener.Subscribe(*cardUI);
   this->CardUseListener::Subscribe(*cardUI);
 
   // Player UI 
@@ -295,6 +295,23 @@ void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
   this->customDuration = maxTimeSeconds;
 }
 
+void BattleSceneBase::SubscribeToCardEvents(CardUsePublisher& publisher)
+{
+  cardListener.Subscribe(publisher);
+  this->CardUseListener::Subscribe(publisher);
+  cardUseSubscriptions.push_back(std::ref(publisher));
+}
+
+void BattleSceneBase::UnsubscribeFromCardEvents(CardUsePublisher& publisher)
+{
+  // todo: cardListener.Unsubscribe(publisher);
+}
+
+const std::vector<std::reference_wrapper<CardUsePublisher>>& BattleSceneBase::GetCardUseSubscriptions() const
+{
+  return cardUseSubscriptions;
+}
+
 void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long long timestamp)
 {
   HandleCounterLoss(user, true);
@@ -303,15 +320,6 @@ void BattleSceneBase::OnCardUse(const Battle::Card& card, Character& user, long 
 void BattleSceneBase::LoadMob(Mob& mob)
 {
   this->mob = &mob;
-  auto mobComps = mob.GetComponents();
-
-  for (auto c : mobComps) {
-    c->Inject(*this);
-  }
-
-  components.insert(components.end(), mobComps.begin(), mobComps.end());
-
-  ProcessNewestComponents();
 }
 
 void BattleSceneBase::HandleCounterLoss(Character& subject, bool playsound)
@@ -656,7 +664,7 @@ CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
   return cardCustGUI;
 }
 
-SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
+PlayerSelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
   return *cardUI;
 }
 
@@ -767,6 +775,11 @@ void BattleSceneBase::Inject(MobHealthUI& other)
   other.scene = this;
   components.push_back(&other);
   scenenodes.push_back(&other);
+}
+
+void BattleSceneBase::Inject(SelectedCardsUI& cardUI)
+{
+  this->SubscribeToCardEvents(cardUI);
 }
 
 // Default case: no special injection found for the type, just add it to our update loop

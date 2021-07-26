@@ -76,7 +76,7 @@ void YoYoCardAction::Update(double _elapsed)
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
-    GetActor().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    //GetActor().GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }

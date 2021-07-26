@@ -7,6 +7,7 @@
 #include "bnResourceHandle.h"
 #include "bnEntity.h"
 #include "bnSpell.h"
+#include "bnCharacter.h"
 #include "bnElements.h"
 #include "bnField.h"
 #include "bnTile.h"
@@ -115,8 +116,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
             sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity)
         ),
         "GetCharacter", &Field::GetCharacter,
-        "GetEntity", &Field::GetEntity
-        );
+        "GetEntity", &Field::GetEntity,
+        "NotifyOnDelete", &Field::NotifyOnDelete,
+        "CallbackOnDelete", &Field::CallbackOnDelete
+    );
 
     const auto& animation_record = engine_namespace.new_usertype<Animation>("Animation",
         sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
@@ -180,13 +183,14 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
             "GetAnimation", &ScriptedSpell::GetAnimationObject,
             "ShakeCamera", &ScriptedSpell::ShakeCamera,
-            "SetHeight", & ScriptedSpell::SetHeight,
+            "SetHeight", &ScriptedSpell::SetHeight,
             "SetPosition", &ScriptedSpell::SetTileOffset,
             "GetPosition", &ScriptedSpell::GetTileOffset,
             "ShowShadow", & ScriptedSpell::ShowShadow,
             "attackFunc", &ScriptedSpell::attackCallback,
             "deleteFunc", &ScriptedSpell::deleteCallback,
             "updateFunc", &ScriptedSpell::updateCallback,
+            "collisionFunc", &ScriptedSpell::collisionCallback,
             "canMoveToFunc", &ScriptedSpell::canMoveToCallback,
             "onSpawnFunc", &ScriptedSpell::spawnCallback,
             sol::base_classes, sol::bases<Spell>()
@@ -247,6 +251,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
         "attackFunc", &ScriptedObstacle::attackCallback,
         "deleteFunc", &ScriptedObstacle::deleteCallback,
         "updateFunc", &ScriptedObstacle::updateCallback,
+        "collisionFunc", &ScriptedObstacle::collisionCallback,
         "canMoveToFunc", &ScriptedObstacle::canMoveToCallback,
         "onSpawnFunc", &ScriptedObstacle::spawnCallback
         );

@@ -118,10 +118,16 @@ private:
   struct UserInfo {
     std::string username;
     std::string password;
+    std::string server_url;
+    std::string version{};
+    int port{};
     std::future<bool> result;
     enum class states : char {
       entering_username,
       entering_password,
+      entering_server,
+      entering_port,
+      entering_version_num,
       pending,
       complete
     } currState{ states::complete };

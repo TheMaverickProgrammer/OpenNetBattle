@@ -166,15 +166,6 @@ void Mob::DefaultState() {
   defaultStateInvokers.clear();
 }
 
-// todo: take out
-void Mob::DelegateComponent(Component* component) {
-  components.push_back(component);
-}
-
-std::vector<Component*> Mob::GetComponents() { 
-  return components; 
-}
-
 Mob::MobData* Mob::GetNextMob() {
   if (spawnIndex >= spawn.size()) return nullptr;
 

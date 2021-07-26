@@ -57,6 +57,12 @@ public:
   Entity* GetOwner();
 
   /**
+   * @brief Get the owner as an Entity (const. qualified)
+   * @return const Entity*
+   */
+  const Entity* GetOwner() const;
+
+  /**
   * @brief Query if this component has been injected into the battle scene's ui or logic loop 
   */
 

@@ -102,7 +102,7 @@ void ActionQueue::Process() {
   ActionTypes top = TopType();
 
   if (top == ActionTypes::none) {
-    if (actionableCallback) actionableCallback();
+    if (idleCallback) idleCallback();
     return; // nothing to process. abort
   }
 
@@ -186,11 +186,11 @@ void ActionQueue::ClearQueue(ActionQueue::CleanupType cleanup)
     // The only thing we need to reset at the moment is 
     // the actionable callback as we may be in the deconstructor
     // of an object that owns the callback functor
-    actionableCallback = nullptr;
+    idleCallback = nullptr;
   }
 }
 
-void ActionQueue::SetActionableCallback(const std::function<void()>& callback)
+void ActionQueue::SetIdleCallback(const std::function<void()>& callback)
 {
-  actionableCallback = callback;
+  idleCallback = callback;
 }

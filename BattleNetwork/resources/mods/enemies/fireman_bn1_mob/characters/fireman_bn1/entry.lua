@@ -54,14 +54,20 @@ function MoveState(self, dt)
 	end
 	--5 frames in, teleport to a random tile other than the current one
 	if waitTime == 10 then 
-		local randomx = self:CurrentTile():X()
-		local randomy = self:CurrentTile():Y()
-		while (randomx == self:CurrentTile():X() and randomy == self:CurrentTile():Y()) do
+		local dest = self:Field():TileAt(1, 1)
+		local giveup = 0 --give up if 100 tiles in a row aren't legal
+		while (((dest:IsReserved({}) or (dest:Team() == Team.Red) or (not dest:IsWalkable()))) and giveup < 100) do
+			local randomx = self:CurrentTile():X()
+			local randomy = self:CurrentTile():Y()
 			randomx = math.random(4, 6)
 			randomy = math.random(1, 3)
+			dest = self:Field():TileAt(randomx, randomy)
+			giveup = giveup + 1
 		end
-		local dest = self:Field():TileAt(randomx, randomy)
-		self:Teleport(dest, ActionOrder.Voluntary, nonce)
+		
+		if giveup < 100 then
+			self:Teleport(dest, ActionOrder.Voluntary, nonce)
+		end
 	end
 	if waitTime <= 0 then
 		NextState()
@@ -133,18 +139,20 @@ function AttackState(self, dt)
 				for x = 0, 2 do
 					local taken = true
 					while taken == true do
-						bombx[x] = math.random(1, 3)
+						bombx[x] = math.random(1, 6)
 						bomby[x] = math.random(1, 3)
 						--check if any previous bombs share a planned location
 						taken = false
 						for y = 0, x-1 do
-							while ((bombx[x] == bombx[y]) and (bomby[x] == bomby[y])) do
+							if ((bombx[x] == bombx[y]) and (bomby[x] == bomby[y])) then
 								taken = true
 							end
 						end
+						if(self:Field():TileAt(bombx[x], bomby[x]):Team() == Team.Blue) then
+							taken = true
+						end
 					end
 				end
-				print(bombx[0])
 				self:Field():Spawn(Firebomb(self, bombx[0], bomby[0]), self:CurrentTile():X(), self:CurrentTile():Y())
 			end
 			if waitTime == 125 then
@@ -230,9 +238,21 @@ function Firetower_Fire(fireman)
     fireAnim:CopyFrom(anim)
     fireAnim:SetState("FIRETOWER_FIRE_INIT")
     fireAnim:SetPlayback(Playback.Loop)
-
+	local player = fireman:Target()
+	local ymod = 0
+	
     fire.updateFunc = function(self, dt) 
 		--3 frames no damage, on 17 spawn next, 137 no more hitbox, 139 despawn
+		if expiration == 139 then
+			if player then
+				if player:CurrentTile():Y() > fire:CurrentTile():Y() then
+					ymod = 1
+				end
+				if player:CurrentTile():Y() < fire:CurrentTile():Y() then
+					ymod = -1
+				end
+			end
+		end
 		if expiration == 123 then
 			fireAnim:SetState("FIRETOWER_FIRE")
 			fireAnim:SetPlayback(Playback.Loop)
@@ -243,19 +263,12 @@ function Firetower_Fire(fireman)
 		end
         if expiration < 137 and expiration > 2 then
 			fire:CurrentTile():AttackEntities(self)
+			if(fire:CurrentTile():IsReserved({})) then
+				self:Delete()
+			end
 		end
 		if expiration == 122 and fire:CurrentTile():X() > 1 then
-			local ymod = 0
-			--local player = self:Target()
-			--if player then
-				--if player:CurrentTile():Y() > fire:CurrentTile():Y() then
-					--ymod = ymod + 1
-				--end
-				--if player:CurrentTile():Y() < fire:CurrentTile():Y() then
-					--ymod = ymod - 1
-				--end
-			--end
-			self:Field():Spawn(Firetower_Fire(self), fire:CurrentTile():X() - 1, fire:CurrentTile():Y() + ymod)
+			self:Field():Spawn(Firetower_Fire(fireman), fire:CurrentTile():X() - 1, fire:CurrentTile():Y() + ymod)
 		end
 		expiration = expiration - 1
 		if expiration <= 0 then
@@ -263,7 +276,7 @@ function Firetower_Fire(fireman)
 		end
     end
 	
-	fire.attackFunc = function(self, other)
+	fire.collisionFunc = function(self, other)
 		self:Delete()
 	end
 	
@@ -362,13 +375,16 @@ function Firebomb_Fire(firebomb)
 
     fire.updateFunc = function(self, dt) 
 		fire:CurrentTile():AttackEntities(self)
+		if fire:CurrentTile():IsReserved({}) and expiration < 200 then
+			self:Delete()
+		end
 		expiration = expiration - 1
 		if expiration <= 0 then
 			self:Delete()
 		end
     end
 	
-	fire.attackFunc = function(self, other)
+	fire.collisionFunc = function(self, other)
 		self:Delete()
 	end
 	
@@ -376,7 +392,7 @@ function Firebomb_Fire(firebomb)
 end
 
 function battle_init(self)
-	math.randomseed(914191)
+	math.randomseed(914191) --!
 	math.random(); math.random(); math.random()  --lua sucks
     aiStateIndex = 1
     aiState = { 
@@ -399,6 +415,8 @@ function battle_init(self)
 		SetWaitTimer(260),
 		AttackState,
     }
+	
+	self:RegisterStatusCallback(Hit.Flinch, dayRuined()) --!
 
     texture = LoadTexture(_modpath.."FireMan.png")
 	fireRingTexture = LoadTexture(_modpath.."firering.png")
@@ -409,6 +427,7 @@ function battle_init(self)
     self:SetTexture(texture, true)
     self:SetHeight(60)
     self:ShareTile(false)
+	--self:SetLayer(0) --!
 
     anim = self:GetAnimation()
     anim:Load(_modpath.."fireman.animation")
@@ -422,15 +441,13 @@ function num_of_explosions()
 end
 
 function on_update(self, dt)
-	--self:RegisterStatusCallback(Hit.Flinch, local function()
-		--dayRuined()
-	--end)
 	waitTime = waitTime - 1
     aiState[aiStateIndex](self, dt)
 end
 
 function dayRuined()
 	--reset AI pattern when flinched, stunned, etc
+	print("day ruined")
 	aiStateIndex = 1
 end
 

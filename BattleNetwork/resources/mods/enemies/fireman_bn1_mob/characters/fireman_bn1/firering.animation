@@ -1,8 +1,0 @@
-imagePath="firering.png"
-
-animation state="IDLE"
-frame duration="0.05" x="2" y="0" w="40" h="36" originx="18" originy="36"
-frame duration="0.05" x="42" y="0" w="40" h="36" originx="18" originy="36"
-frame duration="0.05" x="82" y="0" w="40" h="36" originx="18" originy="36"
-frame duration="0.05" x="122" y="0" w="40" h="36" originx="18" originy="36"
-frame duration="0.05" x="162" y="0" w="40" h="36" originx="18" originy="36"

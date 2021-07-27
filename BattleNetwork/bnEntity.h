@@ -87,6 +87,7 @@ private:
   MoveEvent currMoveEvent{};
   unsigned moveEventFrame{};
   unsigned frame{};
+  float currJumpHeight{};
 
   /**
    * @brief Frees one component with the same ID
@@ -149,6 +150,12 @@ public:
   void ClearActionQueue();
   const float GetJumpHeight() const;
   virtual void FilterMoveEvent(MoveEvent& event) {};
+
+  /**
+  * @brief How high off the ground the entity currently is
+  * @return current height off ground
+  */
+  const float GetCurrJumpHeight() const;
 
   /**
    * @brief Virtual. Queries if an entity can move to a target tile.

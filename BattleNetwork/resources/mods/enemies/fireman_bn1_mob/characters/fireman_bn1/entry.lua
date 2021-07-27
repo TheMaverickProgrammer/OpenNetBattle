@@ -1,3 +1,5 @@
+--Author: Gray Nine
+
 nonce = function() end 
 
 function LoadTexture(path)
@@ -18,6 +20,7 @@ local firstFrame = false
 local attack = "FIREARM"
 local bombx = {}
 local bomby = {}
+local ruined = false
 
 function NextState()
     -- increment our AI state counter
@@ -37,12 +40,23 @@ end
 
 function WaitState(self, dt)
 	if firstFrame then
-		anim:SetState("IDLE")
-		anim:SetPlayback(Playback.Loop)
 		firstFrame = false
+		if ruined then
+			waitTime = 60
+		else
+			anim:SetState("IDLE")
+			anim:SetPlayback(Playback.Loop)
+		end
 	end
     if waitTime <= 0 then
-        NextState()
+		if ruined then
+			waitTime = 25
+			anim:SetState("IDLE")
+			anim:SetPlayback(Playback.Loop)
+			ruined = false
+		else
+			NextState()
+		end
     end
 end
 
@@ -416,7 +430,7 @@ function battle_init(self)
 		AttackState,
     }
 	
-	self:RegisterStatusCallback(Hit.Flinch, dayRuined()) --!
+	self:RegisterStatusCallback(Hit.Flinch, dayRuined)
 
     texture = LoadTexture(_modpath.."FireMan.png")
 	fireRingTexture = LoadTexture(_modpath.."firering.png")
@@ -447,8 +461,12 @@ end
 
 function dayRuined()
 	--reset AI pattern when flinched, stunned, etc
-	print("day ruined")
-	aiStateIndex = 1
+	if not ruined then
+		anim:SetState("OUCH")
+		anim:SetPlayback(Playback.Loop)
+		aiStateIndex = 1
+		ruined = true
+	end
 end
 
 function can_move_to(tile) 

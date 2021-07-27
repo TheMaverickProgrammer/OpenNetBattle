@@ -121,7 +121,8 @@ void Entity::UpdateMovement(double elapsed)
 
       float heightElapsed = static_cast<float>(elapsedMoveTime - currMoveEvent.delayFrames.asSeconds().value);
       float heightDelta = swoosh::ease::wideParabola(heightElapsed, duration, 1.0f);
-      tileOffset.y -= (heightDelta * currMoveEvent.height);
+      currJumpHeight = (heightDelta * currMoveEvent.height);
+      tileOffset.y -= currJumpHeight;
       
       // When delta is 1.0, the slide duration is complete
       if (delta == 1.0f)
@@ -644,4 +645,9 @@ void Entity::ClearActionQueue()
 const float Entity::GetJumpHeight() const
 {
   return currMoveEvent.height;
+}
+
+const float Entity::GetCurrJumpHeight() const
+{
+  return currJumpHeight;
 }

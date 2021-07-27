@@ -9,6 +9,7 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->Hide(); // default: hidden
+  shadow->setOrigin(shadow->getSprite().getLocalBounds().width * 0.5, shadow->getSprite().getLocalBounds().height * 0.5);
   AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
@@ -27,7 +28,8 @@ void ScriptedSpell::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedSpell::scriptedOffset.x,
     tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedSpell::scriptedOffset.y);
 
-  //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
+  // counter offset the shadow node
+  shadow->setPosition(0, Entity::GetCurrJumpHeight()/2);
   ScriptedSpell& ss = *this;
   updateCallback ? updateCallback(ss, _elapsed) : (void)0;
 

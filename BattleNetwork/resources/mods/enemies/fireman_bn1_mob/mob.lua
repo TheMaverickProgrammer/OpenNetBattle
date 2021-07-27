@@ -3,7 +3,7 @@ function load_scripts()
 end
 
 function roster_init(info) 
-    info:SetName("Fireman (BN1)")
+    info:SetName("FireMan (BN1)")
     info:SetDescription("Go back to the start! The very first scenario boss in the series.")
     info:SetSpeed(1)
     info:SetAttack(15)

@@ -9,6 +9,8 @@ using std::to_string;
 #include "bnLogger.h"
 #include "bnField.h"
 
+#define PIXELS_FROM_BOTTOM 10.0f
+
 MobHealthUI::MobHealthUI(std::weak_ptr<Character> mob) : UIComponent(mob) {
   healthCounter = mob.lock()->GetHealth();
   cooldown = 0;
@@ -113,7 +115,7 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 
       auto glyphsRect = sf::IntRect(0, rowStart, 8, 10);
       glyphs.setTextureRect(glyphsRect);
-      glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + mob->getPosition());
+      glyphs.setPosition(sf::Vector2f(offsetx, PIXELS_FROM_BOTTOM) + mob->getPosition());
       glyphs.setColor(color);
 
       target.draw(glyphs, this_states);

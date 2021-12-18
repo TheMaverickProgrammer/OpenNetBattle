@@ -21,8 +21,9 @@
 #define TILE_WIDTH 40.0f
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
-#define START_Y 144.f
+#define START_Y 134.f
 #define Y_OFFSET 10.0f
+#define TILE_CENTER_Y (TILE_HEIGHT - Y_OFFSET) / 2.0f
 #define COOLDOWN 10.0
 #define FLICKER 3.0
 
@@ -49,7 +50,7 @@ namespace Battle {
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
     height = TILE_HEIGHT * getScale().y;
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
+    setOrigin(TILE_WIDTH / 2.0f, TILE_CENTER_Y);
     setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     willHighlight = false;
     isTimeFrozen = true;
@@ -572,7 +573,7 @@ namespace Battle {
     }
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
-    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
+    setOrigin(TILE_WIDTH / 2.0f, TILE_CENTER_Y);
     highlightMode = TileHighlight::none;
 
     // Process tile behaviors

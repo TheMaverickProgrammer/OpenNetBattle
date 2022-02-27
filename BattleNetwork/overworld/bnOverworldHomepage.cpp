@@ -152,7 +152,7 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller) :
     mrprog->setTexture(Textures().LoadFromFile("resources/ow/prog/prog_ow.png"));
     mrprog->Set3DPosition(destBotSpawnOptional.value());
     mrprog->SetSolid(true);
-    mrprog->SetCollisionRadius(5);
+    mrprog->SetCollisionRadius(11);
 
     mrprog->SetInteractCallback([mrprog = mrprog.get(), this](const auto& with, const auto& event) {
       // Face them

@@ -1,7 +1,7 @@
+#define _USE_MATH_DEFINES
 #include "bnOverworldActor.h"
 #include "bnOverworldMap.h"
 #include "../bnMath.h"
-#include <cmath>
 
 std::shared_ptr<sf::Texture> Overworld::Actor::missing;
 
@@ -28,6 +28,39 @@ Overworld::Actor::Actor(Actor&& other) noexcept
 
 Overworld::Actor::~Actor()
 {
+}
+
+void Overworld::Actor::draw(sf::RenderTarget& target, sf::RenderStates states) const
+{
+  WorldSprite::draw(target, states);
+
+  sf::RenderStates myStates = states;
+  myStates.transform *= getTransform();
+
+  sf::CircleShape circle;
+  circle.setFillColor(sf::Color(255, 0, 0, 100));
+  circle.setRadius(this->collisionRadius);
+  circle.setOrigin(this->collisionRadius, this->collisionRadius);
+  circle.setScale(std::sqrtf(2.), std::sqrtf(2.));
+  circle.setPosition(0, -collisionRadius);
+  target.draw(circle, myStates);
+
+  sf::CircleShape circleBottom;
+  circleBottom.setFillColor(sf::Color(0, 0, 255, 100));
+  circleBottom.setRadius(this->collisionRadius);
+  circleBottom.setOrigin(this->collisionRadius, this->collisionRadius);
+  circleBottom.setScale(std::sqrtf(2.), std::sqrtf(2.f) / 2.f);
+  target.draw(circleBottom, myStates);
+
+  sf::RectangleShape yaxis;
+  yaxis.setSize(sf::Vector2f(0.25f, 2.f));
+  yaxis.setOrigin(0.25f*0.5f, 1.f);
+  target.draw(yaxis, myStates);
+
+  sf::RectangleShape xaxis;
+  xaxis.setSize(sf::Vector2f(2.f, 0.25f));
+  xaxis.setOrigin(1.f, 0.25f*0.5f);
+  target.draw(xaxis, myStates);
 }
 
 void Overworld::Actor::Walk(const Direction& dir, bool move)
@@ -405,22 +438,20 @@ static int GetTargetLayer(Overworld::Map& map, int currentLayer, float layerRela
 }
 
 const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f newPos, Map& map, SpatialMap& spatialMap) {
-  const auto& currPos = getPosition();
-  auto currPos3D = sf::Vector3f(currPos.x, currPos.y, GetElevation());
-  auto layerRelativeElevation = currPos3D.z - std::floor(currPos3D.z);
+  const sf::Vector2f& currPos = getPosition();
+  sf::Vector3f currPos3D = sf::Vector3f(currPos.x, currPos.y, GetElevation());
+  float layerRelativeElevation = currPos3D.z - std::floor(currPos3D.z);
 
-  auto offset = newPos - currPos;
+  sf::Vector2f offset = newPos - currPos;
   float offsetLength = std::sqrt(std::pow(offset.x, 2.0f) + std::pow(offset.y, 2.0f));
   const float maxElevationDiff = (offsetLength + 1.0f) / map.GetTileSize().y * 2.0f;
 
-  auto currPosTileSpace = map.WorldToTileSpace(currPos);
-  auto newPosTileSpace = map.WorldToTileSpace(newPos);
-
-  int newLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, newPosTileSpace);
+  sf::Vector2f currPosTileSpace = map.WorldToTileSpace(currPos);
+  sf::Vector2f newPosTileSpace = map.WorldToTileSpace(newPos);
 
   // check if there's stairs below, if there is, target that layer for newPos3D
-
-  auto newPos3D = sf::Vector3f(newPos.x, newPos.y, map.GetElevationAt(newPosTileSpace.x, newPosTileSpace.y, newLayer));
+  int newLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, newPosTileSpace);
+  sf::Vector3f newPos3D = sf::Vector3f(newPos.x, newPos.y, map.GetElevationAt(newPosTileSpace.x, newPosTileSpace.y, newLayer));
 
   /**
   * Check if colliding with the map
@@ -435,17 +466,36 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     }
 
     // detect collision at the edge of the collisionRadius
-    auto ray_unit = sf::Vector2f(offset.x / offsetLength, offset.y / offsetLength);
-    auto ray = ray_unit * collisionRadius;
+    sf::Vector2f ray_unit = sf::Vector2f(offset.x / offsetLength, offset.y / offsetLength);
+    sf::Vector2f ray1 = ray_unit * collisionRadius;
 
-    auto edgeTileSpace = map.WorldToTileSpace(currPos + ray);
-    auto edgeLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currPosTileSpace, edgeTileSpace);
-    auto edgeElevation = map.GetElevationAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
+    float theta = 90.f * M_PI / 180.f;
+    sf::Vector2f perp = sf::Vector2f(cos(theta)*ray1.x, sin(theta)*ray1.y);
 
-    if (
-      !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeElevation, edgeLayer) || // can't move
-      std::fabs(newPos3D.z - edgeElevation) > maxElevationDiff // height difference is too great at edge
-      ) {
+    sf::Vector2f ray2 = ray1 + perp;
+    sf::Vector2f ray3 = ray1 - perp;
+    
+    auto [canMove1, _1] = CanMoveToEdgeStep(currPos, currPos3D, map, ray1, layerRelativeElevation, maxElevationDiff, currPosTileSpace);
+    auto [canMove2, _2] = CanMoveToEdgeStep(currPos, currPos3D, map, ray2, layerRelativeElevation, maxElevationDiff, currPosTileSpace);
+    auto [canMove3, _3] = CanMoveToEdgeStep(currPos, currPos3D, map, ray3, layerRelativeElevation, maxElevationDiff, currPosTileSpace);
+
+    const sf::Vector2i tileSize = map.GetTileSize();
+
+    if (!(canMove1 && canMove2 && canMove3)) {
+      sf::Vector2f alpha = sf::Vector2f(currPosTileSpace.x - std::floor(currPosTileSpace.x), currPosTileSpace.y - std::floor(currPosTileSpace.y));
+      sf::Vector2f relativeTilePos = sf::Vector2f(alpha.x * tileSize.x, alpha.y * tileSize.y);
+      sf::Vector2f intersection = relativeTilePos + offset;
+
+      intersection.x = std::fmin(std::fmax(intersection.x, 0.f), (float)tileSize.x);
+      intersection.y = std::fmin(std::fmax(intersection.y, 0.f), (float)tileSize.y);
+
+      intersection += -ray1;
+
+      sf::Vector2f delta =  intersection - currPosTileSpace;
+      newPos3D = currPos3D;
+      newPos3D.x += delta.x;
+      newPos3D.y += delta.y;
+
       return { false, currPos3D };
     }
   }
@@ -457,23 +507,23 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
     for (const auto& actor : spatialMap.GetNeighbors(*this)) {
       if (actor.get() == this || !actor->solid) continue;
 
-      auto elevationDifference = std::fabs(actor->GetElevation() - newPos3D.z);
+      float elevationDifference = std::fabs(actor->GetElevation() - newPos3D.z);
 
       if (elevationDifference > 0.1f) continue;
 
-      auto collision = CollidesWith(*actor, offset);
+      std::optional<sf::Vector2f> collision = CollidesWith(*actor, offset);
 
       if (collision) {
         // push the ourselves out of the other actor
         // use current position to prevent sliding off map
-        auto delta = currPos - actor->getPosition();
+        sf::Vector2f delta = currPos - actor->getPosition();
         float distance = Hypotenuse(delta);
-        auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
-        auto sumOfRadii = collisionRadius + actor->GetCollisionRadius();
-        auto outPos = actor->getPosition() + (delta_unit * sumOfRadii);
+        sf::Vector2f delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
+        float sumOfRadii = collisionRadius + actor->GetCollisionRadius();
+        sf::Vector2f outPos = actor->getPosition() + (delta_unit * sumOfRadii);
 
-        auto outPosInTileSpace = map.WorldToTileSpace(outPos);
-        auto elevation = map.GetElevationAt(outPosInTileSpace.x, outPosInTileSpace.y, newLayer);
+        sf::Vector2f outPosInTileSpace = map.WorldToTileSpace(outPos);
+        float elevation = map.GetElevationAt(outPosInTileSpace.x, outPosInTileSpace.y, newLayer);
 
         return { false, { outPos.x, outPos.y, elevation } };
       }
@@ -719,4 +769,26 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
   }
 
   return "D"; // default is down
+}
+
+const std::pair<bool, sf::Vector3f> 
+Overworld::Actor::CanMoveToEdgeStep(
+  sf::Vector2f pos, 
+  sf::Vector3f pos3D, 
+  Map& map, 
+  sf::Vector2f ray, 
+  float layerRelativeElevation, 
+  float maxElevationDiff, 
+  sf::Vector2f currTileSpace)
+{
+  sf::Vector2f edgeTileSpace = map.WorldToTileSpace(pos + ray);
+  int edgeLayer = GetTargetLayer(map, GetLayer(), layerRelativeElevation, currTileSpace, edgeTileSpace);
+  float edgeElevation = map.GetElevationAt(edgeTileSpace.x, edgeTileSpace.y, edgeLayer);
+
+  if (
+    !map.CanMoveTo(edgeTileSpace.x, edgeTileSpace.y, edgeElevation, edgeLayer) || // can't move
+    std::fabs(pos3D.z - edgeElevation) > maxElevationDiff // height difference is too great at edge
+    ) {
+    return { false, pos3D };
+  }
 }

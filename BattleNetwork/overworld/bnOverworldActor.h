@@ -63,6 +63,16 @@ namespace Overworld {
     void UseMissingTexture();
     std::string MovementAnimStrPrefix(const MovementState& state);
     std::string DirectionAnimStrSuffix(const Direction& dir);
+
+    const std::pair<bool, sf::Vector3f> CanMoveToEdgeStep(
+      sf::Vector2f pos, 
+      sf::Vector3f pos3D, 
+      Map& map, 
+      sf::Vector2f ray, 
+      float layerRelativeElevation, 
+      float maxElevationDiff, 
+      sf::Vector2f currTileSpace);
+
   public:
     /**
     * @brief Construct a character with a name
@@ -75,6 +85,9 @@ namespace Overworld {
     * @brief Deconstructor
     */
     ~Actor();
+
+
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 
     /**
     * @brief Make the character walk

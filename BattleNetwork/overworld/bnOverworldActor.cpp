@@ -491,7 +491,7 @@ const std::pair<bool, sf::Vector3f> Overworld::Actor::CanMoveTo(sf::Vector2f new
 
       intersection += -ray1;
 
-      sf::Vector2f delta =  intersection - currPosTileSpace;
+      sf::Vector2f delta =  intersection - relativeTilePos;
       newPos3D = currPos3D;
       newPos3D.x += delta.x;
       newPos3D.y += delta.y;

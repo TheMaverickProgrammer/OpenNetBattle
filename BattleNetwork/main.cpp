@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
   }
 
   cxxopts::Options options("ONB", "Open Net Battle Engine");
+  
   options.add_options()
     ("l,locale", "set flair and language to desired target", cxxopts::value<std::string>()->default_value("en"))
     ("d,debug", "Enable debugging")

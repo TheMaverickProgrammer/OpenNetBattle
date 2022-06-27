@@ -36,6 +36,7 @@ using std::string;
 #include "bnDefenseFrameStateJudge.h"
 #include "bnDefenseRule.h"
 #include "bnHitProperties.h"
+#include "bnStatusDirectior.h"
 #include "stx/memory.h"
 
 namespace Battle {
@@ -95,11 +96,6 @@ struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
 
-struct AppliedStatus {
-  Hit::Flags statusFlag;
-  frame_time_t remainingTime;
-};
-
 class Entity :
   public SpriteProxyNode,
   public ResourceHandle,
@@ -137,8 +133,7 @@ private:
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
   MoveEvent currMoveEvent{};
   VirtualInputState inputState;
-  AppliedStatus previousStatus{ Hit::none, frames(0) }; /*!< The previous status, Stun or Freeze, applied when time freeze started.*/
-  AppliedStatus currentStatus{ Hit::none, frames(0) }; /*!< The current status, Stun or Freeze, which is applied.*/
+  StatusBehaviorDirector statusDirector;
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
   std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };

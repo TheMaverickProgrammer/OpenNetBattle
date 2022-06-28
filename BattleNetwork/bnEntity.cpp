@@ -79,7 +79,8 @@ Entity::Entity() :
   confusedFx->SetLayer(-2);
   confusedFx->Hide(); // default: hidden
   AddNode(confusedFx);
-
+  
+  // Add the status behavior director so we can manage time freeze statuses like Stun and Freeze.
   statusDirector = StatusBehaviorDirector();
 
   iceFxAnimation = Animation(AnimationPaths::ICE_FX);
@@ -1075,6 +1076,8 @@ void Entity::ToggleTimeFreeze(bool state)
 {
   AppliedStatus statusToCheck = statusDirector.GetStatus(false);
   statusDirector.SetNextStatus(statusToCheck.statusFlag, statusToCheck.remainingTime, state);
+  // When entering Time Freeze, force Stun, Freeze cooldowns to 0. Hide Ice, and refresh Shader.
+  // This is to allow animations during Time Freeze.
   if (state) {
     stunCooldown = frames(0);
     freezeCooldown = frames(0);

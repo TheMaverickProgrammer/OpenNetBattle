@@ -133,7 +133,7 @@ private:
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
   MoveEvent currMoveEvent{};
   VirtualInputState inputState;
-  StatusBehaviorDirector statusDirector;
+  StatusBehaviorDirector statusDirector{};
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
   std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
   std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };

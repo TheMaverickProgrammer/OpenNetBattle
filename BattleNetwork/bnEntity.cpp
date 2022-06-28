@@ -79,9 +79,6 @@ Entity::Entity() :
   confusedFx->SetLayer(-2);
   confusedFx->Hide(); // default: hidden
   AddNode(confusedFx);
-  
-  // Add the status behavior director so we can manage time freeze statuses like Stun and Freeze.
-  statusDirector = StatusBehaviorDirector();
 
   iceFxAnimation = Animation(AnimationPaths::ICE_FX);
   blindFxAnimation = Animation(AnimationPaths::BLIND_FX);

@@ -89,6 +89,7 @@ public:
   bool loadMidiFromMemory(const void* data, unsigned int size);
 
   void play();
+  void stop();
 
 
 private:

@@ -318,6 +318,13 @@ void sfmidi::Midi::play()
     SoundStream::play();
 }
 
+void sfmidi::Midi::stop()
+{
+  fluid_player_seek(player_, 0);
+  fluid_player_stop(player_);
+  SoundStream::stop();
+}
+
 
 bool sfmidi::Midi::onGetData(sf::SoundStream::Chunk& data)
 {

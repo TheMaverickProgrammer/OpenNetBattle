@@ -135,10 +135,6 @@ private:
   VirtualInputState inputState;
   StatusBehaviorDirector statusDirector{};
   std::shared_ptr<SpriteProxyNode> shadow{ nullptr };
-  std::shared_ptr<SpriteProxyNode> iceFx{ nullptr };
-  std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };
-  std::shared_ptr<SpriteProxyNode> confusedFx{ nullptr };
-  Animation iceFxAnimation, blindFxAnimation, confusedFxAnimation;
   /**
    * @brief Frees one component with the same ID
    * @param ID ID of the component to remove
@@ -160,6 +156,8 @@ public:
   void Spawn(Battle::Tile& start);
 
   bool HasSpawned();
+
+  bool canUpdateThisFrame;
 
   virtual void OnSpawn(Battle::Tile& start) { };
 
@@ -784,12 +782,6 @@ protected:
   frame_time_t moveStartupDelay{};
   std::optional<frame_time_t> moveEndlagDelay;
   frame_time_t grassHealCooldown{ 0 }; /*!< Timer until next healing is allowed */
-  frame_time_t stunCooldown{ 0 }; /*!< Timer until stun is over */
-  frame_time_t rootCooldown{ 0 }; /*!< Timer until root is over */
-  frame_time_t freezeCooldown{ 0 }; /*!< Timer until freeze is over */
-  frame_time_t blindCooldown{ 0 }; /*!< Timer until blind is over */
-  frame_time_t confusedCooldown{ 0 }; /*!< Timer until confusion is over */
-  frame_time_t confusedSfxCooldown{ 0 }; /*!< Timer to replay confusion SFX */
   frame_time_t invincibilityCooldown{ 0 }; /*!< Timer until invincibility is over */
   bool counterable{};
   bool hit{}; /*!< Was hit this frame */

@@ -5,3 +5,16 @@ frame duration="0.04" x="27" y="131" w="235" h="2" originx="0" originy="0" flipx
 frame duration="0.04" x="13" y="83" w="236" h="27" originx="0" originy="14" flipx="0" flipy="0" 
 frame duration="0.04" x="0" y="0" w="236" h="43" originx="0" originy="22" flipx="0" flipy="0" 
 frame duration="0.04" x="271" y="16" w="236" h="59" originx="0" originy="28" flipx="0" flipy="0" 
+
+animation state="TALK"
+frame duration="0.05" x="0" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="42" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="84" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="42" y="0" w="40" h="48" originx="0" originy="0"
+
+animation state="IDLE"
+frame duration="0.05" x="84" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="126" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="168" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="0.05" x="126" y="0" w="40" h="48" originx="0" originy="0"
+frame duration="2.0" x="84" y="0" w="40" h="48" originx="0" originy="0"

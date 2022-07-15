@@ -210,7 +210,9 @@ void TitleScene::onDraw(sf::RenderTexture & surface)
     surface.draw(startLabel);
   }
 
-  surface.draw(textbox);
+  if (textbox.IsOpen()) {
+    surface.draw(textbox);
+  }
 }
 
 void TitleScene::onEnd()

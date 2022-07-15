@@ -380,7 +380,7 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
     dmgOffset = 10.0f;
   }
   
-  if (multiplierValue != 1 && unmodDamage != 0) {
+  if (multiplierValue > 1 && unmodDamage != 0) {
     // add "x N" where N is the multiplier
     std::string multStr = "x" + std::to_string(multiplierValue);
     multiplier.SetString(multStr);

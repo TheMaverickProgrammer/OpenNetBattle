@@ -187,19 +187,24 @@ void Text::SetLineSpacing(float spacing)
   lineSpacing = spacing;
 }
 
-const std::string & Text::GetString() const
+const std::string& Text::GetString() const
 {
   return message;
 }
 
-const Font & Text::GetFont() const
+const Font& Text::GetFont() const
 {
   return font;
 }
 
-const Font::Style & Text::GetStyle() const
+const Font::Style& Text::GetStyle() const
 {
   return font.GetStyle();
+}
+
+float Text::GetLineSpacing() const
+{
+  return letterSpacing;
 }
 
 sf::FloatRect Text::GetLocalBounds() const

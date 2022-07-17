@@ -52,6 +52,7 @@ namespace InputEvents {
   static const InputEvent pressed_advance_frame  = { "Advance Frame", InputState::pressed };
   static const InputEvent pressed_resume_frames  = { "Resume Frames", InputState::pressed };
   static const InputEvent pressed_record_frames  = { "Record Frames", InputState::pressed };
+  static const InputEvent pressed_terminal       = { "Terminal",      InputState::pressed };
 
   static const InputEvent released_move_up        = { "Move Up",    InputState::released };
   static const InputEvent released_move_down      = { "Move Down",  InputState::released };
@@ -77,6 +78,7 @@ namespace InputEvents {
   static const InputEvent released_advance_frame  = { "Advance Frame", InputState::released };
   static const InputEvent released_resume_frames  = { "Resume Frames", InputState::released };
   static const InputEvent released_record_frames  = { "Record Frames", InputState::released };
+  static const InputEvent released_terminal       = { "Terminal",      InputState::released };
 
   static const InputEvent held_move_up        = { "Move Up",    InputState::held };
   static const InputEvent held_move_down      = { "Move Down",  InputState::held };
@@ -102,6 +104,7 @@ namespace InputEvents {
   static const InputEvent held_advance_frame  = { "Advance Frame", InputState::held };
   static const InputEvent held_resume_frames  = { "Resume Frames", InputState::held };
   static const InputEvent held_record_frames  = { "Record Frames", InputState::held };
+  static const InputEvent held_terminal       = { "Terminal",      InputState::held };
 
   static const auto ui_up_group    = { pressed_ui_up,    held_ui_up    };
   static const auto ui_down_group  = { pressed_ui_down,  held_ui_down  };
@@ -118,6 +121,7 @@ namespace InputEvents {
     "Confirm", "Cancel", "Option",
     "Run", "Interact", "Shoulder L", "Shoulder R",
     "Minimap",
-    "Advance Frame", "Resume Frames", "Record Frames"
+    "Advance Frame", "Resume Frames", "Record Frames",
+    "Terminal"
   };
 };

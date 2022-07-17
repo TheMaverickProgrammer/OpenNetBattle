@@ -18,6 +18,7 @@
 #include "bnOverworldPacketHeaders.h"
 #include "bnServerAssetManager.h"
 #include "bnIdentityManager.h"
+#include "bnTerminalConsole.h"
 #include "bnEmotes.h"
 
 namespace Overworld {
@@ -29,7 +30,7 @@ namespace Overworld {
     Overworld::TeleportController teleportController{};
     bool solid{ false };
     bool disconnecting{ false };
-    Direction idleDirection;
+    Direction idleDirection{};
     sf::Vector3f startBroadcastPos{};
     sf::Vector3f endBroadcastPos{};
     long long timestamp{};
@@ -74,6 +75,7 @@ namespace Overworld {
     std::string host;
     uint16_t port;
     std::shared_ptr<Overworld::EmoteNode> emoteNode;
+    std::shared_ptr<TerminalConsole> terminalWidget;
     std::shared_ptr<sf::Texture> customEmotesTexture;
     std::string ticket; //!< How we are represented on the server
     std::shared_ptr<PacketProcessor> packetProcessor;
@@ -138,6 +140,7 @@ namespace Overworld {
     void RunPackageWizard(Partitioner& partitioner, const std::filesystem::path& modFolder, const std::string& packageName, const std::string& packageId, const std::filesystem::path& filePath);
     void RunPackageWizard(PackageType packageType, const std::string& packageName, std::string& packageId, const std::filesystem::path& filePath);
 
+    // send signals
     void sendAssetFoundSignal(const std::string& path, uint64_t lastModified);
     void sendAssetsFound();
     void sendAssetStreamSignal(ClientAssetType assetType, uint16_t headerSize, const char* data, size_t size);
@@ -163,7 +166,9 @@ namespace Overworld {
     void sendShopCloseSignal();
     void sendShopPurchaseSignal(const std::string& itemName);
     void sendBattleResultsSignal(const BattleResults& results);
+    void sendTerminalCommandSignal(const std::string& command);
 
+    // receive signals
     void receiveAuthorizeSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveTransferWarpSignal(BufferReader& reader, const Poco::Buffer<char>&);
@@ -220,6 +225,7 @@ namespace Overworld {
     void receiveActorAnimateSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorKeyFramesSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveActorMinimapColorSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveTerminalResponseSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void leave();
     void cleanup();
 
@@ -229,7 +235,6 @@ namespace Overworld {
     virtual std::string GetText(const std::string& path);
     virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
     virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
-
 
   public:
     /**

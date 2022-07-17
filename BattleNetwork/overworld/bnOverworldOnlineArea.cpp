@@ -100,6 +100,12 @@ Overworld::OnlineArea::OnlineArea(
   emoteWidget->OnSelect(std::bind(&Overworld::OnlineArea::sendEmoteSignal, this, std::placeholders::_1));
   GetMenuSystem().BindMenu(InputEvents::pressed_option, emoteWidget);
 
+  terminalWidget = std::make_shared<TerminalConsole>([this](const std::string& input) {
+    this->sendTerminalCommandSignal(input);
+  });
+  terminalWidget->SetDimensions(windowSize.x, windowSize.y);
+  GetMenuSystem().BindMenu(InputEvents::pressed_terminal, terminalWidget);
+
   auto player = GetPlayer();
 
   emoteNode = std::make_shared<Overworld::EmoteNode>();
@@ -228,6 +234,8 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   serverCameraController.UpdateCamera(float(elapsed), camera);
   camera.Update(0);
   UnlockCamera(); // reset lock, we'll lock it later if we need to
+
+
 }
 
 void Overworld::OnlineArea::ResetPVPStep(bool failed)
@@ -1004,6 +1012,9 @@ void Overworld::OnlineArea::processPacketBody(const Poco::Buffer<char>& data)
     case ServerEvents::actor_minimap_color:
       receiveActorMinimapColorSignal(reader, data);
       break;
+    case ServerEvents::terminal_response:
+      receiveTerminalResponseSignal(reader, data);
+      break;
     case ServerEvents::synchronize_updates:
       synchronizingUpdates = true;
       break;
@@ -1396,6 +1407,16 @@ void Overworld::OnlineArea::sendBattleResultsSignal(const BattleResults& battleR
   }
 
   packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendTerminalCommandSignal(const std::string& command)
+{
+  BufferWriter writer;
+  Poco::Buffer<char> buffer{ 0 };
+  writer.Write(buffer, ClientEvents::terminal_command);
+  writer.WriteString<uint16_t>(buffer, command);
+
+  packetProcessor->SendPacket(Reliability::Unreliable, buffer);
 }
 
 void Overworld::OnlineArea::receiveAuthorizeSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -3138,6 +3159,12 @@ void Overworld::OnlineArea::receiveActorMinimapColorSignal(BufferReader& reader,
   if (abstractUser.marker) {
     abstractUser.marker->SetMarkerColor(color);
   }
+}
+
+void Overworld::OnlineArea::receiveTerminalResponseSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  std::string result_str = reader.ReadString<uint16_t>(buffer);
+  terminalWidget->AddResponse(result_str);
 }
 
 void Overworld::OnlineArea::leave() {

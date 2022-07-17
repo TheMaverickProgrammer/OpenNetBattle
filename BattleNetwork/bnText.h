@@ -38,6 +38,7 @@ public:
   const std::string& GetString() const;
   const Font& GetFont() const;
   const Font::Style& GetStyle() const;
+  float GetLineSpacing() const;
   sf::FloatRect GetLocalBounds() const;
   sf::FloatRect GetWorldBounds() const;
 };

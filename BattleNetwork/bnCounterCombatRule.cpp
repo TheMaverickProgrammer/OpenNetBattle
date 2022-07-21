@@ -3,7 +3,7 @@
 #include "battlescene/bnBattleSceneBase.h"
 
 CounterCombatRule::CounterCombatRule(BattleSceneBase* battleScene) 
-  : DefenseRule(Priority(0), DefenseOrder::collisionOnly), battleScene(battleScene) {
+  : DefenseRule(DefensePriority::Internal, DefenseOrder::collisionOnly), battleScene(battleScene) {
 }
 
 CounterCombatRule::~CounterCombatRule() { }

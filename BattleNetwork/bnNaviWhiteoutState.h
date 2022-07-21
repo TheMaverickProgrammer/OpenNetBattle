@@ -69,7 +69,7 @@ NaviWhiteoutState<Any>::~NaviWhiteoutState() {
 
 template<typename Any>
 void NaviWhiteoutState<Any>::OnEnter(Any& e) {
-    e.SetPassthrough(true); // Shoot through dying enemies
+    e.EnableHitbox(false); // Shoot through dying enemies
 
     /* Spawn shine artifact */
     Battle::Tile* tile = e.GetTile();

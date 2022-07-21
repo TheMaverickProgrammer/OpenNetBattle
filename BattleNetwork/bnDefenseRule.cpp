@@ -1,6 +1,6 @@
 #include "bnDefenseRule.h"
 
-DefenseRule::DefenseRule(const Priority level, const DefenseOrder& order) : 
+DefenseRule::DefenseRule(const DefensePriority level, const DefenseOrder& order) : 
   priorityLevel(level), order(order), replaced(false) 
 {
 }
@@ -12,7 +12,7 @@ Hit::Properties& DefenseRule::FilterStatuses(Hit::Properties& statuses)
   return statuses; // pass
 }
 
-const Priority DefenseRule::GetPriorityLevel() const { return priorityLevel; }
+const DefensePriority DefenseRule::GetPriorityLevel() const { return priorityLevel; }
 
 const DefenseOrder DefenseRule::GetDefenseOrder() const
 {

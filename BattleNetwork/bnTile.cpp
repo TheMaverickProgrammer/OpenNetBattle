@@ -1057,7 +1057,6 @@ namespace Battle {
       hitByFire = hitByFire || props.element == Element::fire;
       hitByAqua = hitByAqua || props.element == Element::aqua;
 
-      bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
       for (std::shared_ptr<Character>& character : characters_copy) {
@@ -1110,9 +1109,6 @@ namespace Battle {
           taggedAttackers.push_back(attacker->GetID());
         }
 
-        // Retangible flag takes characters out of passthrough status
-        retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
-
         // The attacker passed at least one defense check
         character->DefenseCheck(judge, attacker, DefenseOrder::collisionOnly);
 
@@ -1144,7 +1140,9 @@ namespace Battle {
           attacker->SetHitboxProperties(props);
         }
 
-        if (retangible) character->SetPassthrough(false);
+        if (character->IsRetangible()) {
+          character->DisableIntangible();
+        }
 
         judge.PrepareForNextAttack();
       } // end each spell loop

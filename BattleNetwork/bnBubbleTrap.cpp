@@ -2,7 +2,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnInputManager.h"
 #include "bnField.h"
-#include "bnDefenseBubbleWrap.h"
+#include "bnDefenseBubbleStatus.h"
 #include "bnBubbleTrap.h"
 
 using sf::IntRect;
@@ -39,7 +39,7 @@ void BubbleTrap::OnUpdate(double _elapsed) {
 
   if (!init) {
     // Bubbles have to pop when hit
-    defense = std::make_shared<DefenseBubbleWrap>();
+    defense = std::make_shared<DefenseBubbleStatus>();
     asCharacter->AddDefenseRule(defense);
     asCharacter->AddNode(shared_from_base<BubbleTrap>());
 

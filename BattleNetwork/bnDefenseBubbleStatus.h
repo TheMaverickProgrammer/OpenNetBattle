@@ -3,19 +3,19 @@
 #include "bnDefenseRule.h"
 
 /**
- * @class DefenseBubbleWrap
+ * @class DefenseBubbleStatus
  * @author mav
  * @date 05/05/19
  * @brief Used by BubbleComponent to spawn hitboxes when bubble is hit
  * 
  * Allows all attacks to hit and passthrough
  */
-class DefenseBubbleWrap : public DefenseRule {
+class DefenseBubbleStatus : public DefenseRule {
 private:
   bool popped; /*!< whether or not the defense popped*/
 public:
-  DefenseBubbleWrap();
-  ~DefenseBubbleWrap();
+  DefenseBubbleStatus();
+  ~DefenseBubbleStatus();
   
   const bool IsPopped() const;
 

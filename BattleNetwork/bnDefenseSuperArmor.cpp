@@ -1,6 +1,6 @@
 #include "bnDefenseSuperArmor.h"
 
-DefenseSuperArmor::DefenseSuperArmor() : DefenseRule(Priority(1), DefenseOrder::collisionOnly) {
+DefenseSuperArmor::DefenseSuperArmor() : DefenseRule(DefensePriority::Body, DefenseOrder::collisionOnly) {
 }
 
 DefenseSuperArmor::~DefenseSuperArmor() { }

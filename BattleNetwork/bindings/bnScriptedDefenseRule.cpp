@@ -5,7 +5,7 @@
 #include "../bnSolHelpers.h"
 #include "../bnLogger.h"
 
-ScriptedDefenseRule::ScriptedDefenseRule(const Priority level, const DefenseOrder& order) : 
+ScriptedDefenseRule::ScriptedDefenseRule(const DefensePriority level, const DefenseOrder& order) : 
     DefenseRule(level, order)
 {
 }

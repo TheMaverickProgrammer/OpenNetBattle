@@ -10,7 +10,7 @@ public:
   /**
   * @brief Constructs a defense rule with a priority level
   */
-  ScriptedDefenseRule(const Priority level, const DefenseOrder& order);
+  ScriptedDefenseRule(const DefensePriority level, const DefenseOrder& order);
 
   /**
   * @brief Deconstructor

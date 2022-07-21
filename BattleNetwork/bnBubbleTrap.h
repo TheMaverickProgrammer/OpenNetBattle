@@ -4,7 +4,7 @@
 #include "bnArtifact.h"
 #include "bnComponent.h"
 #include "bnField.h"
-#include "bnDefenseBubbleWrap.h"
+#include "bnDefenseBubbleStatus.h"
 #include "bnInputHandle.h"
 /**
  * @class BubbleTrap
@@ -21,7 +21,7 @@ private:
   Animation animation;
   sf::Sprite bubble;
   double duration; /*!< when this reaches zero, pops */
-  std::shared_ptr<DefenseBubbleWrap> defense; /*!< Add BubbleWrapTrap defense rule */
+  std::shared_ptr<DefenseBubbleStatus> defense; /*!< Add BubbleWrapTrap defense rule */
   bool willDelete;
   std::vector<InputEvent> lastFrameStates;
   bool init{};

@@ -1,29 +1,29 @@
-#include "bnDefenseBubbleWrap.h"
+#include "bnDefenseBubbleStatus.h"
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
 #include "bnHitboxSpell.h"
 
-DefenseBubbleWrap::DefenseBubbleWrap() : popped(false), DefenseRule(Priority(0), DefenseOrder::always)
+DefenseBubbleStatus::DefenseBubbleStatus() : popped(false), DefenseRule(DefensePriority::Internal, DefenseOrder::always)
 {
 }
 
-DefenseBubbleWrap::~DefenseBubbleWrap()
+DefenseBubbleStatus::~DefenseBubbleStatus()
 {
 }
 
-const bool DefenseBubbleWrap::IsPopped() const
+const bool DefenseBubbleStatus::IsPopped() const
 {
   return popped;
 }
 
-Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
+Hit::Properties& DefenseBubbleStatus::FilterStatuses(Hit::Properties& statuses) {
   if(statuses.element == Element::elec)
     statuses.damage *= 2;
   return statuses;
 }
 
-void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
+void DefenseBubbleStatus::CanBlock(DefenseFrameStateJudge& judge, std::shared_ptr<Entity> attacker, std::shared_ptr<Entity> owner)
 {
   if ((attacker->GetHitboxProperties().flags & Hit::impact) == 0) return;
 

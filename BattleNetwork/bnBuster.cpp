@@ -11,7 +11,7 @@
 #include "bnRandom.h"
 
 Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
-  SetPassthrough(true);
+  EnableHitbox(false);
   SetLayer(-100);
 
   cooldown = frames(2);

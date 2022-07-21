@@ -64,7 +64,7 @@ ExplodeState<Any>::~ExplodeState() {
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
-  e.SetPassthrough(true); // Shoot through dying enemies
+  e.EnableHitbox(false); // Shoot through dying enemies
 
   /* explode over the sprite */
   explosion = std::make_shared<ExplosionSpriteNode>(&e, numOfExplosions, playbackSpeed);

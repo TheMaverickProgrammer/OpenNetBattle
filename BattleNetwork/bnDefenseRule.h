@@ -5,7 +5,15 @@
 
 class Entity;
 
-typedef int Priority;
+enum class DefensePriority : uint8_t {
+  Internal,
+  Intangible,
+  Barrier,
+  Body,
+  CardAction,
+  Trap,
+  Last, // special case, appends instead of replaces
+};
 
 enum class DefenseOrder : int {
   collisionOnly,
@@ -24,7 +32,7 @@ enum class DefenseOrder : int {
 class DefenseRule: public std::enable_shared_from_this<DefenseRule> {
 private:
   DefenseOrder order; /*!< Some defenses only check if there was a collision */
-  Priority priorityLevel; /*!< Lowest priority goes first */
+  DefensePriority priorityLevel; /*!< Lowest priority goes first */
   bool replaced{}; /*!< If this rule has been replaced by another one in the entity*/
   bool added{};
 
@@ -34,12 +42,12 @@ public:
   /**
   * @brief Constructs a defense rule with a priority level
   */
-  DefenseRule(const Priority level, const DefenseOrder& order);
+  DefenseRule(const DefensePriority level, const DefenseOrder& order);
 
   /**
   * @brief Returns the priority level of this defense rule
   */
-  const Priority GetPriorityLevel() const;
+  const DefensePriority GetPriorityLevel() const;
 
   /**
   * @brief Returns the defense order of this defense rule

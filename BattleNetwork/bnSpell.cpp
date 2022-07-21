@@ -3,6 +3,7 @@
 Spell::Spell(Team team) : Entity()
 {
   SetFloatShoe(true);
+  SetAirShoe(true);
   SetLayer(1);
   SetTeam(team);
   ShareTileSpace(true);

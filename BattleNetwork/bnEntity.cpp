@@ -52,6 +52,9 @@ Entity::Entity() :
   auto handler = std::bind(&Entity::HandleMoveEvent, this, _1, _2);
   actionQueue.RegisterType<MoveEvent>(ActionTypes::movement, handler);
 
+  defenseIntangible = std::make_shared<DefenseIntangible>();
+  AddDefenseRule(defenseIntangible);
+
   whiteout = Shaders().GetShader(ShaderType::WHITE);
   stun = Shaders().GetShader(ShaderType::YELLOW);
   root = Shaders().GetShader(ShaderType::BLACK);
@@ -356,6 +359,8 @@ void Entity::Init() {
 void Entity::Update(double _elapsed) {
   ResolveFrameBattleDamage();
 
+  defenseIntangible->Update();
+
   // Wood entities heal on grass tiles over a specific time
   if (GetElement() == Element::wood && GetTile()->GetState() == TileState::grass) {
     grassHealCooldown -= from_seconds(_elapsed);
@@ -384,7 +389,7 @@ void Entity::Update(double _elapsed) {
     // Ensure status effects do not play out
     stunCooldown = frames(0);
     rootCooldown = frames(0);
-    invincibilityCooldown = frames(0);
+    CancelFlash();
   }
 
   // reset base composite color for the frame while retaining alpha values
@@ -416,7 +421,7 @@ void Entity::Update(double _elapsed) {
     rootCooldown -= from_seconds(_elapsed);
 
     // Root is cancelled if these conditions are met
-    if (rootCooldown <= frames(0)/* || IsPassthrough() */) {
+    if (rootCooldown <= frames(0)/* || IsIntangible() */) {
       rootCooldown = frames(0);
     }
   }
@@ -919,19 +924,31 @@ bool Entity::IsOnField() const {
 Team Entity::GetTeam() const {
   return team;
 }
+
 void Entity::SetTeam(Team _team) {
   team = _team;
 }
 
-void Entity::SetPassthrough(bool state)
-{
-  passthrough = state;
-  Reveal();
+void Entity::EnableIntangible(const IntangibleRule& rule) {
+  defenseIntangible->Enable(rule);
 }
 
-bool Entity::IsPassthrough()
+void Entity::DisableIntangible() {
+  defenseIntangible->Disable();
+}
+
+bool Entity::IsRetangible() {
+  return defenseIntangible->IsRetangible();
+}
+
+bool Entity::IsIntangible()
 {
-  return invincibilityCooldown > frames(0) || passthrough;
+  return defenseIntangible->IsEnabled();
+}
+
+void Entity::SetDraggable(bool state)
+{
+  draggable = state;
 }
 
 void Entity::SetFloatShoe(bool state)
@@ -1361,9 +1378,8 @@ const bool Entity::UnknownTeamResolveCollision(const Entity& other) const
 
 const bool Entity::HasCollision(const Hit::Properties & props)
 {
-  // Pierce status hits even when passthrough or flinched
-  if ((props.flags & Hit::pierce_invis) != Hit::pierce_invis) {
-    if (IsPassthrough() || !hitboxEnabled) return false;
+  if (defenseIntangible->IsEnabled()) {
+    return defenseIntangible->TryPierce(props);
   }
 
   return true;
@@ -1431,7 +1447,9 @@ void Entity::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
-        if (IsSliding()) {
+        if (!draggable) {
+          // ignore drag
+        } else if (IsSliding()) {
           append.push({ props.hitbox, { 0, Hit::drag, Element::none, Element::none, 0, props.filtered.drag } });
         }
         else {
@@ -1516,7 +1534,14 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          invincibilityCooldown = frames(120); // used as a `flash` status time
+          IntangibleRule rule;
+          rule.onDeactivate = [this] {
+            invincibilityCooldown = frames(0);
+            Reveal();
+          };
+          EnableIntangible(rule);
+
+          invincibilityCooldown = rule.duration; // used as a `flash` status time
           flagCheckThunk(Hit::flash);
         }
       }
@@ -1525,14 +1550,12 @@ void Entity::ResolveFrameBattleDamage()
       props.filtered.flags &= ~Hit::flash;
 
       // Flinch is canceled if retangibility is applied
-      if ((props.filtered.flags & Hit::retangible) == Hit::retangible) {
-        invincibilityCooldown = frames(0);
-
-        flagCheckThunk(Hit::retangible);
+      if ((props.filtered.flags & Hit::retain_intangible) == Hit::retain_intangible) {
+        flagCheckThunk(Hit::retain_intangible);
       }
 
       // exclude this from the next processing step
-      props.filtered.flags &= ~Hit::retangible;
+      props.filtered.flags &= ~Hit::retain_intangible;
 
       if ((props.filtered.flags & Hit::bubble) == Hit::bubble) {
         if (postDragEffect.dir != Direction::none) {
@@ -1605,7 +1628,7 @@ void Entity::ResolveFrameBattleDamage()
       - freeze
       - flash
       - drag
-      - retangible
+      - retain_intangible
       - bubble
       - root
       - shake
@@ -1680,7 +1703,8 @@ void Entity::ResolveFrameBattleDamage()
   }
 
   if (frameFlashCancel) {
-    invincibilityCooldown = frames(0); // end flash effect
+    // end flash effect
+    CancelFlash();
   }
 
   if (frameStunCancel) {
@@ -1719,11 +1743,16 @@ void Entity::AddDefenseRule(std::shared_ptr<DefenseRule> rule)
     return;
   }
 
-  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](auto other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
+  DefensePriority priority = rule->GetPriorityLevel();
+
+  auto iter =
+    priority >= DefensePriority::Last
+      ? defenses.end() // force append for DefensePriority::Last (and invalid values)
+      : std::find_if(defenses.begin(), defenses.end(), [priority](auto other) { return priority == other->GetPriorityLevel(); });
 
   if (rule && iter == defenses.end()) {
     defenses.push_back(rule);
-    std::sort(defenses.begin(), defenses.end(), [](std::shared_ptr<DefenseRule> first,std::shared_ptr<DefenseRule> second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
+    std::stable_sort(defenses.begin(), defenses.end(), [](std::shared_ptr<DefenseRule> first, std::shared_ptr<DefenseRule> second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
   }
   else {
     (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
@@ -1799,9 +1828,18 @@ bool Entity::IsConfused()
   return confusedCooldown > frames(0);
 }
 
+void Entity::CancelFlash()
+{
+  if (invincibilityCooldown > frames(0)) {
+    // if the invincibility cooldown is greater than zero,
+    // the intangible rule is invincibility and not a custom rule
+    DisableIntangible();
+  }
+}
+
 void Entity::Stun(frame_time_t maxCooldown)
 {
-  invincibilityCooldown = frames(0); // cancel flash
+  CancelFlash();
   freezeCooldown = frames(0); // cancel freeze
   stunCooldown = maxCooldown;
 }
@@ -1813,7 +1851,7 @@ void Entity::Root(frame_time_t maxCooldown)
 
 void Entity::IceFreeze(frame_time_t maxCooldown)
 {
-  invincibilityCooldown = frames(0); // cancel flash
+  CancelFlash(); // cancel flash
   stunCooldown = frames(0); // cancel stun
   freezeCooldown = maxCooldown;
 

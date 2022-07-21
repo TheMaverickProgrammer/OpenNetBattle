@@ -5,14 +5,21 @@
 #include "bnWeakWrapper.h"
 #include "bnScriptedDefenseRule.h"
 #include "../bnDefenseVirusBody.h"
-#include "../bnDefenseNodrag.h"
+#include "../bnDefenseIntangible.h"
+#include "../bnScriptResourceManager.h"
 #include "../bnSolHelpers.h"
 
 void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace) {
   battle_namespace.new_usertype<WeakWrapper<ScriptedDefenseRule>>("DefenseRule",
     sol::factories(
-      [](int priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
-        auto defenseRule = std::make_shared<ScriptedDefenseRule>(Priority(priority), order);
+      [](DefensePriority priority, const DefenseOrder& order) -> WeakWrapper<ScriptedDefenseRule> {
+        if (priority == DefensePriority::Internal || priority == DefensePriority::Intangible) {
+          throw std::runtime_error("DefensePriority reserved for internal use");
+        } else if(priority > DefensePriority::Last) {
+          throw std::runtime_error("Unknown DefensePriority");
+        }
+
+        auto defenseRule = std::make_shared<ScriptedDefenseRule>(priority, order);
 
         auto wrappedRule = WeakWrapper(defenseRule);
         wrappedRule.Own();
@@ -52,19 +59,6 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
     )
   );
 
-  battle_namespace.new_usertype<DefenseNodrag>("DefenseNoDrag",
-    sol::factories(
-      [] () -> WeakWrapper<DefenseRule> {
-        std::shared_ptr<DefenseRule> defenseRule = std::make_shared<DefenseNodrag>();
-
-        auto wrappedRule = WeakWrapper(defenseRule);
-        wrappedRule.Own();
-        return wrappedRule;
-      }
-    ),
-    sol::base_classes, sol::bases<DefenseRule>()
-  );
-
   battle_namespace.new_usertype<DefenseVirusBody>("DefenseVirusBody",
     sol::factories(
       [] () -> WeakWrapper<DefenseRule> {
@@ -73,6 +67,41 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
         auto wrappedRule = WeakWrapper(defenseRule);
         wrappedRule.Own();
         return wrappedRule;
+      }
+    )
+  );
+
+  battle_namespace.new_usertype<IntangibleRule>("IntangibleRule",
+    sol::factories(
+      [] () -> IntangibleRule {
+        return IntangibleRule {};
+      }
+    ),
+    sol::meta_function::index, []( sol::table table, const std::string key ) { 
+      ScriptResourceManager::PrintInvalidAccessMessage( table, "IntangibleRule", key );
+    },
+    sol::meta_function::new_index, []( sol::table table, const std::string key, sol::object obj ) { 
+      ScriptResourceManager::PrintInvalidAssignMessage( table, "IntangibleRule", key );
+    },
+    "duration", &IntangibleRule::duration,
+    "hit_weaknesses", &IntangibleRule::hitWeaknesses,
+    "element_weaknesses", &IntangibleRule::elementWeaknesses,
+    "on_deactivate_func", sol::property(
+      [](IntangibleRule& rule, sol::object onDeactivateObject) {
+        rule.onDeactivate = [onDeactivateObject] {
+          sol::protected_function onDeactivate = onDeactivateObject;
+
+          if (!onDeactivate.valid()) {
+            return;
+          }
+
+          auto result = onDeactivate();
+
+          if (!result.valid()) {
+            sol::error error = result;
+            Logger::Log(LogLevel::critical, error.what());
+          }
+        };
       }
     )
   );
@@ -99,6 +128,16 @@ void DefineDefenseRuleUserTypes(sol::state& state, sol::table& battle_namespace)
   state.new_enum("DefenseOrder",
     "Always", DefenseOrder::always,
     "CollisionOnly", DefenseOrder::collisionOnly
+  );
+
+  state.new_enum("DefensePriority",
+    // "Internal", DefensePriority::Internal, // internal use only
+    // "Intangible", DefensePriority::Intangible, // excluded as modders should use set_intangible
+    "Barrier", DefensePriority::Barrier,
+    "Body", DefensePriority::Body,
+    "CardAction", DefensePriority::CardAction,
+    "Trap", DefensePriority::Trap,
+    "Last", DefensePriority::Last // special case, appends instead of replaces
   );
 }
 #endif

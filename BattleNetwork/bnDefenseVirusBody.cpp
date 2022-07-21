@@ -1,6 +1,6 @@
 #include "bnDefenseVirusBody.h"
 
-DefenseVirusBody::DefenseVirusBody() : DefenseRule(Priority(1), DefenseOrder::collisionOnly) {
+DefenseVirusBody::DefenseVirusBody() : DefenseRule(DefensePriority::Body, DefenseOrder::collisionOnly) {
 }
 
 DefenseVirusBody::~DefenseVirusBody() { }

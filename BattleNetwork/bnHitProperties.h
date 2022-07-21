@@ -8,22 +8,23 @@ using EntityID_t = long;
 namespace Hit {
   using Flags = uint32_t;
 
-  const Flags none         = 0x00000000;
-  const Flags retangible   = 0x00000001;
-  const Flags freeze       = 0x00000002;
-  const Flags pierce_invis = 0x00000004;
-  const Flags flinch       = 0x00000008;
-  const Flags shake        = 0x00000010;
-  const Flags stun         = 0x00000020;
-  const Flags flash        = 0x00000040;
-  const Flags pierce_guard = 0x00000080; // NOTE: this is what we refer to as "true breaking"
-  const Flags impact       = 0x00000100;
-  const Flags drag         = 0x00000200;
-  const Flags bubble       = 0x00000400;
-  const Flags no_counter   = 0x00000800;
-  const Flags root         = 0x00001000;
-  const Flags blind        = 0x00002000;
-  const Flags confuse      = 0x00004000;
+  const Flags none                = 0x00000000;
+  const Flags retain_intangible   = 0x00000001;
+  const Flags freeze              = 0x00000002;
+  const Flags pierce_invis        = 0x00000004;
+  const Flags flinch              = 0x00000008;
+  const Flags shake               = 0x00000010;
+  const Flags stun                = 0x00000020;
+  const Flags flash               = 0x00000040;
+  const Flags pierce_guard        = 0x00000080; // NOTE: this is what we refer to as "true breaking"
+  const Flags impact              = 0x00000100;
+  const Flags drag                = 0x00000200;
+  const Flags bubble              = 0x00000400;
+  const Flags no_counter          = 0x00000800;
+  const Flags root                = 0x00001000;
+  const Flags blind               = 0x00002000;
+  const Flags confuse             = 0x00004000;
+  const Flags pierce_ground       = 0x00008000;
 
   struct Drag {
     Direction dir{ Direction::none };

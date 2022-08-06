@@ -6,39 +6,40 @@
 constexpr int maxOutstandingFrames = 10;
 
 FrameRecorder::FrameRecorder(const sf::Window &window)
-    : window(window), consumerThread([this] {
-        Logger::Log(LogLevel::info, "Starting recording consumer thread!");
-        while (true) {
-          sf::Texture tex;
+  : window(window), consumerThread([this] {
+    Logger::Log(LogLevel::info, "Starting recording consumer thread!");
+    while (true) {
+      sf::Texture tex;
 
-          {
-            std::unique_lock<std::mutex> lk(usedTexturesLock);
-            usedTexturesCv.wait(lk, [this] { return usedTextures.size() > 0 || stopped; });
-            if (stopped && usedTextures.empty()) {
-              break;
-            }
-            tex = std::move(usedTextures.front());
-            usedTextures.pop_front();
-          }
-          usedTexturesCv.notify_one();
-
-          // This operation is unavoidably expensive, but at least we don't have to hold up writers while doing it.
-          sf::Image img = tex.copyToImage();
-
-          {
-            std::unique_lock<std::mutex> lk(freeTexturesLock);
-            freeTextures.push_back(std::move(tex));
-          }
-          freeTexturesCv.notify_one();
-
-          // TODO: Something more useful with with img.
-          img.saveToFile("recording/frame_" +
-                         std::to_string(totalFramesProcessed) + ".bmp");
-
-          ++totalFramesProcessed;
+      {
+        std::unique_lock<std::mutex> lk(usedTexturesLock);
+        usedTexturesCv.wait(lk, [this] { return usedTextures.size() > 0 || stopped; });
+        if (stopped && usedTextures.empty()) {
+          break;
         }
-        Logger::Log(LogLevel::info, "Recording consumer thread stopped.");
-      }) {
+        tex = std::move(usedTextures.front());
+        usedTextures.pop_front();
+      }
+      usedTexturesCv.notify_one();
+
+      // This operation is unavoidably expensive, but at least we don't have to hold up writers while doing it.
+      sf::Image img = tex.copyToImage();
+
+      {
+        std::unique_lock<std::mutex> lk(freeTexturesLock);
+        freeTextures.push_back(std::move(tex));
+      }
+      freeTexturesCv.notify_one();
+
+      // TODO: Something more useful with with img.
+      img.saveToFile("recording/frame_" +
+                      std::to_string(totalFramesProcessed) + ".bmp");
+
+      ++totalFramesProcessed;
+    }
+      Logger::Log(LogLevel::info, "Recording consumer thread stopped.");
+  }) {
+  // ctor
   for (int i = 0; i < maxOutstandingFrames; ++i) {
     sf::Texture tex;
     tex.create(window.getSize().x, window.getSize().y);

@@ -769,14 +769,6 @@ std::function<bool()> NetworkBattleScene::HookPlayerDecrosses(CharacterTransform
     for (std::shared_ptr<Player> player : GetAllPlayers()) {
       TrackedFormData& formData = GetPlayerFormData(player);
 
-      bool decross = player->GetHealth() == 0 && (formData.selectedForm != -1);
-
-      // ensure we decross if their HP is zero and they have not yet
-      if (decross) {
-        formData.selectedForm = -1;
-        formData.animationComplete = false;
-      }
-
       // If the anim form data is configured to decross, then we will
       bool myChangeState = (formData.selectedForm == -1 && formData.animationComplete == false);
 
@@ -810,8 +802,8 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent()
 std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
-    bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
+    bool localTriggered = localPlayerDecross;
+    bool remoteTriggered = remotePlayerDecross;
     bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
 
     if (triggered) {

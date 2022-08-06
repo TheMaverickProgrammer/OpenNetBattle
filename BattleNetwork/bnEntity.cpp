@@ -1028,6 +1028,9 @@ void Entity::Delete()
   }
   deleted = true;
 
+  // zero all blocking statuses
+  freezeCooldown = stunCooldown = rootCooldown = blindCooldown = confusedCooldown = frames(0);
+
   OnDelete();
 }
 

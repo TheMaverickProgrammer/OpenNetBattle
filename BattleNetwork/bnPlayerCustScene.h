@@ -203,9 +203,9 @@ private:
   sf::Vector2f BlockToScreen(size_t y, size_t x);
   void LoadFromSave();
   void CompleteAndSave();
-  void DrawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x);
-  void DrawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
-  void DrawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos);
+  void DrawEdgeBlock(IRenderer& renderer, Piece* piece, size_t y, size_t x);
+  void DrawPiece(IRenderer& renderer, Piece* piece, const sf::Vector2f& pos);
+  void DrawPreview(IRenderer& renderer, Piece* piece, const sf::Vector2f& pos);
   void RemovePiece(Piece* piece);
   void ConsolePrintGrid();
   void StartCompile();
@@ -255,7 +255,7 @@ public:
    * @brief Interpolate folder positions and draws
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
 
   /**
    * @brief Deletes all resources

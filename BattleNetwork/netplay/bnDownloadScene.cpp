@@ -763,10 +763,10 @@ void DownloadScene::onUpdate(double elapsed)
   }
 }
 
-void DownloadScene::onDraw(sf::RenderTexture& surface)
+void DownloadScene::onDraw(IRenderer& renderer)
 {
   if (inView) {
-    surface.draw(bg);
+    renderer.submit(&bg);
   }
 
   float w = static_cast<float>(getController().getVirtualWindowSize().x);
@@ -802,16 +802,20 @@ void DownloadScene::onDraw(sf::RenderTexture& surface)
       float iconHeight = icon.getLocalBounds().height;
       icon.setPosition(20, h);
       icon.setOrigin(0, iconHeight/4);
-      surface.draw(icon);
+
+      // TODO: remove Clone()
+      renderer.submit(Clone(icon));
     }
 
     label.setPosition(20 + 16 + 2, h);
 
     h += 15.0f;
 
-    surface.draw(label);
+    // TODO: remove Clone()
+    renderer.submit(Clone(label));
   }
-  surface.draw(overlay);
+
+  renderer.submit(&overlay);
 }
 
 void DownloadScene::onLeave()

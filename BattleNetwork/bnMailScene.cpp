@@ -238,9 +238,9 @@ void MailScene::onUpdate(double elapsed)
   totalElapsed += static_cast<float>(elapsed);
 }
 
-void MailScene::onDraw(sf::RenderTexture& surface)
+void MailScene::onDraw(IRenderer& renderer)
 {
-  surface.draw(bg);
+  renderer.submit(&bg);
 
   for (size_t i = 0; i < maxRows && i < inbox.Size(); i++) {
     size_t offset = rowOffset;
@@ -256,12 +256,14 @@ void MailScene::onDraw(sf::RenderTexture& surface)
     iconAnim.Refresh(spr);
     spr.setPosition(48.f, 44 + (i * 32.f) + 10.f);
     spr.setScale(2.f, 2.f);
-    surface.draw(spr);
+    // TODO: remove Clone()
+    renderer.submit(Clone(spr));
 
     // NEW
     if (!msg.read) {
       newSprite.setPosition(spr.getPosition().x - 2.f, spr.getPosition().y - 6.f);
-      surface.draw(newSprite);
+      // TODO: remove Clone()
+      renderer.submit(Clone(newSprite));
     }
 
     label.SetString(msg.title.substr(0, 11));
@@ -279,13 +281,15 @@ void MailScene::onDraw(sf::RenderTexture& surface)
       label.SetColor(unread);
     }
 
-    surface.draw(label);
+    // TODO: remove CLone()
+    renderer.submit(Clone(label));
 
     // FROM
     label.SetString(msg.from.substr(0, 8));
     label.setPosition(label.getPosition().x + 160.f, label.getPosition().y);
     label.SetColor(from);
-    surface.draw(label);
+    // TODO: remove CLone()
+    renderer.submit(Clone(label));
 
     // NUMBER
     size_t num = offset + i + 1;
@@ -299,20 +303,21 @@ void MailScene::onDraw(sf::RenderTexture& surface)
     label.setOrigin(label.GetLocalBounds().width * label.getScale().x, 0.0);
     label.setPosition(label.getPosition().x + 240.f, label.getPosition().y);
     label.SetColor(unread); 
-    surface.draw(label);
+    // TODO: remove CLone()
+    renderer.submit(Clone(label));
   
     // reset origin
     label.setOrigin(0, 0);
   }
  
-  surface.draw(scroll);
+  renderer.submit(&scroll);
 
   if (isInFocus) {
-    surface.draw(textbox);
+    renderer.submit(&textbox);
   }
 
   if (textbox.HasMore()) {
-    surface.draw(moreText);
+    renderer.submit(&moreText);
   }
 
   // mugshot
@@ -325,13 +330,13 @@ void MailScene::onDraw(sf::RenderTexture& surface)
       mug.setPosition(12.f, 208.f);
       sf::RenderStates states;
       states.shader = Shaders().GetShader(ShaderType::GREYSCALE);
-      surface.draw(mug, states);
+      renderer.submit(&mug, states);
     }
     else {
       sf::Sprite mug(*noMug, sf::IntRect(0, 0, 40, 48));
       mug.setScale(2.f, 2.f);
       mug.setPosition(12.f, 208.f);
-      surface.draw(mug);
+      renderer.submit(&mug);
     }
   }
   /*
@@ -340,7 +345,7 @@ void MailScene::onDraw(sf::RenderTexture& surface)
   }
   */
 
-  surface.draw(cursor);
+  renderer.submit(&cursor);
 }
 
 void MailScene::onEnd()

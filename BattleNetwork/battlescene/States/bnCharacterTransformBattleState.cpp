@@ -164,7 +164,7 @@ void CharacterTransformBattleState::onEnd(const BattleSceneState*)
   frameElapsed = 0;
 }
 
-void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
+void CharacterTransformBattleState::onDraw(IRenderer& renderer)
 {
   BattleSceneBase& scene = GetScene();
 
@@ -180,7 +180,7 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
       const sf::Vector2f pos = player->getPosition();
       shine.setPosition(pos.x, pos.y - (player->GetHeight() / 2.0f));
       
-      scene.DrawWithPerspective(shine, surface);
+      scene.DrawWithPerspective(shine, renderer);
     }
 
     count++;

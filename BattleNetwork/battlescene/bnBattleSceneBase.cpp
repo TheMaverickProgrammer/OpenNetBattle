@@ -630,10 +630,10 @@ void BattleSceneBase::ShutdownTouchControls() {
 }
 #endif
 
-void BattleSceneBase::DrawCustGauage(sf::RenderTexture& surface)
+void BattleSceneBase::DrawCustGauage(IRenderer& renderer)
 {
   if (!(redTeamMob && redTeamMob->IsCleared()) || !(blueTeamMob && blueTeamMob->IsCleared())) {
-    surface.draw(customBar);
+    renderer.submit(&customBar);
   }
 }
 
@@ -906,22 +906,23 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 }
 
-void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
+void BattleSceneBase::onDraw(IRenderer& renderer) {
   int tint = static_cast<int>((1.0f - backdropOpacity) * 255);
 
   if (!backdropAffectBG) {
     tint = 255;
   }
-
-  surface.clear(backgroundColor);
+  
+  // TODO: composite clear mechanism
+  // renderer.clear(backgroundColor);
 
   background->SetMix(1.0f - (float)backdropOpacity);
 
-  surface.draw(*background);
+  renderer.submit(background.get());
 
   // cross-fade a chip background
   if (cardBackground) {
-    surface.draw(*cardBackground);
+    renderer.submit(cardBackground.get());
   }
 
   auto uis = std::vector<std::shared_ptr<UIComponent>>();
@@ -951,7 +952,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     tile->PerspectiveFlip(perspectiveFlip);
     tile->move(viewOffset + flipOffset);
     tile->setColor(sf::Color(tint, tint, tint, 255));
-    surface.draw(*tile);
+    renderer.submit(tile);
     tile->setColor(sf::Color::White);
 
     if (yellowBlock) {
@@ -961,7 +962,8 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       block.setOrigin(20, 15);
       block.setFillColor(sf::Color::Yellow);
       block.setPosition(tile->getPosition());
-      surface.draw(block);
+      // TODO: remove Clone()
+      renderer.submit(Clone(block));
     }
 
     tile->move(-(viewOffset+flipOffset));
@@ -997,7 +999,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       //       and remove all dynamic casting in the engine...
       bool isSpell = (dynamic_cast<Spell*>(node) != nullptr);
       if (isSpell || localPlayer->Teammate(node->GetTeam()) || !localPlayer->IsBlind()) {
-        surface.draw(*node);
+        // TODO: remove Clone()
+        //   also, this may be REALLY bad if there are side effects...
+        renderer.submit(node);
       }
 
       if (perspectiveFlip) {
@@ -1020,7 +1024,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     for (std::shared_ptr<UIComponent>& ui : uis) {
       if (ui->DrawOnUIPass()) {
         ui->move(viewOffset + flipOffset);
-        surface.draw(*ui);
+        // TODO: remove Clone()
+        //    also, this might be a bad idea
+        renderer.submit(ui.get());
         ui->move(-(viewOffset + flipOffset));
       }
     }
@@ -1037,16 +1043,16 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     std::shared_ptr<CardAction> currAction = c->CurrentCardAction();
 
     for (const std::shared_ptr<CardAction>& action : actionList) {
-      surface.draw(*action);
+      renderer.submit(action.get());
     }
 
     if (currAction) {
-      surface.draw(*currAction);
+      renderer.submit(currAction.get());
     }
   }
 
   // Draw whatever extra state stuff we want to have
-  if (current) current->onDraw(surface);
+  if (current) current->onDraw(renderer);
 }
 
 void BattleSceneBase::onEnd()
@@ -1114,7 +1120,7 @@ void BattleSceneBase::PreparePlayerFullSynchro(const std::shared_ptr<Player>& pl
   player->AddDefenseRule(counterCombatRule);
 }
 
-void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf)
+void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, IRenderer& renderer)
 {
   sf::Vector2f position = shape.getPosition();
   sf::Vector2f origin = shape.getOrigin();
@@ -1124,13 +1130,15 @@ void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& su
   shape.setPosition(shape.getPosition() + offset);
   shape.setOrigin(originNew);
 
-  surf.draw(shape);
+  // TODO: this will make drawing bad because the offsets are reset after
+  //       I need a way to copy/clone/preserve this shape
+  renderer.submit(&shape);
 
   shape.setPosition(position);
   shape.setOrigin(origin);
 }
 
-void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf)
+void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, IRenderer& renderer)
 {
   sf::Vector2f position = sprite.getPosition();
   sf::Vector2f origin = sprite.getOrigin();
@@ -1140,13 +1148,14 @@ void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& 
   sprite.setPosition(sprite.getPosition() + offset);
   sprite.setOrigin(originNew);
 
-  surf.draw(sprite);
+  // TODO: remove Clone()
+  renderer.submit(Clone(sprite));
 
   sprite.setPosition(position);
   sprite.setOrigin(origin);
 }
 
-void BattleSceneBase::DrawWithPerspective(Text& text, sf::RenderTarget& surf)
+void BattleSceneBase::DrawWithPerspective(Text& text, IRenderer& renderer)
 {
   sf::Vector2f position = text.getPosition();
   sf::Vector2f origin = text.getOrigin();
@@ -1156,7 +1165,8 @@ void BattleSceneBase::DrawWithPerspective(Text& text, sf::RenderTarget& surf)
   text.setPosition(text.getPosition() + offset);
   text.setOrigin(originNew);
 
-  surf.draw(text);
+  // TODO: remove Clone()
+  renderer.submit(Clone(text));
 
   text.setPosition(position);
   text.setOrigin(origin);

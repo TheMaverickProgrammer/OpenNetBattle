@@ -45,6 +45,7 @@
  */
 
 using swoosh::ActivityController;
+using swoosh::RendererEntries;
 
 // forward decl.
 class GameSession;
@@ -86,6 +87,7 @@ private:
   LuaLibraryPackagePartitioner* luaLibraryPackagePartitioner{ nullptr };
 
   DrawWindow& window;
+
   ConfigReader reader;
   ConfigSettings configSettings;
   GameSession* session;
@@ -123,7 +125,7 @@ private:
   bool NextFrame();
 
 public:
-  Game(DrawWindow& window);
+  Game(DrawWindow& window, const RendererEntries& renderOptions);
   Game(const Game&) = delete;
   ~Game();
 

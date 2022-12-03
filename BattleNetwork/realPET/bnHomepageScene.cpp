@@ -334,7 +334,7 @@ void RealPET::Homepage::UpdateWindowParticles(double elapsed)
   }
 }
 
-void RealPET::Homepage::DrawFolderParticles(sf::RenderTexture& surface)
+void RealPET::Homepage::DrawFolderParticles(IRenderer& renderer)
 {
   sf::Sprite particleSpr;
   particleSpr.setTexture(*folderTexture);
@@ -363,11 +363,11 @@ void RealPET::Homepage::DrawFolderParticles(sf::RenderTexture& surface)
 
     particleSpr.setColor(sf::Color(255, 255, 255, static_cast<int>(beta * 100)));
 
-    surface.draw(particleSpr);
+    renderer.submit(Clone(particleSpr));
   }
 }
 
-void RealPET::Homepage::DrawWindowParticles(sf::RenderTexture& surface)
+void RealPET::Homepage::DrawWindowParticles(IRenderer& renderer)
 {
   sf::Sprite particleSpr;
   particleSpr.setTexture(*windowTexture);
@@ -386,7 +386,7 @@ void RealPET::Homepage::DrawWindowParticles(sf::RenderTexture& surface)
     particleSpr.setPosition(p.pos);
     particleSpr.setScale(2.f, 2.f);
 
-    surface.draw(particleSpr);
+    renderer.submit(Clone(particleSpr));
   }
 }
 
@@ -437,36 +437,36 @@ void RealPET::Homepage::onUpdate(double elapsed)
   }
 }
 
-void RealPET::Homepage::onDraw(sf::RenderTexture& surface)
+void RealPET::Homepage::onDraw(IRenderer& renderer)
 {
-  surface.draw(bgSprite);
+  renderer.submit(&bgSprite);
 
-  DrawFolderParticles(surface);
-  DrawWindowParticles(surface);
+  DrawFolderParticles(renderer);
+  DrawWindowParticles(renderer);
 
   if (playJackin) {
-    surface.draw(jackinSprite);
+    renderer.submit(&jackinSprite);
   }
   else {
     // draw player w/ shadow
     sf::Vector2f pos = playerSprite.getPosition();
     playerSprite.setColor(sf::Color(0, 0, 20, 20));
     playerSprite.setPosition({ pos.x - 20.f, pos.y });
-    surface.draw(playerSprite);
+    renderer.submit(Clone(playerSprite));
     playerSprite.setPosition(pos);
     playerSprite.setColor(sf::Color::White);
-    surface.draw(playerSprite);
+    renderer.submit(&playerSprite);
 
-    surface.draw(dockSprite);
+    renderer.submit(&dockSprite);
 
     if (this->IsInFocus()) {
-      surface.draw(menuWidget);
-      surface.draw(miscMenuWidget);
+      renderer.submit(&menuWidget);
+      renderer.submit(&miscMenuWidget);
     }
 
     if (!hideTextbox) {
-      surface.draw(speakSprite);
-      surface.draw(textbox);
+      renderer.submit(&speakSprite);
+      renderer.submit(&textbox);
     }
   }
 }

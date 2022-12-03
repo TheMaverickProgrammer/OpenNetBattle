@@ -88,9 +88,9 @@ namespace Overworld {
     void HandleInput();
     void LoadBackground(const Map& map, const std::string& value);
     void LoadForeground(const Map& map);
-    void DrawWorld(sf::RenderTarget& target, sf::RenderStates states);
-    void DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer, size_t maxLayers);
-    void DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t layer);
+    void DrawWorld(IRenderer& renderer, sf::RenderStates states = sf::RenderStates::Default);
+    void DrawMapLayer(IRenderer& renderer, sf::RenderStates states, size_t layer, size_t maxLayers);
+    void DrawSpriteLayer(IRenderer& renderer, sf::RenderStates states, size_t layer);
 
 #ifdef __ANDROID__
     void StartupTouchControls();
@@ -118,9 +118,9 @@ namespace Overworld {
 
     /**
      * @brief Draws the UI
-     * @param surface
+     * @param renderer interface
      */
-    virtual void onDraw(sf::RenderTexture& surface) override;
+    virtual void onDraw(IRenderer& renderer) override;
 
     /**
      * @brief Stops music, plays new track, reset the camera

@@ -17,7 +17,7 @@ struct MobIntroBattleState final : public BattleSceneState {
   void onUpdate(double elapsed) override;
   void onEnd(const BattleSceneState* last) override;
   void onStart(const BattleSceneState* next) override;
-  void onDraw(sf::RenderTexture&);
+  void onDraw(IRenderer& renderer);
 
   const bool IsOver();
   MobIntroBattleState(Mob* mob);

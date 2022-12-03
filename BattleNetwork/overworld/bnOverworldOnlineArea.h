@@ -249,7 +249,7 @@ namespace Overworld {
     ~OnlineArea();
 
     void onUpdate(double elapsed) override;
-    void onDraw(sf::RenderTexture& surface) override;
+    void onDraw(IRenderer& renderer) override;
     void onStart() override;
     void onEnd() override;
     void onLeave() override;

@@ -83,8 +83,8 @@ private:
   void RecieveHandshakeSignal();
 
   // custom drawing
-  void DrawIDInputWidget(sf::RenderTexture& surface);
-  void DrawCopyPasteWidget(sf::RenderTexture& surface);
+  void DrawIDInputWidget(IRenderer& renderer);
+  void DrawCopyPasteWidget(IRenderer& renderer);
 
   const bool IsValidIPv4(const std::string& ip) const;
 
@@ -116,7 +116,7 @@ public:
    * @brief Draws graphic
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface);
+  void onDraw(IRenderer& renderer);
   
   void onEnd();
 };

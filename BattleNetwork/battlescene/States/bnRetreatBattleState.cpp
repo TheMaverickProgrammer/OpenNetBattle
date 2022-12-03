@@ -44,9 +44,9 @@ void RetreatBattleState::onUpdate(double elapsed)
   }
 }
 
-void RetreatBattleState::onDraw(sf::RenderTexture& surface)
+void RetreatBattleState::onDraw(IRenderer& renderer)
 {
-  surface.draw(GetScene().GetCardSelectWidget());
+  renderer.submit(&GetScene().GetCardSelectWidget());
 }
 
 void RetreatBattleState::onEnd(const BattleSceneState*)

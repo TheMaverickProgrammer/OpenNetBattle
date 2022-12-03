@@ -79,7 +79,7 @@ void NetworkSyncBattleState::onUpdate(double elapsed)
   flicker += from_seconds(elapsed);
 }
 
-void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface)
+void NetworkSyncBattleState::onDraw(IRenderer& renderer)
 {
   if (flicker.count() % 60 > 30) {
     Text label = Text("Waiting...", Font::Style::thick);
@@ -90,9 +90,14 @@ void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface)
     sf::Vector2f position = sf::Vector2f(470.0f, 80.0f);;
     label.SetColor(sf::Color::Black);
     label.setPosition(position.x + 2.f, position.y + 2.f);
-    surface.draw(label);
+
+    // TODO: remove Clone()
+    renderer.submit(Clone(label));
+
     label.SetColor(sf::Color::White);
     label.setPosition(position);
-    surface.draw(label);
+
+    // TODO: remove Clone()
+    renderer.submit(Clone(label));
   }
 }

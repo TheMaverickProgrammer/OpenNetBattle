@@ -493,11 +493,11 @@ void FolderScene::onResume() {
   }
 }
 
-void FolderScene::onDraw(sf::RenderTexture& surface) {
+void FolderScene::onDraw(IRenderer& renderer) {
   CardPackageManager& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
-  surface.draw(bg);
-  surface.draw(menuLabel);
+  renderer.submit(&bg);
+  renderer.submit(&menuLabel);
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
@@ -512,18 +512,21 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
       sf::Sprite& drawFolder = allowed ? folderBox : folderDisabled;
       drawFolder.setPosition(folderLeft, 34.0f);
-      surface.draw(drawFolder);
+      // TODO: remove Clone()
+      renderer.submit(Clone(drawFolder));
 
       sf::Color color = allowed ? sf::Color::White : sf::Color(70, 70, 70); 
       cardLabel.SetColor(color);
       cardLabel.SetString(folderNames[i]);
       cardLabel.setOrigin(0.0f, 0.0f);
       cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
-      surface.draw(cardLabel);
+      // TODO: remove Clone()
+      renderer.submit(Clone(cardLabel));
 
       if (i == selectedFolderIndex) {
         folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
-        surface.draw(folderEquip);
+        // TODO: remove Clone()
+        renderer.submit(Clone(folderEquip));
       }
 
     }
@@ -572,7 +575,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     }
 #endif
 
-    surface.draw(folderCursor);
+    renderer.submit(&folderCursor);
   }
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
@@ -580,14 +583,14 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
-  surface.draw(scrollbar);
-  surface.draw(folderOptions);
+  renderer.submit(&scrollbar);
+  renderer.submit(&folderOptions);
 
   float scale = 0.0f;
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-    surface.draw(cursor);
+    renderer.submit(&cursor);
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
@@ -624,7 +627,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     cardLabel.SetString(folderNames[currFolderIndex]);
     cardLabel.setOrigin(0.f, 0.f);
     cardLabel.setPosition(195.0f, 102.0f);
-    surface.draw(cardLabel);
+    // TODO: remove Clone()
+    renderer.submit(Clone(cardLabel));
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
@@ -648,28 +652,33 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       }
 
       cardIcon.setPosition(2.f * 99.f, cardIconY);
-      surface.draw(cardIcon);
+      // TODO: remove Clone()
+      renderer.submit(Clone(cardIcon));
 
       cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);
       cardLabel.SetString((*iter)->GetShortName());
-      surface.draw(cardLabel);
+      // TODO: remove Clone()
+      renderer.submit(Clone(cardLabel));
 
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*173.f, cardIconY);
-      surface.draw(element);
+      // TODO: remove Clone()
+      renderer.submit(Clone(element));
 
       cardLabel.setPosition(2.f*190.f, cardIconY + 4.0f);
       cardLabel.SetString(std::string() + (*iter)->GetCode());
-      surface.draw(cardLabel);
+      // TODO: remove Clone()
+      renderer.submit(Clone(cardLabel));
 
       mbPlaceholder.setPosition(2.f*200.f, cardIconY + 2.0f);
-      surface.draw(mbPlaceholder);
+      // TODO: remove Clone()
+      renderer.submit(Clone(mbPlaceholder));
       iter++;
     }
   }
 
-  surface.draw(textbox);
+  renderer.submit(&textbox);
 }
 
 const bool FolderScene::IsFolderAllowed(CardFolder* folder)

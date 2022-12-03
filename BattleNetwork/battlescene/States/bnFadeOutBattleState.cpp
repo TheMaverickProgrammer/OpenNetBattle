@@ -65,7 +65,7 @@ void FadeOutBattleState::onUpdate(double elapsed)
   }
 }
 
-void FadeOutBattleState::onDraw(sf::RenderTexture&)
+void FadeOutBattleState::onDraw(IRenderer& renderer)
 {
 }
 

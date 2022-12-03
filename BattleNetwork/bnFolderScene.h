@@ -128,7 +128,7 @@ public:
    * @brief Interpolate folder positions and draws
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   
   /**
    * @brief Deletes all resources

@@ -134,7 +134,7 @@ public:
    * @brief Draws the scene
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   
   /**
    * @brief Unpauses textbox, triggers special effects to perform again

@@ -24,7 +24,7 @@ struct RetreatBattleState final : public BattleSceneState {
 
   void onStart(const BattleSceneState*) override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void onEnd(const BattleSceneState*) override;
   bool Success();
   bool Fail();

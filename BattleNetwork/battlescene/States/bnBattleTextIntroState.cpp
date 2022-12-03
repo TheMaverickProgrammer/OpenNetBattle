@@ -50,7 +50,7 @@ void BattleTextIntroState::onUpdate(double elapsed)
   timer.tick();
 }
 
-void BattleTextIntroState::onDraw(sf::RenderTexture& surface)
+void BattleTextIntroState::onDraw(IRenderer& renderer)
 {
   frame_time_t start = timer.elapsed();
 
@@ -61,8 +61,8 @@ void BattleTextIntroState::onDraw(sf::RenderTexture& surface)
     double scale = swoosh::ease::wideParabola(delta, length, 2.0);
     battleStart.setScale(2.f, static_cast<float>(scale * 2.0));
 
-    surface.draw(GetScene().GetCardSelectWidget());
-    surface.draw(battleStart);
+    renderer.submit(&GetScene().GetCardSelectWidget());
+    renderer.submit(&battleStart);
   }
 }
 

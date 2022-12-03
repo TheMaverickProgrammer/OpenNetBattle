@@ -69,9 +69,9 @@ void MobIntroBattleState::onStart(const BattleSceneState*)
 {
 }
 
-void MobIntroBattleState::onDraw(sf::RenderTexture& surface)
+void MobIntroBattleState::onDraw(IRenderer& renderer)
 {
-  surface.draw(GetScene().GetCardSelectWidget());
+  renderer.submit(&GetScene().GetCardSelectWidget());
 }
 
 const bool MobIntroBattleState::IsOver() {

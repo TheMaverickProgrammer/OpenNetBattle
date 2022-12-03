@@ -112,7 +112,7 @@ namespace RealPET {
   {
   }
 
-  void BootScene::onDraw(sf::RenderTexture& surface)
+  void BootScene::onDraw(IRenderer& renderer)
   {
     // draw logs in the background
     float padding = 1.5f;
@@ -134,23 +134,23 @@ namespace RealPET {
 
       logLabel.SetColor(color);
 
-      surface.draw(logLabel);
+      renderer.submit(Clone(logLabel));
 
       pos.y -= logLabel.GetLocalBounds().height * padding;
     }
 
     // draw boot logo on top
-    surface.draw(logoSprite);
+    renderer.submit(&logoSprite);
 
     // draw task status label
     if (!leaving) {
       sf::Vector2f lastPos = taskLabel.getPosition();
       taskLabel.setPosition(lastPos.x + 2.f, lastPos.y + 2.f);
       taskLabel.SetColor(sf::Color::Black);
-      surface.draw(taskLabel);
+      renderer.submit(Clone(taskLabel));
       taskLabel.setPosition(lastPos);
       taskLabel.SetColor(sf::Color::White);
-      surface.draw(taskLabel);
+      renderer.submit(&taskLabel);
     }
   }
 

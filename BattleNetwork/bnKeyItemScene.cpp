@@ -171,9 +171,9 @@ void KeyItemScene::onUpdate(double elapsed)
   totalElapsed += static_cast<float>(elapsed);
 }
 
-void KeyItemScene::onDraw(sf::RenderTexture& surface)
+void KeyItemScene::onDraw(IRenderer& renderer)
 {
-  surface.draw(bg);
+  renderer.submit(&bg);
 
   if (items.size()) {
     for (size_t i = 0; i < maxCols; i++) {
@@ -191,20 +191,21 @@ void KeyItemScene::onDraw(sf::RenderTexture& surface)
 
           label.setPosition(pos.x - 2.f, pos.y - 2.f);
           label.SetColor(sf::Color::White);
-          surface.draw(label);
+          // TODO: remove Clone()
+          renderer.submit(Clone(label));
         }
       }
     }
   }
 
-  surface.draw(scroll);
-  surface.draw(textbox);
+  renderer.submit(&scroll);
+  renderer.submit(&textbox);
 
   if (textbox.HasMore()) {
-    surface.draw(moreText);
+    renderer.submit(&moreText);
   }
 
-  surface.draw(cursor);
+  renderer.submit(&cursor);
 }
 
 void KeyItemScene::onEnd()

@@ -116,7 +116,7 @@ private:
 
 public:
   void onUpdate(double elapsed) override final;
-  void onDraw(sf::RenderTexture& surface) override final;
+  void onDraw(IRenderer& renderer) override final;
   void onLeave() override;
   void onExit() override;
   void onEnter() override;

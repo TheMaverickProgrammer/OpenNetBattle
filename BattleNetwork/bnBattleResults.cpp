@@ -204,8 +204,8 @@ void BattleResultsWidget::Update(double elapsed)
   }
 }
 
-void BattleResultsWidget::Draw(sf::RenderTarget& surface) {
-  surface.draw(resultsSprite);
+void BattleResultsWidget::Draw(IRenderer& renderer) {
+  renderer.submit(&resultsSprite);
 
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
@@ -213,20 +213,20 @@ void BattleResultsWidget::Draw(sf::RenderTarget& surface) {
 
   if (IsInView()) {
     if (!isRevealed)
-      surface.draw(pressA);
+      renderer.submit(&pressA);
 
-    surface.draw(rank);
+    renderer.submit(&rank);
 
     // Draw overlay
     rank.setPosition(rankPos);
-    surface.draw(rank);
+    renderer.submit(&rank);
 
     // Draw overlay
     time.setPosition(2.f*191.f, 84.f);
-    surface.draw(time);
+    renderer.submit(&time);
 
     if (isRevealed) {
-      surface.draw(rewardCard);
+      renderer.submit(&rewardCard);
 
       sf::RectangleShape c(sf::Vector2f(8 * 2, 8 * 2));
       c.setFillColor(sf::Color::Black);
@@ -240,7 +240,9 @@ void BattleResultsWidget::Draw(sf::RenderTarget& surface) {
           offset = 2.0f * offset;
 
           c.setPosition(rewardCard.getPosition() + offset);
-          surface.draw(c);
+
+          // TODO: remove Clone()
+          renderer.submit(Clone(c));
         }
       }
 
@@ -249,29 +251,35 @@ void BattleResultsWidget::Draw(sf::RenderTarget& surface) {
         auto rewardPos = reward.getPosition();
         reward.setPosition(rewardPos.x + 2.f, rewardPos.y + 2.f);
         reward.SetColor(sf::Color(80, 72, 88));
-        surface.draw(reward);
+
+        // TODO: remove Clone()
+        renderer.submit(Clone(reward));
 
         // then overlay
         reward.setPosition(rewardPos);
         reward.SetColor(sf::Color::White);
-        surface.draw(reward);
+        // TODO: remove Clone()
+        renderer.submit(Clone(reward));
 
         if (rewardIsCard) {
           auto codePos = cardCode.getPosition();
           cardCode.setPosition(codePos.x + 2.f, codePos.y + 2.f);
           cardCode.SetColor(sf::Color(80, 72, 88));
-          surface.draw(cardCode);
+          // TODO: remove Clone()
+          renderer.submit(Clone(cardCode));
 
           cardCode.setPosition(codePos);
           cardCode.SetColor(sf::Color::White);
-          surface.draw(cardCode);
+          // TODO: remove Clone()
+          renderer.submit(Clone(cardCode));
         }
       }
     }
 
     for (int i = 0; i < counterCount; i++) {
       star.setPosition(rankPos.x + starSpacing(i) + (starSpacing(1) / 2.0f), rankPos.y + 14.0f);
-      surface.draw(star);
+      // TODO: remove Clone()
+      renderer.submit(Clone(star));
     }
   }
 }

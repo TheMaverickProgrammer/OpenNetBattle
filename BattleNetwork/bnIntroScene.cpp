@@ -64,11 +64,11 @@ void IntroScene::onResume()
 {
 }
 
-void IntroScene::onDraw(sf::RenderTexture & surface)
+void IntroScene::onDraw(IRenderer& renderer)
 {
   // Draw the message
-  surface.draw(alertSprite);
-  surface.draw(message);
+  renderer.submit(&alertSprite);
+  renderer.submit(&message);
 }
 
 void IntroScene::onEnd()

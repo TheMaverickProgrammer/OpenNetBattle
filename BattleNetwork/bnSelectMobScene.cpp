@@ -454,41 +454,49 @@ void SelectMobScene::onUpdate(double elapsed) {
   }
 }
 
-void SelectMobScene::onDraw(sf::RenderTexture & surface) {
-  surface.draw(bg);
-  surface.draw(menuLabel);
+void SelectMobScene::onDraw(IRenderer& renderer) {
+  renderer.submit(&bg);
+  renderer.submit(&menuLabel);
 
   // Draw mob name with shadow
   mobLabel.setPosition(sf::Vector2f(30.f, 38.0f));
   mobLabel.SetColor(sf::Color(138, 138, 138));
-  surface.draw(mobLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(mobLabel));
   mobLabel.setPosition(sf::Vector2f(30.f, 36.0f));
   mobLabel.SetColor(sf::Color::White);
-  surface.draw(mobLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(mobLabel));
 
   // Draw attack rating with shadow
   attackLabel.setPosition(382.f, 88.f);
   attackLabel.SetColor(sf::Color(88, 88, 88));
-  surface.draw(attackLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(attackLabel));
   attackLabel.setPosition(380.f, 86.f);
   attackLabel.SetColor(sf::Color::White);
-  surface.draw(attackLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(attackLabel));
 
   // Draw speed rating with shadow
   speedLabel.setPosition(382.f, 120.f);
   speedLabel.SetColor(sf::Color(88, 88, 88));
-  surface.draw(speedLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(speedLabel));
   speedLabel.setPosition(380.f, 118.f);
   speedLabel.SetColor(sf::Color::White);
-  surface.draw(speedLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(speedLabel));
 
   // Draw hp
   hpLabel.setPosition(382.f, 152.f);
   hpLabel.SetColor(sf::Color(88, 88, 88));
-  surface.draw(hpLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(hpLabel));
   hpLabel.setPosition(380.f, 150.f);
   hpLabel.SetColor(sf::Color::White);
-  surface.draw(hpLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(hpLabel));
 
   // Pixelate the mob texture
   if (mobSpr.getTexture()) {
@@ -508,11 +516,11 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     mobSpr.setScale(scale, scale);
     mobSpr.SetShader(shader);
 
-    surface.draw(mobSpr);
+    renderer.submit(&mobSpr);
   }
 
-  surface.draw(textbox);
-  surface.draw(navigator);
+  renderer.submit(&textbox);
+  renderer.submit(&navigator);
 
   // Draw the LEFT cursor
   // if (mobSelectionIndex > 0) {
@@ -533,7 +541,8 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   cursor.setScale(-2.f, 2.f);
 
   // Draw left cursor
-  surface.draw(cursor);
+  // TODO: remove Clone()
+  renderer.submit(&cursor);
 
   // Draw the RIGHT cursor
   // if (mobSelectionIndex < (int)(getController().MobPackageManager().Size() - 1)) {
@@ -553,7 +562,8 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   cursor.setScale(2.f, 2.f);
 
   // Draw the right cursor
-  surface.draw(cursor);
+  // TODO: remove Clone()
+  renderer.submit(&cursor);
 }
 
 void SelectMobScene::onResume() {

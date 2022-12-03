@@ -36,7 +36,7 @@ public:
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
   void onEnd(const BattleSceneState* next) override;
-  void onDraw(sf::RenderTexture&);
+  void onDraw(IRenderer& renderer);
 
   CharacterTransformBattleState();
 };

@@ -42,7 +42,7 @@ public:
   std::shared_ptr<std::vector<Battle::Card>> GetCardPtrList();
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void onEnd(const BattleSceneState* next) override;
   void EnablePVPMode();
   bool OKIsPressed();

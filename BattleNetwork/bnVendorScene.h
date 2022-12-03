@@ -80,6 +80,6 @@ public:
   void onResume() override;
   void onStart() override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void onEnd() override;
 };

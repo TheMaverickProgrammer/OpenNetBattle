@@ -26,7 +26,7 @@ struct BattleSceneState : public ResourceHandle, public InputHandle {
     virtual void onStart(const BattleSceneState* next=nullptr) = 0;
     virtual void onEnd(const BattleSceneState* last=nullptr) = 0;
     virtual void onUpdate(double elapsed) = 0;
-    virtual void onDraw(sf::RenderTexture& surface) = 0;
+    virtual void onDraw(IRenderer& renderer) = 0;
     virtual ~BattleSceneState(){};
 
     using ChangeCondition = std::function<bool()>;

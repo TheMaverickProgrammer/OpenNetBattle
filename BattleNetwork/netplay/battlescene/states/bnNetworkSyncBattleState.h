@@ -27,5 +27,5 @@ struct NetworkSyncBattleState final : public NetworkBattleSceneState {
   void onStart(const BattleSceneState* next) override;
   void onEnd(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
 };

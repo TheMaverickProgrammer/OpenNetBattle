@@ -1,9 +1,13 @@
 #pragma once
 #include <Swoosh/Activity.h>
+#include <Swoosh/Renderers/Renderer.h>
+#include "renderers/bnClassicRenderer.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "bnNetHandle.h"
 #include "bnGame.h"
+
+using swoosh::IRenderer;
 
 class Scene : 
   public swoosh::Activity,

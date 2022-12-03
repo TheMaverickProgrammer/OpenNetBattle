@@ -318,7 +318,7 @@ public:
   void SetCustomBarProgress(double value);
   void SetCustomBarDuration(double maxTimeSeconds);
   void ResetCustomBarDuration();
-  void DrawCustGauage(sf::RenderTexture& surface);
+  void DrawCustGauage(IRenderer& renderer);
   void SubscribeToCardActions(CardActionUsePublisher& publisher);
   const std::vector<std::reference_wrapper<CardActionUsePublisher>>& GetCardActionSubscriptions() const;
   TrackedFormData& GetPlayerFormData(const std::shared_ptr<Player>& player);
@@ -375,15 +375,15 @@ public:
   virtual void onStart() override;
   virtual void onLeave() override;
   virtual void onUpdate(double elapsed) override;
-  virtual void onDraw(sf::RenderTexture& surface) override;
+  virtual void onDraw(IRenderer& renderer) override;
   virtual void onEnd() override;
 
   // Define what happens on scenes that need to inspect pre-filtered card selections
   virtual void OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
 
-  void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
-  void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
-  void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
+  void DrawWithPerspective(sf::Sprite& sprite, IRenderer& renderer);
+  void DrawWithPerspective(sf::Shape& shape, IRenderer& renderer);
+  void DrawWithPerspective(Text& text, IRenderer& renderer);
   void PerspectiveFlip(bool flipped);
   bool TrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackOtherPlayer(std::shared_ptr<Player>& other);

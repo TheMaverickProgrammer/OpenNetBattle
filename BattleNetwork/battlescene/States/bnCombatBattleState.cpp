@@ -175,29 +175,29 @@ void CombatBattleState::onUpdate(double elapsed)
   scene.GetField()->Update((float)elapsed);
 }
 
-void CombatBattleState::onDraw(sf::RenderTexture& surface)
+void CombatBattleState::onDraw(IRenderer& renderer)
 {
   BattleSceneBase& scene = GetScene();
   const int comboDeleteSize = scene.ComboDeleteSize();
 
   if (!scene.Countered()) {
     if (comboDeleteSize == 2) {
-      surface.draw(doubleDelete);
+      renderer.submit(&doubleDelete);
     } else if(comboDeleteSize > 2) {
-      surface.draw(tripleDelete);
+      renderer.submit(&tripleDelete);
     }
   }
   else {
-    surface.draw(counterHit);
+    renderer.submit(&counterHit);
   }
 
-  surface.draw(scene.GetCardSelectWidget());
+  renderer.submit(&scene.GetCardSelectWidget());
 
-  scene.DrawCustGauage(surface);
+  scene.DrawCustGauage(renderer);
 
   if (isPaused) {
     // render on top
-    surface.draw(pause);
+    renderer.submit(&pause);
   }
 }
 

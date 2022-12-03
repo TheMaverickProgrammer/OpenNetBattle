@@ -33,6 +33,8 @@ add_subdirectory(extern/SFML)
 file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/*.h"
         "BattleNetwork/*.cpp"
+	"BattleNetwork/renderers/*.h"
+	"BattleNetwork/renderers/*.cpp"
 	"BattleNetwork/netplay/*.h"
 	"BattleNetwork/netplay/*.cpp"
 	"BattleNetwork/overworld/*.h"

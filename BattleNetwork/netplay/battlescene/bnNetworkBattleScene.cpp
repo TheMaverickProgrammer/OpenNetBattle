@@ -308,8 +308,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 }
 
-void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
-  BattleSceneBase::onDraw(surface);
+void NetworkBattleScene::onDraw(IRenderer& renderer) {
+  BattleSceneBase::onDraw(renderer);
 
   const double lag = GetAvgLatency();
 
@@ -321,7 +321,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   ping.setOrigin(bounds.width, bounds.height);
 
   // draw ping
-  surface.draw(ping);
+  renderer.submit(&ping);
 
   frameNumText.SetString("F" + std::to_string(FrameNumber().count()));
 
@@ -330,7 +330,9 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
   frameNumText.SetColor(sf::Color::Cyan);
   frameNumText.setPosition(480 - (2.f * 128) - 4, 320 - 2.f);
-  surface.draw(frameNumText);
+
+  // TODO: remove Clone()
+  renderer.submit(Clone(frameNumText));
 
   frameNumText.SetString("F" + std::to_string(remoteFrameNumber.count()));
 
@@ -339,7 +341,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
   frameNumText.SetColor(sf::Color::Magenta);
   frameNumText.setPosition(480 - (2.f * 64) - 4, 320 - 2.f);
-  surface.draw(frameNumText);
+  renderer.submit(&frameNumText);
 
   // convert from ms to seconds to discrete frame count...
   frame_time_t lagTime = from_milliseconds(lag);
@@ -348,7 +350,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   UpdatePingIndicator(lagTime);
 
   //draw
-  surface.draw(pingIndicator);
+  renderer.submit(&pingIndicator);
 }
 
 void NetworkBattleScene::onExit()

@@ -6,6 +6,7 @@
 #include "bindings/bnScriptedPlayer.h"
 #include "bindings/bnScriptedCard.h"
 #include "bindings/bnLuaLibrary.h"
+#include "renderers/bnClassicRenderer.h"
 #include "realPET/bnBootScene.h"
 #include "bnPlayerPackageManager.h"
 #include "bnMobPackageManager.h"
@@ -155,7 +156,11 @@ int main(int argc, char** argv) {
 
     DrawWindow win;
     win.Initialize("Open Net Battle v2.5", DrawWindow::WindowMode::window);
-    Game game{ win };
+
+    ClassicRenderer classic{ win.GetView() };
+    RendererEntries renderOptions{ {"classic", classic} };
+
+    Game game{ win, renderOptions };
 
     // Go the the title screen to kick off the rest of the app
     if (Launch(game, parsedOptions) == EXIT_SUCCESS) {

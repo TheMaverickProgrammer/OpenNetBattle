@@ -115,7 +115,7 @@ public:
    * @brief Draws entire scene
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   
   /**
    * @brief gotoNextScene = false, user can interact

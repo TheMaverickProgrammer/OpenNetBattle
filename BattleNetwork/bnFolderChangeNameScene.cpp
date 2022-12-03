@@ -296,10 +296,10 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   auto c = name[letterPos];
 }
 
-void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
-  surface.draw(bg);
-  surface.draw(cursorPieceLeft);
-  surface.draw(cursorPieceRight);
+void FolderChangeNameScene::onDraw(IRenderer& renderer) {
+  renderer.submit(&bg);
+  renderer.submit(&cursorPieceLeft);
+  renderer.submit(&cursorPieceRight);
 
   bool blink = (int(elapsed * 3000) % 1000) < 500;
   float labelTop = 18 * 2.f - 2.f;
@@ -311,7 +311,8 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     nameLabel.SetString(name[i]);
     nameLabel.setPosition((65 + (i*8)) * 2.f, labelTop);
 
-    surface.draw(nameLabel);
+    // TODO: remove Clone()
+    renderer.submit(Clone(nameLabel));
   }
 
   // 9th character is a special * asterisk to denote the end of input
@@ -319,6 +320,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     nameLabel.SetString('*');
     nameLabel.setPosition((65 + (8 * 8)) * 2.f, labelTop);
 
-    surface.draw(nameLabel);
+    // TODO: remove Clone()
+    renderer.submit(Clone(nameLabel));
   }
 }

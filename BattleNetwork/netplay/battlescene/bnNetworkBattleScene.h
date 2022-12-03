@@ -149,7 +149,7 @@ public:
 
   void OnHit(Entity& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;
-  void onDraw(sf::RenderTexture& surface) override final;
+  void onDraw(IRenderer& renderer) override final;
   void onExit() override;
   void onEnter() override;
   void onStart() override;

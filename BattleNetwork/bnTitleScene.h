@@ -42,7 +42,7 @@ public:
   void onExit() override;
   void onEnter() override;
   void onResume() override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void onEnd() override;
   void onTaskBegin(const std::string& taskName, float progress) override;
   void onTaskComplete(const std::string& taskName, float progress) override;

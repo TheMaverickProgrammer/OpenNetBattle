@@ -190,11 +190,11 @@ void TitleScene::onResume()
   Audio().Stream("resources/loops/loop_theme.ogg");
 }
 
-void TitleScene::onDraw(sf::RenderTexture & surface)
+void TitleScene::onDraw(IRenderer& renderer)
 {
-  surface.draw(bgSprite);
-  surface.draw(progSprite);
-  surface.draw(logoSprite);
+  renderer.submit(&bgSprite);
+  renderer.submit(&progSprite);
+  renderer.submit(&logoSprite);
 
   // blink when ready
   unsigned min = pressedStart ? 5 : 30;
@@ -204,13 +204,12 @@ void TitleScene::onDraw(sf::RenderTexture & surface)
     sf::Vector2f lastPos = startLabel.getPosition();
     startLabel.setPosition(lastPos.x + 2.f, lastPos.y + 2.f);
     startLabel.SetColor(sf::Color::Black);
-    surface.draw(startLabel);
+    renderer.submit(UI(&startLabel));
     startLabel.setPosition(lastPos);
     startLabel.SetColor(sf::Color::White);
-    surface.draw(startLabel);
+    renderer.submit(&startLabel);
   }
-
-  surface.draw(textbox);
+  renderer.submit(&textbox);
 }
 
 void TitleScene::onEnd()

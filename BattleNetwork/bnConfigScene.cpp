@@ -863,28 +863,28 @@ void ConfigScene::UpdateMenu(Menu& menu, bool menuHasFocus, int selectionIndex, 
   }
 }
 
-void ConfigScene::onDraw(sf::RenderTexture& surface)
+void ConfigScene::onDraw(IRenderer& renderer)
 {
-  surface.draw(*bg);
+  renderer.submit(bg);
 
   // scrolling the view
   auto states = sf::RenderStates::Default;
   states.transform.translate(0, 2.0f * scrollOffset);
 
-  surface.draw(endBtn, states);
+  renderer.submit(&endBtn, states);
 
   for (auto& menuItem : primaryMenu) {
-    surface.draw(*menuItem, states);
+    renderer.submit(menuItem.get(), states);
   }
 
   if (activeSubmenu) {
     auto& submenu = activeSubmenu->get();
     for (auto& menuItem : submenu) {
-      surface.draw(*menuItem, states);
+      renderer.submit(menuItem.get(), states);
     }
   }
 
-  surface.draw(textbox);
+  renderer.submit(&textbox);
 }
 
 void ConfigScene::onStart()

@@ -41,7 +41,7 @@ char* Game::LocalPartition = "";
 char* Game::RemotePartition = "pvp";
 char* Game::ServerPartition = "server";
 
-Game::Game(DrawWindow& window) :
+Game::Game(DrawWindow& window, const RendererEntries& renderOptions) :
   window(window),
   reader("config.ini"),
   configSettings(),
@@ -50,7 +50,7 @@ Game::Game(DrawWindow& window) :
   audioManager(),
   shaderManager(),
   inputManager(*window.GetRenderWindow()),
-  ActivityController(*window.GetRenderWindow()) {
+  ActivityController(*window.GetRenderWindow(), renderOptions) {
 
   // figure out system endianness
   {

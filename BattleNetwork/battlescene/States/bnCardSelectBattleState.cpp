@@ -261,7 +261,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
   }
 }
 
-void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
+void CardSelectBattleState::onDraw(IRenderer& renderer)
 {
   BattleSceneBase& scene = GetScene();
   std::shared_ptr<Player> localPlayer = scene.GetLocalPlayer();
@@ -294,23 +294,26 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     float scalex = scene.getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
     mobBackdropSprite.setScale(scalex, 2.f);
 
-    surface.draw(mobEdgeSprite);
-    surface.draw(mobBackdropSprite);
+    // TODO: remove Clone()'s
+    renderer.submit(Clone(mobEdgeSprite));
+    renderer.submit(Clone(mobBackdropSprite));
 
     // draw the mob label shadow
-    surface.draw(mobLabel);
+    // TODO: remove Clone()
+    renderer.submit(Clone(mobLabel));
 
     // draw the white text on top
     mobLabel.setOrigin(mobLabel.GetLocalBounds().width, -1);
     mobLabel.setPosition(475.0f, nextLabelHeight);
     mobLabel.SetColor(sf::Color::White);
-    surface.draw(mobLabel);
+    // TODO: remove Clone()
+    renderer.submit(Clone(mobLabel));
 
     // make the next label relative to this one and 3px down + the 3px margin from the first label
     nextLabelHeight += mobEdgeSprite.getLocalBounds().height + (7.f*3.f);
   }
 
-  surface.draw(scene.GetCardSelectWidget());
+  renderer.submit(&scene.GetCardSelectWidget());
 }
 
 void CardSelectBattleState::onEnd(const BattleSceneState*)

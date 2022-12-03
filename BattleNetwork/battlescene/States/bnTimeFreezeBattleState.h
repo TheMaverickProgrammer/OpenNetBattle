@@ -60,10 +60,10 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void ExecuteTimeFreeze();
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();
-  void DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target);
+  void DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, IRenderer& renderer);
 };

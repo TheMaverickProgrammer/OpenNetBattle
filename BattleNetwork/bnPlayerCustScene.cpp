@@ -328,7 +328,7 @@ void PlayerCustScene::RemovePiece(Piece* piece)
   centerHash[piece] = BAD_GRID_POS;
 }
 
-void PlayerCustScene::DrawEdgeBlock(sf::RenderTarget& surface, Piece* piece, size_t y, size_t x)
+void PlayerCustScene::DrawEdgeBlock(IRenderer& renderer, Piece* piece, size_t y, size_t x)
 {
   if ((x == 0 || x + 1u == GRID_SIZE) && y == 3) return;
 
@@ -373,12 +373,14 @@ void PlayerCustScene::DrawEdgeBlock(sf::RenderTarget& surface, Piece* piece, siz
   if (vert) {
     blockShadowVertical.setPosition(pos);
     blockShadowVertAnim.Refresh(blockShadowVertical);
-    surface.draw(blockShadowVertical);
+    // TODO: remove Clone()
+    renderer.submit(Clone(blockShadowVertical));
   }
   else {
     blockShadowHorizontal.setPosition(pos);
     blockShadowHorizAnim.Refresh(blockShadowHorizontal);
-    surface.draw(blockShadowHorizontal);
+    // TODO: remove Clone()
+    renderer.submit(Clone(blockShadowHorizontal));
   }
 }
 
@@ -635,7 +637,7 @@ sf::Vector2f PlayerCustScene::GridCursorToScreen()
   return { (GRID_START_X * 2) + cursorLocationX, (GRID_START_Y * 2) + cursorLocationY };
 }
 
-void PlayerCustScene::DrawPiece(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
+void PlayerCustScene::DrawPiece(IRenderer& renderer, Piece* piece, const sf::Vector2f& pos)
 {
   static GameSession& session = getController().Session();
 
@@ -658,19 +660,20 @@ void PlayerCustScene::DrawPiece(sf::RenderTarget& surface, Piece* piece, const s
         blockSprite.setTexture(tex, true);
         blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
         RefreshBlock(piece, blockSprite);
-        surface.draw(blockSprite);
+        // TODO: remove Clone()
+        renderer.submit(Clone(blockSprite));
       }
     }
   }
 }
 
-void PlayerCustScene::DrawPreview(sf::RenderTarget& surface, Piece* piece, const sf::Vector2f& pos)
+void PlayerCustScene::DrawPreview(IRenderer& renderer, Piece* piece, const sf::Vector2f& pos)
 {
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
 
   previewBox.setPosition(pos);
-  surface.draw(previewBox);
+  renderer.submit(&previewBox);
 
   for (size_t i = 0; i < Piece::BLOCK_SIZE; i++) {
     for (size_t j = 0; j < Piece::BLOCK_SIZE; j++) {
@@ -681,7 +684,8 @@ void PlayerCustScene::DrawPreview(sf::RenderTarget& surface, Piece* piece, const
         blockSprite.setTexture(*miniblocksTexture, true);
         blockSprite.setTextureRect({ static_cast<int>(piece->typeIndex*3), 0, 3, 3 });
         blockSprite.setPosition({ pos.x + offsetX, pos.y + offsetY });
-        surface.draw(blockSprite);
+        // TODO: remove Clone()
+        renderer.submit(Clone(blockSprite));
       }
     }
   }
@@ -1433,13 +1437,13 @@ void PlayerCustScene::onUpdate(double elapsed)
   }
 }
 
-void PlayerCustScene::onDraw(sf::RenderTexture& surface)
+void PlayerCustScene::onDraw(IRenderer& renderer)
 {
   static GameSession& session = getController().Session();
 
-  surface.draw(bg);
-  surface.draw(sceneLabel);
-  surface.draw(gridSprite);
+  renderer.submit(&bg);
+  renderer.submit(&sceneLabel);
+  renderer.submit(&gridSprite);
 
   sf::Sprite blockSprite;
   blockSprite.setScale(2.f, 2.f);
@@ -1452,7 +1456,8 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     blockSprite.setTexture(*blockTextures[key], true);
     blockSprite.setTextureRect({ 60, 0, 14, 9 });
     blockSprite.setPosition({ x, y });
-    surface.draw(blockSprite);
+    // TODO: remove Clone()
+    renderer.submit(Clone(blockSprite));
     count++;
   }
 
@@ -1461,7 +1466,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
       size_t index = (i * GRID_SIZE) + j;
       if (Piece* p = grid[index]) {
         if (IsGridEdge(i, j)) {
-          DrawEdgeBlock(surface, p, i, j);
+          DrawEdgeBlock(renderer, p, i, j);
         }
         else {
           sf::Vector2f blockPos = BlockToScreen(i, j);
@@ -1470,7 +1475,8 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
           blockSprite.setTexture(tex, true);
           blockSprite.setPosition({ blockPos.x, blockPos.y });
           RefreshBlock(p, blockSprite);
-          surface.draw(blockSprite);
+          // TODO: remove Clone()
+          renderer.submit(Clone(blockSprite));
         }
       }
     }
@@ -1478,7 +1484,7 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
 
   // draw track
   RefreshTrack();
-  surface.draw(track);
+  renderer.submit(&track);
 
   // draw items
   float yoffset = 0.;
@@ -1494,7 +1500,8 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   for (size_t i = 0; i < pieces.size(); i++) {
     RefreshButton(i);
     blueButtonSprite.setPosition(bottom.x * 2.f, (bottom.y + yoffset) * 2.f);
-    surface.draw(blueButtonSprite);
+    // TODO: remove Clone()
+    renderer.submit(Clone(blueButtonSprite));
 
     if (listStart == i) {
       sf::Vector2f dest = blueButtonSprite.getPosition();
@@ -1510,10 +1517,12 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
       itemText.SetString(pieces[i]->name);
       itemText.SetColor(sf::Color(33, 115, 140));
       itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y + 2.f);
-      surface.draw(itemText);
+      // TODO: remove Clone()
+      renderer.submit(Clone(itemText));
       itemText.SetColor(sf::Color::White);
       itemText.setPosition((bottom.x + textOffset.x) * itemText.getScale().x, ((bottom.y + yoffset) * itemText.getScale().y) + textOffset.y);
-      surface.draw(itemText);
+      // TODO: remove Clone()
+      renderer.submit(Clone(itemText));
     }
 
     bottom.y += 19; // pixel height of button
@@ -1526,14 +1535,15 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
   // draw run button
   RefreshButton(pieces.size());
   greenButtonSprite.setPosition(bottom.x*2.f, (bottom.y+yoffset)*2.f);
-  surface.draw(greenButtonSprite);
+  // TODO: remove Clone()
+  renderer.submit(Clone(greenButtonSprite));
 
   // bgBottom overlays on top of the list so it doesn't peak underneath the info box
-  surface.draw(bgBottom);
+  renderer.submit(&bgBottom);
 
   if (itemListSelected) {
     if (state == state::usermode) {
-      surface.draw(itemArrowCursor);
+      renderer.submit(&itemArrowCursor);
     }
 
     if (listStart == pieces.size()) {
@@ -1546,34 +1556,36 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
     else {
       // check if this value was set
       if (previewPos.x > 0.) {
-        DrawPreview(surface, pieces[listStart], previewPos);
+        DrawPreview(renderer, pieces[listStart], previewPos);
       }
     }
   }
 
   // draw info box
-  surface.draw(infoBox);
+  renderer.submit(&infoBox);
 
   sf::Vector2f pos = infoText.getPosition();
   infoText.SetColor(sf::Color(33, 115, 140));
   infoText.setPosition(pos.x+2.f, pos.y+2.f);
-  surface.draw(infoText);
+  // TODO: remove Clone()
+  renderer.submit(Clone(infoText));
   infoText.SetColor(sf::Color::White);
   infoText.setPosition(pos);
-  surface.draw(infoText);
+  // TODO: remove Clone()
+  renderer.submit(Clone(infoText));
 
   // progress bar shows when compiling
-  surface.draw(progressBar);
+  renderer.submit(&progressBar);
   
   if(!itemListSelected) {
     // claw/cursor always draws on top
     Piece* p = insertingPiece ? insertingPiece : grabbingPiece ? grabbingPiece : nullptr;
     sf::Vector2f piecePos = insertingPiece ? cursor.getPosition() : GridCursorToScreen();
     if (p) {
-      DrawPiece(surface, p, piecePos);
+      DrawPiece(renderer, p, piecePos);
 
       if (grabbingPiece) {
-        surface.draw(claw);
+        renderer.submit(&claw);
       }
     }
     else {
@@ -1581,27 +1593,29 @@ void PlayerCustScene::onDraw(sf::RenderTexture& surface)
       sf::Vector2f pos = hoverText.getPosition();
       hoverText.SetColor(sf::Color::Black);
       hoverText.setPosition(pos.x + 2.f, pos.y + 2.f);
-      surface.draw(hoverText);
+      // TODO: remove Clone()
+      renderer.submit(Clone(hoverText));
       hoverText.SetColor(sf::Color::White);
       hoverText.setPosition(pos);
-      surface.draw(hoverText);
+      // TODO: remove Clone()
+      renderer.submit(Clone(hoverText));
 
       if (grid[cursorLocation]) {
-        surface.draw(claw);
+        renderer.submit(&claw);
       }
       else {
-        surface.draw(cursor);
+        renderer.submit(&cursor);
       }
     }
   }
 
   // grab prompt
   if (state == state::block_prompt) {
-    surface.draw(menuBox);
+    renderer.submit(&menuBox);
   }
 
   // textbox is top over everything
-  surface.draw(textbox);
+  renderer.submit(&textbox);
 }
 
 void PlayerCustScene::onEnd()

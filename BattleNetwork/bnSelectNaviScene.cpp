@@ -134,8 +134,8 @@ SelectNaviScene::~SelectNaviScene()
   delete bg;
 }
 
-void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
-  surface.draw(*bg);
+void SelectNaviScene::onDraw(IRenderer& renderer) {
+  renderer.submit(bg);
 
   // Navi preview shadow
   const sf::Vector2f originalPosition = navi.getPosition();
@@ -144,17 +144,18 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   // Make the shadow begin on the other side of the window by an arbitrary offset
   navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
   navi.setColor(sf::Color::Black);
-  surface.draw(navi);
+  // TODO: remove Clone()
+  renderer.submit(&navi);
 
   // End 'hack' by restoring original position and color values
   navi.setPosition(originalPosition);
   navi.setColor(originalColor);
 
   charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
-  surface.draw(charName);
+  renderer.submit(&charName);
 
   charElement.setPosition(UI_LEFT_POS, charElement.getPosition().y);
-  surface.draw(charElement);
+  renderer.submit(&charElement);
 
   // Draw stat box three times for three diff. properties
   float charStat1Max = 10;
@@ -165,8 +166,8 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-
-  surface.draw(charStat);
+  // TODO: remove Clone()
+  renderer.submit(&charStat);
 
   // 2nd stat box
   float charStat2Max = 10 + UI_SPACING;
@@ -177,8 +178,8 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-
-  surface.draw(charStat);
+  // TODO: remove Clone()
+  renderer.submit(&charStat);
 
   // 3rd stat box
   float charStat3Max = 10 + (UI_SPACING * 2);
@@ -189,12 +190,12 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-
-  surface.draw(charStat);
+  // TODO: remove Clone()
+  renderer.submit(&charStat);
 
   // SP. Info box
   charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
-  surface.draw(charInfo);
+  renderer.submit(&charInfo);
 
   // Update UI slide in
   if (!gotoNextScene) {
@@ -215,12 +216,12 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
         UI_TOP_POS = UI_TOP_POS_MAX;
 
         // Draw labels
-        surface.draw(naviLabel);
-        surface.draw(hpLabel);
-        surface.draw(speedLabel);
-        surface.draw(attackLabel);
-        surface.draw(textbox);
-        surface.draw(element);
+        renderer.submit(&naviLabel);
+        renderer.submit(&hpLabel);
+        renderer.submit(&speedLabel);
+        renderer.submit(&attackLabel);
+        renderer.submit(&textbox);
+        renderer.submit(&element);
 
         textbox.Play();
       }
@@ -257,8 +258,8 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     states.shader = greyScaleShader;
   }
 
-  surface.draw(navi, states);
-  surface.draw(owTextbox);
+  renderer.submit(&navi, states);
+  renderer.submit(&owTextbox);
 }
 
 void SelectNaviScene::onStart()

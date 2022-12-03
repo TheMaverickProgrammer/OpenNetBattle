@@ -85,8 +85,8 @@ namespace RealPET {
     void HandleInput(RevolvingMenuWidget& widget);
     void UpdateFolderParticles(double elapsed);
     void UpdateWindowParticles(double elapsed);
-    void DrawFolderParticles(sf::RenderTexture& surface);
-    void DrawWindowParticles(sf::RenderTexture& surface);
+    void DrawFolderParticles(IRenderer& renderer);
+    void DrawWindowParticles(IRenderer& renderer);
 
   public:
 
@@ -106,7 +106,7 @@ namespace RealPET {
      * @brief Draws the UI
      * @param surface
      */
-    virtual void onDraw(sf::RenderTexture& surface) override;
+    virtual void onDraw(IRenderer& surface) override;
 
     /**
      * @brief Stops music, plays new track

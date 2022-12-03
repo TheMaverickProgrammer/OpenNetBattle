@@ -41,7 +41,7 @@ struct CombatBattleState final : public BattleSceneState, public CardActionUseLi
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override;
 
   CombatBattleState(double customDuration);

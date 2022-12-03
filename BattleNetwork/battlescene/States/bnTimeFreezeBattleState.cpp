@@ -231,7 +231,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   }
 }
 
-void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
+void TimeFreezeBattleState::onDraw(IRenderer& renderer)
 {
   static sf::Sprite alertSprite(*Textures().LoadFromFile("resources/ui/alert.png"));
   static sf::RectangleShape bar;
@@ -264,22 +264,22 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
 
-  DrawCardData(position, sf::Vector2f(2.f, scale*2.f), surface);
+  DrawCardData(position, sf::Vector2f(2.f, scale*2.f), renderer);
 
-  scene.DrawCustGauage(surface);
-  surface.draw(scene.GetCardSelectWidget());
+  scene.DrawCustGauage(renderer);
+  renderer.submit(&scene.GetCardSelectWidget());
 
   if (currState == state::display_name && last->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
     // draw TF bar underneath if conditions are met.
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
-    scene.DrawWithPerspective(bar, surface);
+    scene.DrawWithPerspective(bar, renderer);
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
     bar.setFillColor(sf::Color(255, 255, b));
-    scene.DrawWithPerspective(bar, surface);
+    scene.DrawWithPerspective(bar, renderer);
   }
 
   // draw the !! sprite
@@ -301,7 +301,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
       }
 
       alertSprite.setPosition(position);
-      scene.DrawWithPerspective(alertSprite, surface);
+      scene.DrawWithPerspective(alertSprite, renderer);
     }
   }
 }
@@ -321,7 +321,7 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target)
+void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, IRenderer& renderer)
 {
   TimeFreezeBattleState::EventData& event = *(tfEvents.end() - 1);
   const auto orange = sf::Color(225, 140, 0);
@@ -406,27 +406,31 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
   auto textPos = summonsLabel.getPosition();
   summonsLabel.SetColor(sf::Color::Black);
   summonsLabel.setPosition(textPos.x + 2.f, textPos.y + 2.f);
-  target.draw(summonsLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(summonsLabel));
 
   // font on top
   summonsLabel.setPosition(textPos);
   summonsLabel.SetColor(sf::Color::White);
-  target.draw(summonsLabel);
+  // TODO: remove Clone()
+  renderer.submit(Clone(summonsLabel));
 
   // our number font has shadow baked in
-  target.draw(dmg);
+  renderer.submit(&dmg);
 
   if (canBoost) {
     // shadow
     auto multiPos = multiplier.getPosition();
     multiplier.SetColor(sf::Color::Black);
     multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
-    target.draw(multiplier);
+    // TODO: remove Clone()
+    renderer.submit(Clone(multiplier));
 
     // font on top
     multiplier.setPosition(multiPos);
     multiplier.SetColor(sf::Color::White);
-    target.draw(multiplier);
+    // TODO: remove Clone()
+    renderer.submit(Clone(multiplier));
   }
 }
 

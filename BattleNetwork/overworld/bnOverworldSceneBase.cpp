@@ -429,41 +429,41 @@ void Overworld::SceneBase::onResume() {
 #endif
 }
 
-void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
+void Overworld::SceneBase::onDraw(IRenderer& renderer) {
   if (menuSystem.IsFullscreen()) {
-    surface.draw(menuSystem);
+    renderer.submit(&menuSystem);
     return;
   }
 
   if (bg) {
-    surface.draw(*bg);
+    renderer.submit(bg.get());
   }
 
-  DrawWorld(surface, sf::RenderStates::Default);
+  DrawWorld(renderer, sf::RenderStates::Default);
 
   if (fg) {
-    surface.draw(*fg);
+    renderer.submit(fg.get());
   }
 
   if (personalMenu->IsClosed() && !cameraControlsEnabled) {
     // menuSystem will not draw personal menu if it's closed
     // might make sense to extract some parts of menu system as the closed UI has different requirements
-    personalMenu->draw(surface, sf::RenderStates::Default);
+    renderer.submit(personalMenu.get());
   }
 
   // This will mask everything before this line with camera fx
-  surface.draw(camera.GetLens());
+  renderer.submit(&camera.GetLens());
 
   // camera pan ui on top
   if (cameraControlsEnabled) {
-    surface.draw(cameraPanUI);
+    renderer.submit(&cameraPanUI);
   }
 
   // always see menus
-  surface.draw(menuSystem);
+  renderer.submit(&menuSystem);
 }
 
-void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates states) {
+void Overworld::SceneBase::DrawWorld(IRenderer& renderer, sf::RenderStates states) {
   const sf::Vector2f& mapScale = worldTransform.getScale();
   sf::Vector2f cameraCenter = camera.GetView().getCenter();
   cameraCenter.x = std::floor(cameraCenter.x) * mapScale.x;
@@ -487,12 +487,12 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
     // loop is based on expected sprite layers
     // make sure we dont try to draw an extra map layer and segfault
     if (i < mapLayerCount) {
-      DrawMapLayer(target, states, i, mapLayerCount);
+      DrawMapLayer(renderer, states, i, mapLayerCount);
     }
 
     // save from possible map layer count change after OverworldSceneBase::Update
     if (i < spriteLayers.size()) {
-      DrawSpriteLayer(target, states, i);
+      DrawSpriteLayer(renderer, states, i);
     }
 
     // translate next layer
@@ -500,7 +500,7 @@ void Overworld::SceneBase::DrawWorld(sf::RenderTarget& target, sf::RenderStates 
   }
 }
 
-void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index, size_t maxLayers) {
+void Overworld::SceneBase::DrawMapLayer(IRenderer& renderer, sf::RenderStates states, size_t index, size_t maxLayers) {
   Map::Layer& layer = map.GetLayer(index);
 
   if (!layer.IsVisible()) {
@@ -512,7 +512,7 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
   sf::Vector2i tileSize = map.GetTileSize();
 
   const int TILE_PADDING = 3;
-  sf::Vector2f screenSize = sf::Vector2f(target.getSize()) / worldTransform.getScale().x;
+  sf::Vector2f screenSize = sf::Vector2f(getController().getVirtualWindowSize()) / worldTransform.getScale().x;
 
   int verticalTileCount = (int)std::ceil((screenSize.y / (float)tileSize.y) * 2.0f);
   int horizontalTileCount = (int)std::ceil(screenSize.x / (float)tileSize.x);
@@ -572,16 +572,16 @@ void Overworld::SceneBase::DrawMapLayer(sf::RenderTarget& target, sf::RenderStat
 
         tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
       }
-      target.draw(tileSprite, states);
+      // TODO: remove Clone() and add `states` variable back
+      renderer.submit(Clone(tileSprite));
       tileSprite.setColor(originalColor);
-
       tileSprite.setOrigin(originalOrigin);
     }
   }
 }
 
 
-void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderStates states, size_t index) {
+void Overworld::SceneBase::DrawSpriteLayer(IRenderer& renderer, sf::RenderStates states, size_t index) {
   unsigned int rows = map.GetRows();
   unsigned int cols = map.GetCols();
   sf::Vector2i tileSize = map.GetTileSize();
@@ -614,7 +614,7 @@ void Overworld::SceneBase::DrawSpriteLayer(sf::RenderTarget& target, sf::RenderS
         sprite->setColor(sf::Color(r, g, b, originalColor.a));
       }
 
-      target.draw(*sprite, states);
+      renderer.submit(sprite.get(), states);
       sprite->setColor(originalColor);
     }
 

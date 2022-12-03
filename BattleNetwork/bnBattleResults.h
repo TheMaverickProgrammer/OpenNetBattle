@@ -2,6 +2,7 @@
 
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
+#include <Swoosh/Renderers/Renderer.h>
 #include <array>
 #include <memory>
 
@@ -124,7 +125,7 @@ public:
   /**
    * @brief Perform draw steps
    */
-  void Draw(sf::RenderTarget& surface);
+  void Draw(IRenderer& renderer);
 
   /**
    * @brief Query if BattleRewards modal has completed all rewards

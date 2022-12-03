@@ -264,8 +264,8 @@ private:
   std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
   std::shared_ptr<sf::Texture> GetPreviewForCard(const std::string& uuid);
 
-  void DrawFolder(sf::RenderTarget& surface);
-  void DrawPool(sf::RenderTarget& surface);
+  void DrawFolder(IRenderer& renderer);
+  void DrawPool(IRenderer& renderer);
   void ComposeSortOptions();
   void ExcludeFolderDataFromPool();
   void PlaceFolderDataIntoCardSlots();
@@ -283,7 +283,7 @@ public:
   void onExit() override;
   void onEnter() override;
   void onResume() override;
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
   void onEnd() override;
 
   FolderEditScene(swoosh::ActivityController&, CardFolder& folder, bool& equipFolderOnExit);

@@ -335,10 +335,9 @@ void Overworld::Homepage::onUpdate(double elapsed)
   }
 }
 
-void Overworld::Homepage::onDraw(sf::RenderTexture& surface)
+void Overworld::Homepage::onDraw(IRenderer& renderer)
 {
-  SceneBase::onDraw(surface);
-  Text nameText{ Font::Style::small };
+  SceneBase::onDraw(renderer);
 }
 
 void Overworld::Homepage::onStart()

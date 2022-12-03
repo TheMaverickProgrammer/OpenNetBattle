@@ -166,7 +166,7 @@ public:
    * @brief Draws the UI
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface) override;
+  void onDraw(IRenderer& renderer) override;
 
   /**
    * @brief Stops music, plays new track, reset the camera

@@ -65,9 +65,9 @@ void RewardBattleState::onUpdate(double elapsed)
   GetScene().GetField()->Update(elapsed); 
 }
 
-void RewardBattleState::onDraw(sf::RenderTexture& surface)
+void RewardBattleState::onDraw(IRenderer& renderer)
 {
-  battleResultsWidget->Draw(surface);
+  battleResultsWidget->Draw(renderer);
 
   if (!battleResultsWidget->IsInView()) {
     float amount = MODAL_SLIDE_PX_PER_SEC * (float)elapsed;

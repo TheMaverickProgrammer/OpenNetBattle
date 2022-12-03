@@ -231,12 +231,13 @@ void MatchMakingScene::RecieveHandshakeSignal()
   this->handshakeComplete = true;
 }
 
-void MatchMakingScene::DrawIDInputWidget(sf::RenderTexture& surface)
+void MatchMakingScene::DrawIDInputWidget(IRenderer& renderer)
 {
   uiAnim.SetAnimation("ID_START");
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 40);
-  surface.draw(ui);
+  // TODO: remove Clone()
+  renderer.submit(&ui);
 
   if (infoMode) {
     id.SetString(sf::String(myIP));
@@ -253,17 +254,21 @@ void MatchMakingScene::DrawIDInputWidget(sf::RenderTexture& surface)
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 40);
-  surface.draw(ui);
-  surface.draw(id);
+
+  // TODO: remove Clone()
+  renderer.submit(&ui);
+  renderer.submit(&id);
 
   uiAnim.SetAnimation("ID_END");
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 40);
-  surface.draw(ui);
+
+  // TODO: remove Clone()
+  renderer.submit(&ui);
 }
 
-void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
+void MatchMakingScene::DrawCopyPasteWidget(IRenderer& renderer)
 {
   std::string state = "ENABLED";
   std::string clipboard = Input().GetClipboard();
@@ -290,7 +295,9 @@ void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   uiAnim.SetAnimation(start);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 90);
-  surface.draw(ui);
+
+  // TODO: remove Clone()
+  renderer.submit(&ui);
 
   Text widgetText(Font::Style::thick);
   widgetText.setScale(2.f, 2.f);
@@ -307,7 +314,7 @@ void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   uiAnim.SetAnimation(icon);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(102, 92); // offset by 2 pixels to fit inside the frame
-  surface.draw(ui);
+  renderer.submit(&ui);
 
   widgetText.setPosition(145, 94);
 
@@ -317,14 +324,18 @@ void MatchMakingScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 90);
-  surface.draw(ui);
-  surface.draw(widgetText);
+
+  // TODO: remove Clone()'s
+  renderer.submit(&ui);
+  renderer.submit(Clone(widgetText));
 
   uiAnim.SetAnimation(end);
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 90);
-  surface.draw(ui);
+
+  // TODO: remove Clone()
+  renderer.submit(&ui);
 }
 
 const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
@@ -671,12 +682,12 @@ void MatchMakingScene::onEnter()
   }
 }
 
-void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
-  surface.draw(greenBg);
-  surface.draw(*gridBG);
+void MatchMakingScene::onDraw(IRenderer& renderer) {
+  renderer.submit(&greenBg);
+  renderer.submit(gridBG);
 
   if (!isInFlashyVSIntro) {
-    surface.draw(textbox);
+    renderer.submit(&textbox);
 
     if (infoMode && myIP.empty()) {
       id.SetString("ERROR");
@@ -697,19 +708,20 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
       ui.setPosition(130, 4);
     }
 
-    surface.draw(text);
+    renderer.submit(&text);
 
     // L/R icons
-    surface.draw(ui);
+    // TODO: remove Clone()
+    renderer.submit(&ui);
 
-    this->DrawIDInputWidget(surface);
-    this->DrawCopyPasteWidget(surface);
+    this->DrawIDInputWidget(renderer);
+    this->DrawCopyPasteWidget(renderer);
   }
   else {
-    surface.draw(clientPreview);
-    surface.draw(remotePreview);
-    surface.draw(vs);
-    surface.draw(vsFaded);
+    renderer.submit(&clientPreview);
+    renderer.submit(&remotePreview);
+    renderer.submit(&vs);
+    renderer.submit(&vsFaded);
   }
 
   if (flashCooldown > 0) {
@@ -717,6 +729,6 @@ void MatchMakingScene::onDraw(sf::RenderTexture& surface) {
     sf::Vector2f size = sf::Vector2f(static_cast<float>(winSize.x), static_cast<float>(winSize.y));
     sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
-    surface.draw(screen);
+    renderer.submit(Clone(screen));
   }
 }

@@ -64,7 +64,7 @@ public:
    * @brief Draws graphic
    * @param surface
    */
-  void onDraw(sf::RenderTexture& surface);
+  void onDraw(IRenderer& renderer);
 
   void onEnd() { ; }
 };

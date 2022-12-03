@@ -504,7 +504,7 @@ void Overworld::OnlineArea::detectWarp() {
   }
 }
 
-void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
+void Overworld::OnlineArea::onDraw(IRenderer& renderer)
 {
   if (!isConnected) {
     auto view = getController().getVirtualWindowSize();
@@ -512,16 +512,18 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 
     transitionText.setPosition(view.x * 0.5f, view.y * 0.5f);
     transitionText.setOrigin(transitionText.GetLocalBounds().width * 0.5f, transitionText.GetLocalBounds().height * 0.5f);
-    surface.draw(transitionText);
+    renderer.submit(&transitionText);
     return;
   }
 
-  SceneBase::onDraw(surface);
+  SceneBase::onDraw(renderer);
 
   // Copy the contents if requested this frame
+  // TODO: there needs be a mechanism to copy contents of the screen if a scene requests one...
+  //    NOTE that this no longer works because of the new pipeline...
   if (copyScreen) {
-    surface.display();
-    screen = surface.getTexture();
+    renderer.display();
+    screen = renderer.getTexture();
     copyScreen = false;
   }
 
@@ -590,8 +592,8 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     sf::RectangleShape rect({ nameBounds.width + 10.f, nameBounds.height + 4.f });
     rect.setFillColor(sf::Color(0, 0, 0, 100));
     rect.setPosition(mousef);
-    surface.draw(rect);
-    surface.draw(nameText);
+    renderer.submit(Clone(rect));
+    renderer.submit(&nameText);
   }
 }
 

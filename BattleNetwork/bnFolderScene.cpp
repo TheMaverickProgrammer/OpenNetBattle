@@ -512,23 +512,19 @@ void FolderScene::onDraw(IRenderer& renderer) {
 
       sf::Sprite& drawFolder = allowed ? folderBox : folderDisabled;
       drawFolder.setPosition(folderLeft, 34.0f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(drawFolder));
+      renderer.submit(UI{ &drawFolder });
 
       sf::Color color = allowed ? sf::Color::White : sf::Color(70, 70, 70); 
       cardLabel.SetColor(color);
       cardLabel.SetString(folderNames[i]);
       cardLabel.setOrigin(0.0f, 0.0f);
       cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       if (i == selectedFolderIndex) {
         folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
-        // TODO: remove Clone()
-        renderer.submit(Clone(folderEquip));
+        renderer.submit(UI{ &folderEquip });
       }
-
     }
 
 #ifdef __ANDROID__
@@ -550,10 +546,10 @@ void FolderScene::onDraw(IRenderer& renderer) {
         float before = folderOffsetX;
         folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
 
-          if(int(before) == int(folderOffsetX)) {
-              canSwipe = true;
-              touchStart = false;
-          }
+        if(int(before) == int(folderOffsetX)) {
+            canSwipe = true;
+            touchStart = false;
+        }
       }
     }
 #else 
@@ -575,7 +571,7 @@ void FolderScene::onDraw(IRenderer& renderer) {
     }
 #endif
 
-    renderer.submit(&folderCursor);
+    renderer.submit(UI{ &folderCursor });
   }
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
@@ -583,14 +579,14 @@ void FolderScene::onDraw(IRenderer& renderer) {
   float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
-  renderer.submit(&scrollbar);
-  renderer.submit(&folderOptions);
+  renderer.submit(UI{ &scrollbar });
+  renderer.submit(UI{ &folderOptions });
 
   float scale = 0.0f;
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-    renderer.submit(&cursor);
+    renderer.submit(UI{ &cursor });
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
@@ -627,8 +623,7 @@ void FolderScene::onDraw(IRenderer& renderer) {
     cardLabel.SetString(folderNames[currFolderIndex]);
     cardLabel.setOrigin(0.f, 0.f);
     cardLabel.setPosition(195.0f, 102.0f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(cardLabel));
+    renderer.submit(UI{ &cardLabel });
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
@@ -652,33 +647,28 @@ void FolderScene::onDraw(IRenderer& renderer) {
       }
 
       cardIcon.setPosition(2.f * 99.f, cardIconY);
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardIcon));
+      renderer.submit(UI{ &cardIcon });
 
       cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);
       cardLabel.SetString((*iter)->GetShortName());
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*173.f, cardIconY);
-      // TODO: remove Clone()
-      renderer.submit(Clone(element));
+      renderer.submit(UI{ &element });
 
       cardLabel.setPosition(2.f*190.f, cardIconY + 4.0f);
       cardLabel.SetString(std::string() + (*iter)->GetCode());
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       mbPlaceholder.setPosition(2.f*200.f, cardIconY + 2.0f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(mbPlaceholder));
+      renderer.submit(UI{ &mbPlaceholder });
       iter++;
     }
   }
 
-  renderer.submit(&textbox);
+  renderer.submit(UI{ &textbox });
 }
 
 const bool FolderScene::IsFolderAllowed(CardFolder* folder)

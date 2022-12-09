@@ -5,6 +5,7 @@
 #include "bnGame.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
+#include "renderers/bnRenderEvents.h"
 #include <numeric>
 #include <algorithm>
 #include <random>
@@ -205,7 +206,7 @@ void BattleResultsWidget::Update(double elapsed)
 }
 
 void BattleResultsWidget::Draw(IRenderer& renderer) {
-  renderer.submit(&resultsSprite);
+  renderer.submit(UI{ &resultsSprite });
 
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
@@ -213,27 +214,27 @@ void BattleResultsWidget::Draw(IRenderer& renderer) {
 
   if (IsInView()) {
     if (!isRevealed)
-      renderer.submit(&pressA);
+      renderer.submit(UI{ &pressA });
 
-    renderer.submit(&rank);
+    renderer.submit(UI{ &rank });
 
     // Draw overlay
     rank.setPosition(rankPos);
-    renderer.submit(&rank);
+    renderer.submit(UI{ &rank });
 
     // Draw overlay
     time.setPosition(2.f*191.f, 84.f);
-    renderer.submit(&time);
+    renderer.submit(UI{ &time });
 
     if (isRevealed) {
-      renderer.submit(&rewardCard);
+      renderer.submit(UI{ &rewardCard });
 
       sf::RectangleShape c(sf::Vector2f(8 * 2, 8 * 2));
       c.setFillColor(sf::Color::Black);
       c.setOutlineColor(sf::Color::Black);
 
       // obscure the card with a matrix
-      for (auto cell : hideCardMatrix) {
+      for (int cell : hideCardMatrix) {
         if (cell >= cardMatrixIndex) {
           // position based on cell's index from a 7x6 matrix
           sf::Vector2f offset = sf::Vector2f(float(cell % 7) * 8.0f, float(std::floor(cell / 7) * 8.0f));
@@ -241,8 +242,7 @@ void BattleResultsWidget::Draw(IRenderer& renderer) {
 
           c.setPosition(rewardCard.getPosition() + offset);
 
-          // TODO: remove Clone()
-          renderer.submit(Clone(c));
+          renderer.submit(UI{ &c });
         }
       }
 
@@ -251,35 +251,29 @@ void BattleResultsWidget::Draw(IRenderer& renderer) {
         auto rewardPos = reward.getPosition();
         reward.setPosition(rewardPos.x + 2.f, rewardPos.y + 2.f);
         reward.SetColor(sf::Color(80, 72, 88));
-
-        // TODO: remove Clone()
-        renderer.submit(Clone(reward));
+        renderer.submit(UI{ &reward });
 
         // then overlay
         reward.setPosition(rewardPos);
         reward.SetColor(sf::Color::White);
-        // TODO: remove Clone()
-        renderer.submit(Clone(reward));
+        renderer.submit(UI{ &reward });
 
         if (rewardIsCard) {
           auto codePos = cardCode.getPosition();
           cardCode.setPosition(codePos.x + 2.f, codePos.y + 2.f);
           cardCode.SetColor(sf::Color(80, 72, 88));
-          // TODO: remove Clone()
-          renderer.submit(Clone(cardCode));
+          renderer.submit(UI{ &cardCode });
 
           cardCode.setPosition(codePos);
           cardCode.SetColor(sf::Color::White);
-          // TODO: remove Clone()
-          renderer.submit(Clone(cardCode));
+          renderer.submit(UI{ &cardCode });
         }
       }
     }
 
     for (int i = 0; i < counterCount; i++) {
       star.setPosition(rankPos.x + starSpacing(i) + (starSpacing(1) / 2.0f), rankPos.y + 14.0f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(star));
+      renderer.submit(UI{ &star });
     }
   }
 }
@@ -353,11 +347,11 @@ BattleResults& BattleResults::CalculateScore(BattleResults& results, Mob* mob)
   }
 
   switch (results.hitCount) {
-  case 0: score += 1; break;
-  case 1: score += 0; break;
-  case 2: score -= 1; break;
-  case 3: score -= 2; break;
-  default: score -= 3; break;
+    case 0: score += 1; break;
+    case 1: score += 0; break;
+    case 2: score -= 1; break;
+    case 3: score -= 2; break;
+    default: score -= 3; break;
   }
 
   if (results.moveCount >= 0 && results.moveCount <= 2) {

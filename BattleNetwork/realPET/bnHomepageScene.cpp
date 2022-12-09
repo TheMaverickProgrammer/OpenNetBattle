@@ -363,7 +363,7 @@ void RealPET::Homepage::DrawFolderParticles(IRenderer& renderer)
 
     particleSpr.setColor(sf::Color(255, 255, 255, static_cast<int>(beta * 100)));
 
-    renderer.submit(Clone(particleSpr));
+    renderer.submit(LayeredSprite{ LayerID::layer_1, particleSpr });
   }
 }
 
@@ -386,7 +386,7 @@ void RealPET::Homepage::DrawWindowParticles(IRenderer& renderer)
     particleSpr.setPosition(p.pos);
     particleSpr.setScale(2.f, 2.f);
 
-    renderer.submit(Clone(particleSpr));
+    renderer.submit(LayeredSprite{ LayerID::layer_2, particleSpr });
   }
 }
 
@@ -439,34 +439,34 @@ void RealPET::Homepage::onUpdate(double elapsed)
 
 void RealPET::Homepage::onDraw(IRenderer& renderer)
 {
-  renderer.submit(&bgSprite);
+  renderer.submit(LayeredSprite{ LayerID::bg, bgSprite });
 
   DrawFolderParticles(renderer);
   DrawWindowParticles(renderer);
 
   if (playJackin) {
-    renderer.submit(&jackinSprite);
+    renderer.submit(UI{ &jackinSprite });
   }
   else {
     // draw player w/ shadow
     sf::Vector2f pos = playerSprite.getPosition();
     playerSprite.setColor(sf::Color(0, 0, 20, 20));
     playerSprite.setPosition({ pos.x - 20.f, pos.y });
-    renderer.submit(Clone(playerSprite));
+    renderer.submit(LayeredSprite{ LayerID::layer_3, playerSprite });
     playerSprite.setPosition(pos);
     playerSprite.setColor(sf::Color::White);
-    renderer.submit(&playerSprite);
+    renderer.submit(LayeredSprite{ LayerID::layer_4, playerSprite });
 
-    renderer.submit(&dockSprite);
+    renderer.submit(UI{ &dockSprite });
 
     if (this->IsInFocus()) {
-      renderer.submit(&menuWidget);
-      renderer.submit(&miscMenuWidget);
+      renderer.submit(UI{ &menuWidget });
+      renderer.submit(UI{ &miscMenuWidget });
     }
 
     if (!hideTextbox) {
-      renderer.submit(&speakSprite);
-      renderer.submit(&textbox);
+      renderer.submit(UI{ &speakSprite });
+      renderer.submit(UI{ &textbox });
     }
   }
 }

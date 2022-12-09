@@ -152,11 +152,11 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
 {
   if (hasPA > -1) {
     float nextLabelHeight = 0;
-
     double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
     double scale = swoosh::ease::linear(PAStartSecs, PAStartLength, 1.0);
     programAdvanceSprite.setScale(2.f, (float)scale * 2.f);
-    renderer.submit(&programAdvanceSprite);
+
+    renderer.submit(UI{ &programAdvanceSprite });
 
     if (paStepIndex <= cardsListPtr->size() + 1) {
       for (int i = 0; i < paStepIndex && i < cardsListPtr->size(); i++) {
@@ -174,8 +174,7 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
         stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
         stepLabel.SetColor(sf::Color::Black);
 
-        // TODO: remove Clone()
-        renderer.submit(Clone(stepLabel));
+        renderer.submit(UI{ &stepLabel });
 
         stepLabel.setPosition(stepLabelPos);
 
@@ -191,8 +190,7 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
           stepLabel.SetColor(sf::Color::White);
         }
 
-        // TODO: remove Clone()
-        renderer.submit(Clone(stepLabel));
+        renderer.submit(UI{ &stepLabel });
 
         // make the next label relative to this one
         nextLabelHeight += stepLabel.GetLocalBounds().height * stepLabel.getScale().y;
@@ -225,8 +223,7 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
             stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
             stepLabel.SetColor(sf::Color::Black);
 
-            // TODO: remove Clone()
-            renderer.submit(Clone(stepLabel));
+            renderer.submit(UI{ &stepLabel });
 
             stepLabel.setPosition(stepLabelPos);
 
@@ -241,8 +238,7 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
 
             stepLabel.SetColor(sf::Color(sin, sin2, sin3));
 
-            // TODO: remove Clone()
-            renderer.submit(Clone(stepLabel));
+            renderer.submit(UI{ &stepLabel });
           }
           else {
             // make the next label relative to the hidden one and skip drawing
@@ -256,14 +252,12 @@ void CardComboBattleState::onDraw(IRenderer& renderer)
           stepLabel.setPosition(stepLabelPos + sf::Vector2f(2.f, 2.f));
           stepLabel.SetColor(sf::Color::Black);
 
-          // TODO: remove Clone()
-          renderer.submit(Clone(stepLabel));
+          renderer.submit(UI{ &stepLabel });
 
           stepLabel.setPosition(stepLabelPos);
           stepLabel.SetColor(sf::Color::White);
           
-          // TODO: remove Clone()
-          renderer.submit(Clone(stepLabel));
+          renderer.submit(UI{ &stepLabel });
         }
 
         // make the next label relative to this one

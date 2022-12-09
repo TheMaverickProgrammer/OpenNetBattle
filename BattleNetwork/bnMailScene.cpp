@@ -240,7 +240,7 @@ void MailScene::onUpdate(double elapsed)
 
 void MailScene::onDraw(IRenderer& renderer)
 {
-  renderer.submit(&bg);
+  renderer.submit(UI{ &bg });
 
   for (size_t i = 0; i < maxRows && i < inbox.Size(); i++) {
     size_t offset = rowOffset;
@@ -256,14 +256,12 @@ void MailScene::onDraw(IRenderer& renderer)
     iconAnim.Refresh(spr);
     spr.setPosition(48.f, 44 + (i * 32.f) + 10.f);
     spr.setScale(2.f, 2.f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(spr));
+    renderer.submit(UI{ &spr });
 
     // NEW
     if (!msg.read) {
       newSprite.setPosition(spr.getPosition().x - 2.f, spr.getPosition().y - 6.f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(newSprite));
+      renderer.submit(UI{ &newSprite });
     }
 
     label.SetString(msg.title.substr(0, 11));
@@ -281,15 +279,14 @@ void MailScene::onDraw(IRenderer& renderer)
       label.SetColor(unread);
     }
 
-    // TODO: remove CLone()
-    renderer.submit(Clone(label));
+    renderer.submit(UI{ &label });
 
     // FROM
     label.SetString(msg.from.substr(0, 8));
     label.setPosition(label.getPosition().x + 160.f, label.getPosition().y);
     label.SetColor(from);
-    // TODO: remove CLone()
-    renderer.submit(Clone(label));
+
+    renderer.submit(UI{ &label });
 
     // NUMBER
     size_t num = offset + i + 1;
@@ -303,21 +300,21 @@ void MailScene::onDraw(IRenderer& renderer)
     label.setOrigin(label.GetLocalBounds().width * label.getScale().x, 0.0);
     label.setPosition(label.getPosition().x + 240.f, label.getPosition().y);
     label.SetColor(unread); 
-    // TODO: remove CLone()
-    renderer.submit(Clone(label));
+
+    renderer.submit(UI{ &label });
   
     // reset origin
     label.setOrigin(0, 0);
   }
  
-  renderer.submit(&scroll);
+  renderer.submit(UI{ &scroll });
 
   if (isInFocus) {
-    renderer.submit(&textbox);
+    renderer.submit(UI{ &textbox });
   }
 
   if (textbox.HasMore()) {
-    renderer.submit(&moreText);
+    renderer.submit(UI{ &moreText });
   }
 
   // mugshot
@@ -330,13 +327,13 @@ void MailScene::onDraw(IRenderer& renderer)
       mug.setPosition(12.f, 208.f);
       sf::RenderStates states;
       states.shader = Shaders().GetShader(ShaderType::GREYSCALE);
-      renderer.submit(&mug, states);
+      renderer.submit(UI{ &mug, states });
     }
     else {
       sf::Sprite mug(*noMug, sf::IntRect(0, 0, 40, 48));
       mug.setScale(2.f, 2.f);
       mug.setPosition(12.f, 208.f);
-      renderer.submit(&mug);
+      renderer.submit(UI{ &mug });
     }
   }
   /*
@@ -345,7 +342,7 @@ void MailScene::onDraw(IRenderer& renderer)
   }
   */
 
-  renderer.submit(&cursor);
+  renderer.submit(UI{ &cursor });
 }
 
 void MailScene::onEnd()

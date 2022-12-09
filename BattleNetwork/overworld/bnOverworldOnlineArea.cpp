@@ -512,7 +512,7 @@ void Overworld::OnlineArea::onDraw(IRenderer& renderer)
 
     transitionText.setPosition(view.x * 0.5f, view.y * 0.5f);
     transitionText.setOrigin(transitionText.GetLocalBounds().width * 0.5f, transitionText.GetLocalBounds().height * 0.5f);
-    renderer.submit(&transitionText);
+    renderer.submit(UI{ &transitionText });
     return;
   }
 
@@ -592,8 +592,10 @@ void Overworld::OnlineArea::onDraw(IRenderer& renderer)
     sf::RectangleShape rect({ nameBounds.width + 10.f, nameBounds.height + 4.f });
     rect.setFillColor(sf::Color(0, 0, 0, 100));
     rect.setPosition(mousef);
+
+    // TODO: Clone something **AND** have the drawable wrapped in an event
     renderer.submit(Clone(rect));
-    renderer.submit(&nameText);
+    renderer.submit(UI{ &nameText });
   }
 }
 

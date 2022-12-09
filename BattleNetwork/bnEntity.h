@@ -138,6 +138,7 @@ private:
   std::shared_ptr<SpriteProxyNode> blindFx{ nullptr };
   std::shared_ptr<SpriteProxyNode> confusedFx{ nullptr };
   Animation iceFxAnimation, blindFxAnimation, confusedFxAnimation;
+  std::shared_ptr<sf::Texture> normals{ nullptr };
   /**
    * @brief Frees one component with the same ID
    * @param ID ID of the component to remove
@@ -207,6 +208,9 @@ public:
   void ShowShadow(bool enabled);
   void SetShadowSprite(Shadow type);
   void SetShadowSprite(std::shared_ptr<sf::Texture> customShadow);
+
+  void SetNormalMap(std::shared_ptr<sf::Texture> normalMap);
+  const std::shared_ptr<sf::Texture> GetNormalMap();
 
   /**
   * @brief By default, hitbox is available for discovery and hitting

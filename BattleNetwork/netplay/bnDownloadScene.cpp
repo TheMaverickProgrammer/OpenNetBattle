@@ -766,7 +766,7 @@ void DownloadScene::onUpdate(double elapsed)
 void DownloadScene::onDraw(IRenderer& renderer)
 {
   if (inView) {
-    renderer.submit(&bg);
+    renderer.submit(UI{ &bg });
   }
 
   float w = static_cast<float>(getController().getVirtualWindowSize().x);
@@ -802,20 +802,17 @@ void DownloadScene::onDraw(IRenderer& renderer)
       float iconHeight = icon.getLocalBounds().height;
       icon.setPosition(20, h);
       icon.setOrigin(0, iconHeight/4);
-
-      // TODO: remove Clone()
-      renderer.submit(Clone(icon));
+      renderer.submit(UI{ &icon });
     }
 
     label.setPosition(20 + 16 + 2, h);
 
     h += 15.0f;
 
-    // TODO: remove Clone()
-    renderer.submit(Clone(label));
+    renderer.submit(UI{ &label });
   }
 
-  renderer.submit(&overlay);
+  renderer.submit(UI{ &overlay });
 }
 
 void DownloadScene::onLeave()

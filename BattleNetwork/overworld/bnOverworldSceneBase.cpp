@@ -18,6 +18,7 @@
 #include "../bnCardFolderCollection.h"
 #include "../bnGameSession.h"
 #include "../bnGameUtils.h"
+#include "../renderers/bnRenderEvents.h"
 
 // scenes
 #include "../bnFolderScene.h"
@@ -431,36 +432,36 @@ void Overworld::SceneBase::onResume() {
 
 void Overworld::SceneBase::onDraw(IRenderer& renderer) {
   if (menuSystem.IsFullscreen()) {
-    renderer.submit(&menuSystem);
+    renderer.submit(UI{ &menuSystem });
     return;
   }
 
   if (bg) {
-    renderer.submit(bg.get());
+    renderer.submit(Layered{ LayerID::bg, bg.get() });
   }
 
   DrawWorld(renderer, sf::RenderStates::Default);
 
   if (fg) {
-    renderer.submit(fg.get());
+    renderer.submit(Layered{ LayerID::layer_4, fg.get() });
   }
 
   if (personalMenu->IsClosed() && !cameraControlsEnabled) {
     // menuSystem will not draw personal menu if it's closed
     // might make sense to extract some parts of menu system as the closed UI has different requirements
-    renderer.submit(personalMenu.get());
+    renderer.submit(UI{ personalMenu.get() });
   }
 
   // This will mask everything before this line with camera fx
-  renderer.submit(&camera.GetLens());
+  renderer.submit(UI{ &camera.GetLens() });
 
   // camera pan ui on top
   if (cameraControlsEnabled) {
-    renderer.submit(&cameraPanUI);
+    renderer.submit(UI{ &cameraPanUI });
   }
 
   // always see menus
-  renderer.submit(&menuSystem);
+  renderer.submit(UI{ &menuSystem });
 }
 
 void Overworld::SceneBase::DrawWorld(IRenderer& renderer, sf::RenderStates states) {
@@ -572,14 +573,13 @@ void Overworld::SceneBase::DrawMapLayer(IRenderer& renderer, sf::RenderStates st
 
         tileSprite.setColor(sf::Color(r, g, b, originalColor.a));
       }
-      // TODO: remove Clone() and add `states` variable back
-      renderer.submit(Clone(tileSprite));
+
+      renderer.submit(LayeredSprite{ LayerID::floor, tileSprite, states });
       tileSprite.setColor(originalColor);
       tileSprite.setOrigin(originalOrigin);
     }
   }
 }
-
 
 void Overworld::SceneBase::DrawSpriteLayer(IRenderer& renderer, sf::RenderStates states, size_t index) {
   unsigned int rows = map.GetRows();
@@ -597,28 +597,33 @@ void Overworld::SceneBase::DrawSpriteLayer(IRenderer& renderer, sf::RenderStates
     screenPos.x = std::floor(screenPos.x);
     screenPos.y = std::floor(screenPos.y);
 
-    sprite->setPosition(screenPos);
+    //sprite->setPosition(screenPos);
 
     sf::Vector2i gridPos = sf::Vector2i(map.WorldToTileSpace(worldPos));
 
-    if (/*cam && cam->IsInView(sprite->getSprite())*/ true) {
-      sf::Color originalColor = sprite->getColor();
-      // round to the closest layer for handling online players on stairs
-      int layer = (int)std::roundf(sprite->GetElevation());
+    /*if (cam && cam->IsInView(sprite->getSprite())) { */
+    sf::Color originalColor = sprite->getColor();
+    // round to the closest layer for handling online players on stairs
+    int layer = (int)std::roundf(sprite->GetElevation());
 
-      if (map.HasShadow(gridPos, layer)) {
-        sf::Uint8 r, g, b;
-        r = sf::Uint8(originalColor.r * 0.5);
-        b = sf::Uint8(originalColor.b * 0.5);
-        g = sf::Uint8(originalColor.g * 0.5);
-        sprite->setColor(sf::Color(r, g, b, originalColor.a));
-      }
-
-      renderer.submit(sprite.get(), states);
-      sprite->setColor(originalColor);
+    if (map.HasShadow(gridPos, layer)) {
+      sf::Uint8 r, g, b;
+      r = sf::Uint8(originalColor.r * 0.5);
+      b = sf::Uint8(originalColor.b * 0.5);
+      g = sf::Uint8(originalColor.g * 0.5);
+      sprite->setColor(sf::Color(r, g, b, originalColor.a));
     }
 
-    sprite->setPosition(worldPos);
+    // TODO: copy over data originally used to modify this draw pass
+    // SEE: originalColor, worldPos (original pos), etc.
+    sf::Transform t;
+    t.translate(-screenPos);
+    // t *= states.transform;
+    renderer.submit(LayeredNode{ LayerID::objs, sprite.get(), t });
+    sprite->setColor(originalColor);
+    /*}*/
+
+    //sprite->setPosition(worldPos);
   }
 }
 

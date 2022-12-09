@@ -286,6 +286,9 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["set_texture"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture> texture) {
     entity.Unwrap()->setTexture(texture);
   };
+  entity_table["set_normal_map"] = [](WeakWrapper<E>& entity, std::shared_ptr<Texture> texture) {
+    entity.Unwrap()->SetNormalMap(texture);
+  };
   entity_table["set_animation"] = [](WeakWrapper<E>& entity, std::string animation) {
     auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
 

@@ -144,18 +144,17 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
   // Make the shadow begin on the other side of the window by an arbitrary offset
   navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
   navi.setColor(sf::Color::Black);
-  // TODO: remove Clone()
-  renderer.submit(&navi);
+  renderer.submit(LayeredNode{ LayerID::objs, &navi });
 
   // End 'hack' by restoring original position and color values
   navi.setPosition(originalPosition);
   navi.setColor(originalColor);
 
   charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
-  renderer.submit(&charName);
+  renderer.submit(UI{ &charName });
 
   charElement.setPosition(UI_LEFT_POS, charElement.getPosition().y);
-  renderer.submit(&charElement);
+  renderer.submit(UI{ &charElement });
 
   // Draw stat box three times for three diff. properties
   float charStat1Max = 10;
@@ -166,8 +165,8 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-  // TODO: remove Clone()
-  renderer.submit(&charStat);
+
+  renderer.submit(UI{ &charStat });
 
   // 2nd stat box
   float charStat2Max = 10 + UI_SPACING;
@@ -178,8 +177,8 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-  // TODO: remove Clone()
-  renderer.submit(&charStat);
+
+  renderer.submit(UI{ &charStat });
 
   // 3rd stat box
   float charStat3Max = 10 + (UI_SPACING * 2);
@@ -190,12 +189,12 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
   else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
-  // TODO: remove Clone()
-  renderer.submit(&charStat);
+
+  renderer.submit(UI{ &charStat });
 
   // SP. Info box
   charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
-  renderer.submit(&charInfo);
+  renderer.submit(UI{ &charInfo });
 
   // Update UI slide in
   if (!gotoNextScene) {
@@ -216,12 +215,12 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
         UI_TOP_POS = UI_TOP_POS_MAX;
 
         // Draw labels
-        renderer.submit(&naviLabel);
-        renderer.submit(&hpLabel);
-        renderer.submit(&speedLabel);
-        renderer.submit(&attackLabel);
-        renderer.submit(&textbox);
-        renderer.submit(&element);
+        renderer.submit(UI{ &naviLabel });
+        renderer.submit(UI{ &hpLabel });
+        renderer.submit(UI{ &speedLabel });
+        renderer.submit(UI{ &attackLabel });
+        renderer.submit(UI{ &textbox });
+        renderer.submit(UI{ &element });
 
         textbox.Play();
       }
@@ -258,8 +257,8 @@ void SelectNaviScene::onDraw(IRenderer& renderer) {
     states.shader = greyScaleShader;
   }
 
-  renderer.submit(&navi, states);
-  renderer.submit(&owTextbox);
+  renderer.submit(LayeredNode{ LayerID::objs, &navi, states });
+  renderer.submit(UI{ &owTextbox });
 }
 
 void SelectNaviScene::onStart()

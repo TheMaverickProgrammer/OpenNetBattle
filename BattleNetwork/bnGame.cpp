@@ -42,6 +42,7 @@ char* Game::RemotePartition = "pvp";
 char* Game::ServerPartition = "server";
 
 Game::Game(DrawWindow& window, const RendererEntries& renderOptions) :
+  renderOptions(renderOptions),
   window(window),
   reader("config.ini"),
   configSettings(),
@@ -318,6 +319,11 @@ void Game::ProcessFrame()
       this->update(delta);  // update game logic
     }
 
+    // Draw a light tracking the cursor
+    auto iter = std::next(renderOptions.begin(), getCurrentRendererIndex());
+    iter->renderer.submit(Light(1000.0f, WithZ(mouse.getPosition(), 100.f), sf::Color(255U, 255U, 255U), 10.0));
+    iter->renderer.submit(Light(2000.0f, WithZ(window.GetView().getCenter(), 100.f), sf::Color(255U, 255U, 255U), 0.0));
+
     this->draw();        // draw game
     mouse.draw(*window.GetRenderWindow());
     window.Display(); // display to screen
@@ -360,6 +366,9 @@ void Game::RunSingleThreaded()
       HandleRecordingEvents();
       this->update(delta);  // update game logic
     }
+    
+    // Draw a light tracking the cursor
+    renderOptions.begin()->renderer.submit(Light(256.0f, WithZ(mouse.getPosition(), 10.f), sf::Color(100U, 100U, 150U), 1.0));
 
     this->draw();        // draw game
     mouse.draw(*window.GetRenderWindow());

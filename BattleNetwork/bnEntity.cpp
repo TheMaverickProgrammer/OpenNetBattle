@@ -86,6 +86,8 @@ Entity::Entity() :
   iceFxAnimation = Animation(AnimationPaths::ICE_FX);
   blindFxAnimation = Animation(AnimationPaths::BLIND_FX);
   confusedFxAnimation = Animation(AnimationPaths::CONFUSED_FX);
+
+  normals = Textures().LoadFromFile(TexturePaths::DEFAULT_N);
 }
 
 Entity::~Entity() {
@@ -1222,6 +1224,16 @@ void Entity::SetShadowSprite(std::shared_ptr<sf::Texture> customShadow)
   shadow->setTexture(customShadow, true);
   sf::FloatRect bounds = shadow->getLocalBounds();
   shadow->setOrigin(sf::Vector2f(bounds.width*0.5f, bounds.height*0.5f));
+}
+
+void Entity::SetNormalMap(std::shared_ptr<sf::Texture> normalMap)
+{
+  normals = normalMap;
+}
+
+const std::shared_ptr<sf::Texture> Entity::GetNormalMap()
+{
+  return normals;
 }
 
 void Entity::ShiftShadow() {

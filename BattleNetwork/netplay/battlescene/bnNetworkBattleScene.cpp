@@ -321,7 +321,7 @@ void NetworkBattleScene::onDraw(IRenderer& renderer) {
   ping.setOrigin(bounds.width, bounds.height);
 
   // draw ping
-  renderer.submit(&ping);
+  renderer.submit(UI{ &ping });
 
   frameNumText.SetString("F" + std::to_string(FrameNumber().count()));
 
@@ -331,8 +331,7 @@ void NetworkBattleScene::onDraw(IRenderer& renderer) {
   frameNumText.SetColor(sf::Color::Cyan);
   frameNumText.setPosition(480 - (2.f * 128) - 4, 320 - 2.f);
 
-  // TODO: remove Clone()
-  renderer.submit(Clone(frameNumText));
+  renderer.submit(UI{ &frameNumText });
 
   frameNumText.SetString("F" + std::to_string(remoteFrameNumber.count()));
 
@@ -341,7 +340,7 @@ void NetworkBattleScene::onDraw(IRenderer& renderer) {
 
   frameNumText.SetColor(sf::Color::Magenta);
   frameNumText.setPosition(480 - (2.f * 64) - 4, 320 - 2.f);
-  renderer.submit(&frameNumText);
+  renderer.submit(UI{ &frameNumText });
 
   // convert from ms to seconds to discrete frame count...
   frame_time_t lagTime = from_milliseconds(lag);
@@ -350,7 +349,7 @@ void NetworkBattleScene::onDraw(IRenderer& renderer) {
   UpdatePingIndicator(lagTime);
 
   //draw
-  renderer.submit(&pingIndicator);
+  renderer.submit(UI{ &pingIndicator });
 }
 
 void NetworkBattleScene::onExit()

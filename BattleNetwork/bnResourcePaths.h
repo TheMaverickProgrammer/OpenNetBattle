@@ -155,6 +155,9 @@ namespace TexturePaths {
   // CONFIG UI
   path AUDIO_ICO = "resources/scenes/config/audio.png";
   path END_BTN = "resources/scenes/config/end_btn.png";
+
+  // NORMALS
+  path DEFAULT_N = "resources/ow/default_n.png";
 };
 
 namespace AnimationPaths {

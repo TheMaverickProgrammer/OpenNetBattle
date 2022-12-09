@@ -310,17 +310,13 @@ void FolderChangeNameScene::onDraw(IRenderer& renderer) {
 
     nameLabel.SetString(name[i]);
     nameLabel.setPosition((65 + (i*8)) * 2.f, labelTop);
-
-    // TODO: remove Clone()
-    renderer.submit(Clone(nameLabel));
+    renderer.submit(UI{ &nameLabel });
   }
 
   // 9th character is a special * asterisk to denote the end of input
   if (letterPos + 1 == 9 && !blink) {
     nameLabel.SetString('*');
     nameLabel.setPosition((65 + (8 * 8)) * 2.f, labelTop);
-
-    // TODO: remove Clone()
-    renderer.submit(Clone(nameLabel));
+    renderer.submit(UI{ &nameLabel });
   }
 }

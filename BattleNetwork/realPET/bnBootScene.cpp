@@ -134,23 +134,23 @@ namespace RealPET {
 
       logLabel.SetColor(color);
 
-      renderer.submit(Clone(logLabel));
+      renderer.submit(UI{ &logLabel });
 
       pos.y -= logLabel.GetLocalBounds().height * padding;
     }
 
     // draw boot logo on top
-    renderer.submit(&logoSprite);
+    renderer.submit(UI{ &logoSprite });
 
     // draw task status label
     if (!leaving) {
       sf::Vector2f lastPos = taskLabel.getPosition();
       taskLabel.setPosition(lastPos.x + 2.f, lastPos.y + 2.f);
       taskLabel.SetColor(sf::Color::Black);
-      renderer.submit(Clone(taskLabel));
+      renderer.submit(UI{ &taskLabel });
       taskLabel.setPosition(lastPos);
       taskLabel.SetColor(sf::Color::White);
-      renderer.submit(&taskLabel);
+      renderer.submit(UI{ &taskLabel });
     }
   }
 

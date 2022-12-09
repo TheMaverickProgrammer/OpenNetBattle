@@ -5,6 +5,7 @@
 #include <Segues/BlackWashFade.h>
 #include <Segues/PixelateBlackWashFade.h>
 
+#include "../renderers/bnRenderEvents.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
 #include "../bnInputManager.h"
@@ -500,8 +501,6 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   allPlayerTeamHash[localPlayer.get()] = team;
 
   HitListener::Subscribe(*localPlayer);
-
-  PreparePlayerFullSynchro(localPlayer);
 }
 
 void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
@@ -962,7 +961,6 @@ void BattleSceneBase::onDraw(IRenderer& renderer) {
       block.setOrigin(20, 15);
       block.setFillColor(sf::Color::Yellow);
       block.setPosition(tile->getPosition());
-      // TODO: remove Clone()
       renderer.submit(Clone(block));
     }
 
@@ -999,9 +997,7 @@ void BattleSceneBase::onDraw(IRenderer& renderer) {
       //       and remove all dynamic casting in the engine...
       bool isSpell = (dynamic_cast<Spell*>(node) != nullptr);
       if (isSpell || localPlayer->Teammate(node->GetTeam()) || !localPlayer->IsBlind()) {
-        // TODO: remove Clone()
-        //   also, this may be REALLY bad if there are side effects...
-        renderer.submit(node);
+        renderer.submit(Draw3D(node, node->GetNormalMap().get(), nullptr, 0.f, 2.0f ));
       }
 
       if (perspectiveFlip) {
@@ -1024,9 +1020,7 @@ void BattleSceneBase::onDraw(IRenderer& renderer) {
     for (std::shared_ptr<UIComponent>& ui : uis) {
       if (ui->DrawOnUIPass()) {
         ui->move(viewOffset + flipOffset);
-        // TODO: remove Clone()
-        //    also, this might be a bad idea
-        renderer.submit(ui.get());
+        renderer.submit(UI{ ui.get() });
         ui->move(-(viewOffset + flipOffset));
       }
     }
@@ -1043,11 +1037,11 @@ void BattleSceneBase::onDraw(IRenderer& renderer) {
     std::shared_ptr<CardAction> currAction = c->CurrentCardAction();
 
     for (const std::shared_ptr<CardAction>& action : actionList) {
-      renderer.submit(action.get());
+      renderer.submit(UI{ action.get() });
     }
 
     if (currAction) {
-      renderer.submit(currAction.get());
+      renderer.submit(UI{ currAction.get() });
     }
   }
 
@@ -1130,9 +1124,7 @@ void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, IRenderer& renderer)
   shape.setPosition(shape.getPosition() + offset);
   shape.setOrigin(originNew);
 
-  // TODO: this will make drawing bad because the offsets are reset after
-  //       I need a way to copy/clone/preserve this shape
-  renderer.submit(&shape);
+  renderer.submit(UI{ &shape });
 
   shape.setPosition(position);
   shape.setOrigin(origin);
@@ -1148,8 +1140,7 @@ void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, IRenderer& rendere
   sprite.setPosition(sprite.getPosition() + offset);
   sprite.setOrigin(originNew);
 
-  // TODO: remove Clone()
-  renderer.submit(Clone(sprite));
+  renderer.submit(UI{ &sprite });
 
   sprite.setPosition(position);
   sprite.setOrigin(origin);
@@ -1165,8 +1156,7 @@ void BattleSceneBase::DrawWithPerspective(Text& text, IRenderer& renderer)
   text.setPosition(text.getPosition() + offset);
   text.setOrigin(originNew);
 
-  // TODO: remove Clone()
-  renderer.submit(Clone(text));
+  renderer.submit(UI{ &text });
 
   text.setPosition(position);
   text.setOrigin(origin);

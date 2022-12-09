@@ -294,26 +294,24 @@ void CardSelectBattleState::onDraw(IRenderer& renderer)
     float scalex = scene.getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
     mobBackdropSprite.setScale(scalex, 2.f);
 
-    // TODO: remove Clone()'s
-    renderer.submit(Clone(mobEdgeSprite));
-    renderer.submit(Clone(mobBackdropSprite));
+    renderer.submit(UI{ &mobEdgeSprite });
+    renderer.submit(UI{ &mobBackdropSprite });
 
     // draw the mob label shadow
-    // TODO: remove Clone()
-    renderer.submit(Clone(mobLabel));
+    renderer.submit(UI{ &mobLabel });
 
     // draw the white text on top
     mobLabel.setOrigin(mobLabel.GetLocalBounds().width, -1);
     mobLabel.setPosition(475.0f, nextLabelHeight);
     mobLabel.SetColor(sf::Color::White);
-    // TODO: remove Clone()
-    renderer.submit(Clone(mobLabel));
+
+    renderer.submit(UI{ &mobLabel });
 
     // make the next label relative to this one and 3px down + the 3px margin from the first label
     nextLabelHeight += mobEdgeSprite.getLocalBounds().height + (7.f*3.f);
   }
 
-  renderer.submit(&scene.GetCardSelectWidget());
+  renderer.submit(UI{ &scene.GetCardSelectWidget() });
 }
 
 void CardSelectBattleState::onEnd(const BattleSceneState*)

@@ -361,15 +361,15 @@ void VendorScene::onUpdate(double elapsed)
 
 void VendorScene::onDraw(IRenderer& renderer)
 {
-  renderer.submit(bg);
-  renderer.submit(&list);
-  renderer.submit(&wallet);
+  renderer.submit(UI{ bg });
+  renderer.submit(UI{ &list });
+  renderer.submit(UI{ &wallet });
 
   label.SetColor(sf::Color(41, 99, 140));
   label.SetString(std::to_string(monies) + "$");
   label.setOrigin(label.GetLocalBounds().width, label.GetLocalBounds().height);
   label.setPosition(wallet.getPosition() + sf::Vector2f{(wallet.getLocalBounds().width*2.f) - 10.f, 56.f});
-  renderer.submit(&label);
+  renderer.submit(UI{ &label });
 
   if (items.size() && currState == state::active) {
     for (size_t j = 0; j < maxRows; j++) {
@@ -380,19 +380,17 @@ void VendorScene::onDraw(IRenderer& renderer)
         label.SetString(item.name);
         label.setPosition(35, 13.f + (j * 32.f));
         label.setOrigin(0.f, 0.f);
-        // TODO: remove Clone()
-        renderer.submit(Clone(label));
+        renderer.submit(UI{ &label });
 
         label.SetString(std::to_string(item.cost)+"$");
         label.setOrigin(label.GetLocalBounds().width, 0.f);
         label.setPosition(322.f, 13.f + (j * 32.f));
-        // TODO: remove Clone()
-        renderer.submit(Clone(label));
+        renderer.submit(UI{ &label });
       }
     }
   }
 
-  renderer.submit(&textbox);
+  renderer.submit(UI{ &textbox });
 
   /*
   if (textbox.HasMore()) {
@@ -400,7 +398,7 @@ void VendorScene::onDraw(IRenderer& renderer)
   }*/
 
   if (currState == state::active) {
-    renderer.submit(&cursor);
+    renderer.submit(UI{ &cursor });
   }
 }
 

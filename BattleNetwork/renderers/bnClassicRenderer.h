@@ -1,26 +1,23 @@
 #pragma once
-#include <Swoosh/Renderers/Renderer.h>
+#include <array>
+#include "bnRenderEvents.h"
 #include "../bnEntity.h"
 
-using swoosh::Renderer;
-using swoosh::RenderSource;
-
-struct UI : RenderSource {
-  UI(const sf::Drawable* dptr, const sf::RenderStates states = sf::RenderStates::Default) : RenderSource(dptr, states) {}
-  ~UI() {}
-};
-
-struct Layered {
-
-};
+namespace sf {
+  class Drawable;
+}
 
 /**
 @class ClassicRenderer
 @brief ONB default renderer
 */
-class ClassicRenderer : public Renderer<UI, Entity> {
+class ClassicRenderer : public Renderer<UI, Layered, LayeredSprite, LayeredNode, Entity> {
   sf::RenderTexture ui, objects;
-  std::list<const Entity*> entities;
+  std::list<sf::Sprite> sprBuffer;
+  std::list<const RenderSource*> rBuffer;
+  std::array<std::array<const RenderSource*, 100>, (size_t)LayerID::sz> layers{};
+  std::array<size_t, 100> count{};
+  bool validLayer(size_t index);
 public:
   ClassicRenderer(const sf::View view);
 
@@ -31,4 +28,7 @@ public:
   void onEvent(const RenderSource& event) override;
   void onEvent(const Entity& event) override;
   void onEvent(const UI& event) override;
+  void onEvent(const Layered& event) override;
+  void onEvent(const LayeredSprite& event) override;
+  void onEvent(const LayeredNode& event) override;
 };

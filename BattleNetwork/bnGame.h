@@ -87,6 +87,7 @@ private:
   LuaLibraryPackagePartitioner* luaLibraryPackagePartitioner{ nullptr };
 
   DrawWindow& window;
+  const RendererEntries& renderOptions;
 
   ConfigReader reader;
   ConfigSettings configSettings;

@@ -173,7 +173,7 @@ void KeyItemScene::onUpdate(double elapsed)
 
 void KeyItemScene::onDraw(IRenderer& renderer)
 {
-  renderer.submit(&bg);
+  renderer.submit(UI{ &bg });
 
   if (items.size()) {
     for (size_t i = 0; i < maxCols; i++) {
@@ -186,26 +186,22 @@ void KeyItemScene::onDraw(IRenderer& renderer)
           label.setPosition(55 + (i * 200) + 2.f, 42 + (j * 30) + 2.f);
 
           const auto pos = label.getPosition();
-          //label.SetColor(sf::Color::Black);
-          //surface.draw(label);
-
           label.setPosition(pos.x - 2.f, pos.y - 2.f);
           label.SetColor(sf::Color::White);
-          // TODO: remove Clone()
-          renderer.submit(Clone(label));
+          renderer.submit(UI{ &label });
         }
       }
     }
   }
 
-  renderer.submit(&scroll);
-  renderer.submit(&textbox);
+  renderer.submit(UI{ &scroll });
+  renderer.submit(UI{ &textbox });
 
   if (textbox.HasMore()) {
-    renderer.submit(&moreText);
+    renderer.submit(UI{ &moreText });
   }
 
-  renderer.submit(&cursor);
+  renderer.submit(UI{ &cursor });
 }
 
 void KeyItemScene::onEnd()

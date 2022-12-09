@@ -2,6 +2,7 @@
 #include <Swoosh/Activity.h>
 #include <Swoosh/Renderers/Renderer.h>
 #include "renderers/bnClassicRenderer.h"
+#include "renderers/bnRenderEvents.h"
 #include "bnResourceHandle.h"
 #include "bnInputHandle.h"
 #include "bnNetHandle.h"

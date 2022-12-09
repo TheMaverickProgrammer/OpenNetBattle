@@ -236,8 +236,8 @@ void MatchMakingScene::DrawIDInputWidget(IRenderer& renderer)
   uiAnim.SetAnimation("ID_START");
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 40);
-  // TODO: remove Clone()
-  renderer.submit(&ui);
+
+  renderer.submit(UI{ &ui });
 
   if (infoMode) {
     id.SetString(sf::String(myIP));
@@ -255,17 +255,15 @@ void MatchMakingScene::DrawIDInputWidget(IRenderer& renderer)
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 40);
 
-  // TODO: remove Clone()
-  renderer.submit(&ui);
-  renderer.submit(&id);
+  renderer.submit(UI{ &ui });
+  renderer.submit(UI{ &id });
 
   uiAnim.SetAnimation("ID_END");
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 40);
 
-  // TODO: remove Clone()
-  renderer.submit(&ui);
+  renderer.submit(UI{ &ui });
 }
 
 void MatchMakingScene::DrawCopyPasteWidget(IRenderer& renderer)
@@ -296,8 +294,7 @@ void MatchMakingScene::DrawCopyPasteWidget(IRenderer& renderer)
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 90);
 
-  // TODO: remove Clone()
-  renderer.submit(&ui);
+  renderer.submit(UI{ &ui });
 
   Text widgetText(Font::Style::thick);
   widgetText.setScale(2.f, 2.f);
@@ -314,7 +311,7 @@ void MatchMakingScene::DrawCopyPasteWidget(IRenderer& renderer)
   uiAnim.SetAnimation(icon);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(102, 92); // offset by 2 pixels to fit inside the frame
-  renderer.submit(&ui);
+  renderer.submit(UI{ &ui });
 
   widgetText.setPosition(145, 94);
 
@@ -324,18 +321,15 @@ void MatchMakingScene::DrawCopyPasteWidget(IRenderer& renderer)
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 90);
-
-  // TODO: remove Clone()'s
-  renderer.submit(&ui);
-  renderer.submit(Clone(widgetText));
+  renderer.submit(UI{ &ui });
+  renderer.submit(UI{ &widgetText });
 
   uiAnim.SetAnimation(end);
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 90);
 
-  // TODO: remove Clone()
-  renderer.submit(&ui);
+  renderer.submit(UI{ &ui });
 }
 
 const bool MatchMakingScene::IsValidIPv4(const std::string& ip) const {
@@ -683,11 +677,11 @@ void MatchMakingScene::onEnter()
 }
 
 void MatchMakingScene::onDraw(IRenderer& renderer) {
-  renderer.submit(&greenBg);
-  renderer.submit(gridBG);
+  renderer.submit(UI{ &greenBg });
+  renderer.submit(UI{ gridBG });
 
   if (!isInFlashyVSIntro) {
-    renderer.submit(&textbox);
+    renderer.submit(UI{ &textbox });
 
     if (infoMode && myIP.empty()) {
       id.SetString("ERROR");
@@ -708,20 +702,19 @@ void MatchMakingScene::onDraw(IRenderer& renderer) {
       ui.setPosition(130, 4);
     }
 
-    renderer.submit(&text);
+    renderer.submit(UI{ &text });
 
     // L/R icons
-    // TODO: remove Clone()
-    renderer.submit(&ui);
+    renderer.submit(UI{ &ui });
 
     this->DrawIDInputWidget(renderer);
     this->DrawCopyPasteWidget(renderer);
   }
   else {
-    renderer.submit(&clientPreview);
-    renderer.submit(&remotePreview);
-    renderer.submit(&vs);
-    renderer.submit(&vsFaded);
+    renderer.submit(UI{ &clientPreview });
+    renderer.submit(UI{ &remotePreview });
+    renderer.submit(UI{ &vs });
+    renderer.submit(UI{ &vsFaded });
   }
 
   if (flashCooldown > 0) {

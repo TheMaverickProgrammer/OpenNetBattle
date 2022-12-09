@@ -406,31 +406,28 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
   auto textPos = summonsLabel.getPosition();
   summonsLabel.SetColor(sf::Color::Black);
   summonsLabel.setPosition(textPos.x + 2.f, textPos.y + 2.f);
-  // TODO: remove Clone()
-  renderer.submit(Clone(summonsLabel));
+  renderer.submit(UI{ &summonsLabel });
 
   // font on top
   summonsLabel.setPosition(textPos);
   summonsLabel.SetColor(sf::Color::White);
-  // TODO: remove Clone()
-  renderer.submit(Clone(summonsLabel));
+  renderer.submit(UI{ &summonsLabel });
 
   // our number font has shadow baked in
-  renderer.submit(&dmg);
+  renderer.submit(UI{ &dmg });
 
   if (canBoost) {
     // shadow
     auto multiPos = multiplier.getPosition();
     multiplier.SetColor(sf::Color::Black);
     multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(multiplier));
+
+    renderer.submit(UI{ &multiplier });
 
     // font on top
     multiplier.setPosition(multiPos);
     multiplier.SetColor(sf::Color::White);
-    // TODO: remove Clone()
-    renderer.submit(Clone(multiplier));
+    renderer.submit(UI{ &multiplier });
   }
 }
 

@@ -744,12 +744,12 @@ void FolderEditScene::onResume() {
 }
 
 void FolderEditScene::onDraw(IRenderer& renderer) {
-  renderer.submit(&bg);
-  renderer.submit(&menuLabel);
+  renderer.submit(LayeredSprite{ LayerID::bg, bg });
+  renderer.submit(Layered{ LayerID::layer_1, &menuLabel });
 
   float scale = 0.0f;
 
-  renderer.submit(&folderCardCountBox);
+  // renderer.submit(Layered{ LayerID::layer_1, &folderCardCountBox });
 
   if (int(0.5 + folderCardCountBox.getScale().y) == 2) {
     std::vector<FolderEditScene::FolderSlot> nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
@@ -774,8 +774,7 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
       numberLabel.SetFont(Font::Style::gradient);
     }
 
-    // TODO: remove Clone()
-    renderer.submit(Clone(numberLabel));
+    renderer.submit(UI{ &numberLabel });
 
     numberLabel.SetFont(numberFont);
     numberLabel.SetString("/");
@@ -783,8 +782,7 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
     numberLabel.SetColor(sf::Color(200, 224, 248, 255));
     numberLabel.setPosition(418.f, 14.f);
 
-    // TODO: remove Clone()
-    renderer.submit(Clone(numberLabel));
+    renderer.submit(UI{ &numberLabel });
 
     numberLabel.SetColor(sf::Color::White);
     if (nonempty.size() == 30) {
@@ -799,8 +797,7 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
     numberLabel.setOrigin(0, 0);
     numberLabel.setPosition(414.f, 14.f);
 
-    // TODO: remove Clone()
-    renderer.submit(Clone(numberLabel));
+    renderer.submit(UI{ &numberLabel });
   }
 
   // folder card count opens on FOLDER view mode only
@@ -819,11 +816,11 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
   DrawPool(renderer);
 
   if (isInSortMenu) {
-    renderer.submit(&folderSort);
-    renderer.submit(&sortCursor);
+    renderer.submit(LayeredSprite{ LayerID::layer_1, folderSort });
+    renderer.submit(LayeredSprite{ LayerID::layer_1, sortCursor });
   }
 
-  renderer.submit(&owTextbox);
+  renderer.submit(Layered{ LayerID::layer_4, &owTextbox });
 }
 
 void FolderEditScene::DrawFolder(IRenderer& renderer) {
@@ -832,15 +829,15 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
   element.setPosition(2.f * 28.f, 136.f);
   card.setPosition(96.f, 93.f);
 
-  renderer.submit(&folderDock);
-  renderer.submit(&cardHolder);
+  renderer.submit(UI{ &folderDock });
+  renderer.submit(UI{ &cardHolder });
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 60.0f; float bottom = 260.0f;
   float depth = (bottom - top) * (((float)folderView.firstCardOnScreen) / ((float)folderView.numOfCards - 7));
   scrollbar.setPosition(452.f, top + depth);
 
-  renderer.submit(&scrollbar);
+  renderer.submit(UI{ &scrollbar });
 
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
@@ -860,47 +857,41 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
       float cardIconY = 66.0f + (32.f * i);
       cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
       cardIcon.setPosition(2.f * 104.f, cardIconY);
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardIcon));
+      renderer.submit(UI{ &cardIcon });
 
       sf::Vector2f labelPos = sf::Vector2f(2.f * 120.f, cardIconY + 4.0f);
       cardLabel.setPosition(labelPos + sf::Vector2f(2.f, 2.f));
       cardLabel.SetString(copy.GetShortName());
       cardLabel.setScale(2.f, 2.f);
       cardLabel.SetColor(sf::Color(80, 96, 112));
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       cardLabel.SetColor(sf::Color::White);
       if (!hasID) {
         cardLabel.SetColor(sf::Color::Red);
       }
       cardLabel.setPosition(labelPos);
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f * 183.f, cardIconY);
       element.setScale(2.f, 2.f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(element));
+      renderer.submit(UI{ &element });
 
       labelPos = sf::Vector2f(2.f * 200.f, cardIconY + 4.0f);
       cardLabel.SetColor(sf::Color(80, 96, 112));
       cardLabel.setOrigin(0, 0);
       cardLabel.setPosition(labelPos + sf::Vector2f(2.f, 2.f));
       cardLabel.SetString(std::string() + copy.GetCode());
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       cardLabel.SetColor(sf::Color::White);
       if (!hasID) {
         cardLabel.SetColor(sf::Color::Red);
       }
       cardLabel.setPosition(labelPos);
-      // TODO: remove Clone()
-      renderer.submit(Clone(cardLabel));
+      renderer.submit(UI{ &cardLabel });
 
       //Draw Card Limit
       if (copy.GetLimit() > 0) {
@@ -915,11 +906,9 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
         limitLabel.SetString("NO\nMAX");
       }
       limitLabel.setPosition(2.f * 210.f, cardIconY + 2.f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(limitLabel));
+      renderer.submit(UI{ &limitLabel });
       limitLabel2.setPosition(2.f * 210.f, cardIconY + 2.f);
-      // TODO: remove Clone()
-      renderer.submit(Clone(limitLabel2));
+      renderer.submit(UI{ &limitLabel2 });
     }
     // Draw card at the cursor
     if (folderView.firstCardOnScreen + i == folderView.currCardIndex) {
@@ -937,14 +926,14 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
       folderCursor.setPosition((2.f * 90.f) + bounce, y);
 
       if (!isInSortMenu) {
-        renderer.submit(&folderCursor);
+        renderer.submit(UI{ &folderCursor });
       }
 
       if (!iter->IsEmpty()) {
         const Battle::Card& copy = iter->ViewCard();
         card.setTexture(*GetPreviewForCard(copy.GetUUID()));
         card.setScale(xscale, 2.0f);
-        renderer.submit(&card);
+        renderer.submit(UI{ &card });
 
         // This draws the currently highlighted card
         if (copy.GetDamage() > 0) {
@@ -953,8 +942,7 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
           cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
           cardLabel.setScale(xscale, 2.f);
           cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 77.f, 145.f }));
-          // TODO: remove Clone()
-          renderer.submit(Clone(cardLabel));
+          renderer.submit(UI{ &cardLabel });
         }
 
         cardLabel.setOrigin(0, 0);
@@ -962,20 +950,17 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
         cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 20.f, 145.f }));
         cardLabel.SetString(std::string() + copy.GetCode());
         cardLabel.setScale(xscale, 2.f);
-        // TODO: remove Clone()
-        renderer.submit(Clone(cardLabel));
+        renderer.submit(UI{ &cardLabel });
 
         std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
         cardDesc.SetString(formatted);
-        // TODO: remove Clone()
-        renderer.submit(Clone(cardDesc));
+        renderer.submit(UI{ &cardDesc });
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
         element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 142.f }));
         element.setScale(xscale, 2.f);
-        // TODO: remove Clone()
-        renderer.submit(Clone(element));
+        renderer.submit(UI{ &element });
       }
     }
     if (folderView.firstCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
@@ -983,7 +968,7 @@ void FolderEditScene::DrawFolder(IRenderer& renderer) {
 
       folderSwapCursor.setPosition((2.f * 95.f) + 2.0f, y);
       folderSwapCursor.setColor(sf::Color(255, 255, 255, 200));
-      renderer.submit(&folderSwapCursor);
+      renderer.submit(UI{ &folderSwapCursor });
       folderSwapCursor.setColor(sf::Color::White);
     }
 
@@ -997,8 +982,8 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
   element.setPosition(400.f + 2.f * 20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
 
-  renderer.submit(&packDock);
-  renderer.submit(&packCardHolder);
+  renderer.submit(UI{ &packDock });
+  renderer.submit(UI{ &packCardHolder });
 
   if (packView.numOfCards == 0) return;
 
@@ -1008,7 +993,7 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
     float top = 60.0f; float bottom = 260.0f;
     float depth = (bottom - top) * (((float)packView.firstCardOnScreen) / ((float)packView.numOfCards - 7));
     scrollbar.setPosition(292.f + 480.f, top + depth);
-    renderer.submit(&scrollbar);
+    renderer.submit(UI{ &scrollbar });
   }
 
   // Move the card library iterator to the current highlighted card
@@ -1026,28 +1011,24 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
     cardIcon.setTexture(*GetIconForCard(copy.GetUUID()));
     cardIcon.setPosition(16.f + 480.f, 65.0f + (32.f * i));
     cardIcon.setScale(2.f, 2.f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(cardIcon));
+    renderer.submit(UI{ &cardIcon });
 
     cardLabel.SetColor(sf::Color::White);
     cardLabel.setPosition(49.f + 480.f, 69.0f + (32.f * i));
     cardLabel.SetString(copy.GetShortName());
     cardLabel.setScale(2.f, 2.f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(cardLabel));
+    renderer.submit(UI{ &cardLabel });
 
     int offset = (int)(copy.GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
     element.setPosition(182.0f + 480.f, 65.0f + (32.f * i));
     element.setScale(2.f, 2.f);
-    // TODO: remove Clone()
-    renderer.submit(Clone(element));
+    renderer.submit(UI{ &element });
 
     cardLabel.setOrigin(0, 0);
     cardLabel.setPosition(216.f + 480.f, 69.0f + (32.f * i));
     cardLabel.SetString(std::string() + copy.GetCode());
-    // TODO: remove Clone()
-    renderer.submit(Clone(cardLabel));
+    renderer.submit(UI{ &cardLabel });
 
     //Draw Card Limit
     if (copy.GetLimit() > 0) {
@@ -1062,18 +1043,15 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
       limitLabel.SetString("NO\nMAX");
     }
     limitLabel.setPosition(236.f + 480.f, 67.0f + (32.f * i));
-    // TODO: remove Clone()
-    renderer.submit(Clone(limitLabel));
+    renderer.submit(UI{ &limitLabel });
     limitLabel2.setPosition(236.f + 480.f, 67.0f + (32.f * i));
-    // TODO: remove Clone()
-    renderer.submit(Clone(limitLabel2));
+    renderer.submit(UI{ &limitLabel2 });
 
     // Draw count in pack
     cardLabel.setOrigin(0, 0);
     cardLabel.setPosition(274.f + 480.f, 69.0f + (32.f * i));
     cardLabel.SetString(std::to_string(count));
-    // TODO: remove Clone()
-    renderer.submit(Clone(cardLabel));
+    renderer.submit(UI{ &cardLabel });
 
     // This draws the currently highlighted card
     if (packView.firstCardOnScreen + i == packView.currCardIndex) {
@@ -1092,13 +1070,13 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
       packCursor.setPosition(bounce + 480.f + 2.f, y);
 
       if (!isInSortMenu) {
-        renderer.submit(&packCursor);
+        renderer.submit(UI{ &packCursor });
       }
 
       card.setTexture(*GetPreviewForCard(poolCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
       card.setTextureRect(sf::IntRect{ 0,0,56,48 });
       card.setScale(xscale, 2.0f);
-      renderer.submit(&card);
+      renderer.submit(UI{ &card });
 
       if (copy.GetDamage() > 0) {
         cardLabel.SetColor(sf::Color::White);
@@ -1106,7 +1084,7 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
         cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
         cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * (223.f) + 480.f, 145.f }));
         cardLabel.setScale(xscale, 2.f);
-        renderer.submit(&cardLabel);
+        renderer.submit(UI{ &cardLabel });
       }
 
       cardLabel.setOrigin(0, 0);
@@ -1114,17 +1092,17 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
       cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 167.f + 480.f, 145.f }));
       cardLabel.SetString(std::string() + copy.GetCode());
       cardLabel.setScale(xscale, 2.f);
-      renderer.submit(&cardLabel);
+      renderer.submit(UI{ &cardLabel });
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(interp_position(sf::Vector2f{ 2.f * 179.f + 480.f, 142.f }));
       element.setScale(xscale, 2.f);
-      renderer.submit(&element);
+      renderer.submit(UI{ &element });
 
       std::string formatted = stx::format_to_fit(copy.GetDescription(), 9, 3);
       cardDesc.SetString(formatted);
-      renderer.submit(&cardDesc);
+      renderer.submit(UI{ &cardDesc });
     }
 
     if (packView.firstCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
@@ -1132,7 +1110,7 @@ void FolderEditScene::DrawPool(IRenderer& renderer) {
 
       packSwapCursor.setPosition(485.f + 2.f + 2.f, y);
       packSwapCursor.setColor(sf::Color(255, 255, 255, 200));
-      renderer.submit(&packSwapCursor);
+      renderer.submit(UI{ &packSwapCursor });
       packSwapCursor.setColor(sf::Color::White);
     }
 

@@ -62,6 +62,6 @@ namespace Hit {
     Element::none,
     0,
     Direction::none,
-    true
+    0
   };
 }

@@ -1453,7 +1453,6 @@ void Entity::ResolveFrameBattleDamage()
           frameCounterAggressor = GetField()->GetCharacter(props.filtered.aggressor);
         }
 
-        OnCountered();
         flagCheckThunk(Hit::impact);
       }
 
@@ -1705,9 +1704,11 @@ void Entity::ResolveFrameBattleDamage()
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
       CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
+      OnCountered();
     }
   } else if (frameCounterAggressor) {
     CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
+    OnCountered();
   }
 
   if (frameFreezeCancel) {
@@ -1943,6 +1944,7 @@ Hit::Context Entity::GetHitboxContext()
 
 void Entity::SetHitboxProperties(Hit::Properties props)
 {
+  // TODO: why are the lines after this one needed? they will already be set to the same thing...
   hitboxProperties = props;
   hitboxProperties.flags |= props.context.flags;
   hitboxProperties.aggressor = props.context.aggressor;

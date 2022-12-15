@@ -4,6 +4,8 @@ Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!
 This project aims to be an accurate mmbn6 battle engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story.
 This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
+This fork spawned from [Pheelbert](https://github.com/Pheelbert/battlenetwork) who helped me in the very beginning with the tile-based movement. Without him, it wouldn't be here today. For some reason, github fork does not accurately show that I forked from him.
+
 # 🕹️ GET STARTED PLAYING THE GAME
 
 To begin, follow the [Playing Guide](https://github.com/TheMaverickProgrammer/OpenNetBattle/wiki/Playing-Guide).

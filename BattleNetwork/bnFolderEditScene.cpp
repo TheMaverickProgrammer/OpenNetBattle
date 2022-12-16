@@ -749,7 +749,7 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
 
   float scale = 0.0f;
 
-  // renderer.submit(Layered{ LayerID::layer_1, &folderCardCountBox });
+  renderer.submit(LayeredSprite{ LayerID::layer_1, folderCardCountBox });
 
   if (int(0.5 + folderCardCountBox.getScale().y) == 2) {
     std::vector<FolderEditScene::FolderSlot> nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
@@ -816,8 +816,8 @@ void FolderEditScene::onDraw(IRenderer& renderer) {
   DrawPool(renderer);
 
   if (isInSortMenu) {
-    renderer.submit(LayeredSprite{ LayerID::layer_1, folderSort });
-    renderer.submit(LayeredSprite{ LayerID::layer_1, sortCursor });
+    renderer.submit(UI{ &folderSort });
+    renderer.submit(UI{ &sortCursor });
   }
 
   renderer.submit(Layered{ LayerID::layer_4, &owTextbox });

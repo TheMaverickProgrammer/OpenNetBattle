@@ -16,7 +16,7 @@ class ClassicRenderer : public Renderer<UI, Layered, LayeredSprite, LayeredNode,
   std::list<sf::Sprite> sprBuffer;
   std::list<const RenderSource*> rBuffer;
   std::array<std::array<const RenderSource*, 100>, (size_t)LayerID::sz> layers{};
-  std::array<size_t, 100> count{};
+  std::array<size_t, (size_t)LayerID::sz> count{};
   bool validLayer(size_t index);
 public:
   ClassicRenderer(const sf::View view);

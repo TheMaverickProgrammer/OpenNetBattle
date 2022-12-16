@@ -2,7 +2,7 @@
 
 bool ClassicRenderer::validLayer(size_t index)
 {
-  return index >= 0 && index <= layers.size();
+  return index >= 0 && index <= layers.size() && (count[index]+1 < layers[0].size());
 }
 
 ClassicRenderer::ClassicRenderer(const sf::View view) {
@@ -36,7 +36,7 @@ void ClassicRenderer::draw() {
 
   // NOTE: have to clear because swoosh submits segue output screen contents back to the renderer
   //       before a final `renderer->draw()` call. IMO segues should draw the output onto the screen skipping the last `draw()`...
-  ui.clear(sf::Color::Transparent);
+  //ui.clear(sf::Color::Transparent);
 }
 
 sf::RenderTexture& ClassicRenderer::getRenderTextureTarget() {
@@ -70,6 +70,12 @@ void ClassicRenderer::onEvent(const Entity& event)
 void ClassicRenderer::onEvent(const UI& event)
 {
   ui.draw(*event.drawable(), event.states());
+  /*size_t index = (size_t)LayerID::layer_5;
+  if (!validLayer(index)) return;
+
+  auto& L = layers[index];
+  rBuffer.insert(rBuffer.end(), new const RenderSource(event.drawable(), event.states()));
+  L[count[(size_t)LayerID::layer_5]++] = rBuffer.back();*/
 }
 
 void ClassicRenderer::onEvent(const Layered& event)

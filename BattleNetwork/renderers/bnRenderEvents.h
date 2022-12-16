@@ -99,8 +99,10 @@ enum class LayerID : size_t {
   layer_2 = 2,
   layer_3 = 3,
   layer_4 = 4,
+  layer_5 = 5,
 
-  sz = 5
+  // denotes how many logical layers there are
+  sz = 6
 };
 
 struct Layered : RenderSource {

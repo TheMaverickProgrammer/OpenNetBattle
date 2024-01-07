@@ -46,7 +46,7 @@ Note that you will need to also install `fluidsynth` with vcpkg and the install 
 - Standard battle, liberation missions, and network PVP via lockstep (or make your own battle scenes with the state graph!)
 - Overworld
 - Navicust
-- Supports online play from custom [servers](https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server)
+- Supports online play from custom servers.
 - Servers can script quests, custom battles, PVP, as far as your imagination will let you!
 - and so much more
 

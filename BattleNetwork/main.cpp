@@ -138,6 +138,8 @@ void ParseErrorLevel(std::string in) {
   processSettings("warning", LogLevel::warning);
   processSettings("debug", LogLevel::debug);
   processSettings("info", LogLevel::info);
+  processSettings("net", LogLevel::net);
+
 
   if (settings["all"]) {
     level = LogLevel::all;

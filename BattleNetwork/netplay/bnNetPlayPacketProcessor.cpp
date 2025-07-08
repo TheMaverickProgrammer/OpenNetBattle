@@ -7,7 +7,7 @@ Netplay::PacketProcessor::PacketProcessor(const Poco::Net::SocketAddress& remote
   packetShipper(remoteAddress, maxBytes),
   packetSorter(remoteAddress)
 {
-
+  lastPacketTime = std::chrono::steady_clock::now();
 }
 
 Netplay::PacketProcessor::~PacketProcessor()
@@ -30,7 +30,17 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
     Logger::Log(LogLevel::debug, "Queueing packets");
   }
 
-  lastPacketTime = std::chrono::steady_clock::now();
+  auto now = std::chrono::steady_clock::now();
+  auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch() - lastPacketTime.time_since_epoch());
+
+  lastPacketTime = now;
+
+  auto lastPacketTime = dif.count();
+
+  if (lastPacketTime > 1) {
+  //  Logger::Log(LogLevel::net, "Received packet (" + std::to_string(lastPacketTime) + " ms since last packet)");
+  }
+  
   errorCount = 0;
 }
 
@@ -140,6 +150,15 @@ bool Netplay::PacketProcessor::TimedOut() {
     );
 
   constexpr int64_t MAX_TIMEOUT_SECONDS = 5;
+  constexpr int64_t MAX_TIMEOUT_SECONDS_2 = 20;
 
-  return timeDifference.count() > MAX_TIMEOUT_SECONDS;
+
+  auto dif = timeDifference.count();
+  bool timedOut = dif > MAX_TIMEOUT_SECONDS;
+
+  if (timedOut) {
+    Logger::Log(LogLevel::net, "Would have timed out (" + std::to_string(dif) + " ms)");
+  }
+
+  return timedOut = dif > MAX_TIMEOUT_SECONDS;
 }

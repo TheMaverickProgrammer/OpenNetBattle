@@ -37,6 +37,22 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   std::sort(playerBlockPackageList.begin(), playerBlockPackageList.end());
   playerBlockPackageList.erase(std::unique(playerBlockPackageList.begin(), playerBlockPackageList.end()), playerBlockPackageList.end());
 
+  std::string working = "Cards:";
+  for (int i = 0; i < playerCardPackageList.size(); i++) {
+    auto p = playerCardPackageList.at(i);
+    working = working + "\n    " + p.packageId + " (" + p.md5 + ")";
+  }
+
+  Logger::Log(LogLevel::net, working);
+
+  working = "Blocks:";
+  for (int i = 0; i < playerBlockPackageList.size(); i++) {
+    auto p = playerBlockPackageList.at(i);
+    working = working + "\n    " + p.packageId + " (" + p.md5 + ")";
+  }
+
+  Logger::Log(LogLevel::net, working);
+
   downloadSuccess = false; 
 
   packetProcessor = props.packetProcessor;
@@ -50,6 +66,7 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor->EnableKickForSilence(true);
 
+  lastUpdate = std::chrono::steady_clock::now();
   // send handshake + begin coinflip before reading packets
   SendHandshake();
   SendCoinFlip();
@@ -339,6 +356,7 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
   std::vector<PackageHash> packageCardList = DeserializeListOfHashes(buffer);
   std::vector<std::string> requestList;
   CardPackageManager& packageManager = LocalCardPartition();
+
   for (PackageHash& remotePackage : packageCardList) {
     auto& [packageId, md5] = remotePackage;
 
@@ -357,6 +375,10 @@ void DownloadScene::RecieveTradeCardPackageData(const Poco::Buffer<char>& buffer
   if (requestList.size()) {
     remoteCardPackageList = requestList;
     Logger::Logf(LogLevel::info, "Need to download %d card packages", requestList.size());
+    std::string needed = "Cards needed:";
+    for (int i = 0; i < requestList.size(); i++) {
+      needed = needed + "\n" + requestList[i];
+    }
     RequestCardPackageList(requestList);
   }
   else {
@@ -370,6 +392,7 @@ void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffe
   std::vector<PackageHash> packageBlockList = DeserializeListOfHashes(buffer);
   std::vector<std::string> requestList;
   BlockPackageManager& packageManager = LocalBlockPartition();
+
   for (PackageHash& remotePackage : packageBlockList) {
     auto& [packageId, md5] = remotePackage;
 
@@ -391,6 +414,12 @@ void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffe
   // move to the next state
   if (requestList.size()) {
     Logger::Logf(LogLevel::info, "Need to download %d block packages", requestList.size());
+    std::string needed = "Blocks needed:";
+    for (int i = 0; i < requestList.size(); i++) {
+      needed = needed + "\n" + requestList[i];
+    }
+
+    Logger::Log(LogLevel::net, needed);
     RequestBlockPackageList(requestList);
   }
   else {
@@ -562,6 +591,9 @@ void DownloadScene::DownloadPlayerData(const Poco::Buffer<char>& buffer)
     // There was a problem creating the file
     SendDownloadComplete(false);
   }
+  else {
+    Logger::Log(LogLevel::net, "Successfully downloaded opponent's Player mod");
+  }
 }
 
 std::vector<PackageHash> DownloadScene::DeserializeListOfHashes(const Poco::Buffer<char>& buffer)
@@ -729,6 +761,12 @@ void DownloadScene::Abort()
 
 void DownloadScene::onUpdate(double elapsed)
 {
+  auto now = std::chrono::steady_clock::now();
+  auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch() - lastUpdate.time_since_epoch());
+
+  lastUpdate = now;
+
+  Logger::Log(LogLevel::net, "DownloadScene tick after " + std::to_string(dif.count()) + " ms");
   if (!(packetProcessor->IsHandshakeAck() && remoteHandshake) && !aborting) return;
 
   if (!hasTradedData) {

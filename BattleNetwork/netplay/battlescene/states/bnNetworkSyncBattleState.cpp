@@ -79,6 +79,9 @@ bool NetworkSyncBattleState::IsRemoteConnected()
 
 bool NetworkSyncBattleState::SelectedNewChips()
 {
+  if (cardSelectState && cardSelectState->SelectedNewChips() && synchronized) {
+    Logger::Log(LogLevel::net, "SelectedNewChips has passed, moving to combo state");
+  }
   return cardSelectState && cardSelectState->SelectedNewChips() && synchronized;
 }
 

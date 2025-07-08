@@ -668,6 +668,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   if (!current) return;
 
   if (skipFrame) {
+    Logger::Log(LogLevel::net, "Base is skipping and will not increment");
     skipFrame = false;
     return;
   }

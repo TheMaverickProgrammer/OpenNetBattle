@@ -327,6 +327,10 @@ void CardSelectBattleState::EnablePVPMode()
 }
 
 bool CardSelectBattleState::OKIsPressed() {
+  if (GetScene().GetCardSelectWidget().IsOutOfView()) {
+    Logger::Log(LogLevel::net, "OK has been pressed and GUI is now out of view");
+  }
+  
   // CardGUI goes out of view when OK is pressed
   // wait for that animation to end before triggering the next state
   return GetScene().GetCardSelectWidget().IsOutOfView();

@@ -228,8 +228,10 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   skipFrame = IsRemoteBehind() && this->remotePlayer && !this->remotePlayer->IsDeleted();
 
+  bool skippingUpdate = false;
   if (skipFrame && FrameNumber()-resyncFrameNumber >= frames(5)) {
     SkipFrame();
+    skippingUpdate = true;
   }
   else {
     std::vector<InputEvent> events;
@@ -239,12 +241,37 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
+
+
+  auto tiles = this->GetField()->FindTiles([](Battle::Tile*) -> bool {return true; });
+
+  std::string skipPart1 = skippingUpdate ? "Skipping over " : "";
+
+  std::string fieldState = skipPart1 + "Battle Frame " + std::to_string(this->FrameNumber().count()) + " tiles: ";
+
+  for (int i = 0; i < tiles.size(); i++) {
+    int state = static_cast<int>(tiles[i]->GetState());
+    fieldState = fieldState + (state < 10 ? ("0" + std::to_string(state)) : std::to_string(state));
+  }
+
+
+
+  // Combat started 2f early on log2? 463 and 465
+
+  fieldState = fieldState + " Combat? " + std::to_string(combatPtr->IsStateCombat(GetCurrentState()))
+    + " Freeze? " + std::to_string(combatPtr->HasTimeFreeze()) + ", " + std::to_string(timeFreezePtr->summonTick.count()) + ", " + std::to_string(timeFreezePtr->IsOver())
+    + " Combo? " + std::to_string(cardComboStatePtr->IsDone())
+    + " Start? " + std::to_string(startStatePtr->IsFinished()) + ", " + std::to_string(startStatePtr->timer.elapsed().count())
+    + " Custom? " + std::to_string(GetCustomBarProgress());
+
+
+  Logger::Log(LogLevel::net, fieldState);
   
   if (!remoteInputQueue.empty()) {
     auto frame = remoteInputQueue.begin();
 
     const uint64_t sceneFrameNumber = FrameNumber().count();
-    if(sceneFrameNumber >= frame->frameNumber) {
+    if (sceneFrameNumber >= frame->frameNumber) {
       if (sceneFrameNumber != frame->frameNumber) {
         // for debugging, this should never appear if the code is working properly
         Logger::Logf(LogLevel::debug, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, sceneFrameNumber, sceneFrameNumber - frame->frameNumber);
@@ -254,13 +281,29 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       remoteFrameNumber = frames(frame->frameNumber);
 
       // Logger::Logf("next remote frame # is %i", remoteFrameNumber);
+      
+
+      std::string skipPart = skippingUpdate ? "Skipping over " : "";
+      std::string inp = skipPart + "Frame " + std::to_string(frame->frameNumber) + ": Remote inputs: ";
+      for (int i = 0; i < events.size(); i++) {
+        inp = inp + "" + events[i].name + " " + std::to_string(static_cast<int>(events[i].state));
+      }
+
+      Logger::Log(LogLevel::net, inp);
 
       for (InputEvent& e : events) {
+
         remotePlayer->InputState().VirtualKeyEvent(e);
       }
 
       frame = remoteInputQueue.erase(frame);
     }
+    else {
+      Logger::Log(LogLevel::net, "Skip remote input keys because scene frame number is less than frame number (" + std::to_string(sceneFrameNumber) + " < " + std::to_string(frame->frameNumber) + ")");
+    }
+  }
+  else {
+    Logger::Log(LogLevel::net, "Skip remote input keys because queue is empty");
   }
 
   BattleSceneBase::onUpdate(elapsed);
@@ -269,6 +312,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   if (!syncStatePtr->IsSynchronized()) {
     if (packetProcessor->IsHandshakeAck() && remoteState.remoteHandshake) {
+      Logger::Log(LogLevel::net, "Handshake ackknowledged, declare synchronized");
       syncStatePtr->Synchronize();
     }
   }
@@ -413,6 +457,7 @@ void NetworkBattleScene::Init()
 
 void NetworkBattleScene::SendHandshakeSignal()
 {
+  Logger::Log(LogLevel::net, "Sending handshake signal");
   /**
   To begin the round, we need to supply the following information to our opponent:
     1. Our selected form
@@ -461,6 +506,12 @@ void NetworkBattleScene::SendHandshakeSignal()
 
 void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber)
 {
+  std::string inp = "Frame " + std::to_string(frameNumber) + ": Sending inputs: ";
+  for (int i = events.size() - 1; i >= 0; i--) {
+    inp = inp + events[i].name + " " + std::to_string(static_cast<int>(events[i].state));
+  }
+
+  Logger::Log(LogLevel::net, inp);
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals signalType{ NetPlaySignals::frame_data };
   buffer.append((char*)&signalType, sizeof(NetPlaySignals));
@@ -614,9 +665,12 @@ void NetworkBattleScene::RecieveFrameData(const Poco::Buffer<char>& buffer)
   size_t read{};
 
   unsigned int frameNumber{};
+
+  
   std::memcpy(&frameNumber, buffer.begin(), sizeof(unsigned int));
   read += sizeof(unsigned int);
 
+  Logger::Log(LogLevel::net, "Received remote inputs for " + std::to_string(frameNumber));
   maxRemoteFrameNumber = frames(frameNumber);
 
   int hp{};

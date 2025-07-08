@@ -22,7 +22,8 @@ namespace LogLevel {
   const uint8_t debug = 0x02;
   const uint8_t warning = 0x04;
   const uint8_t critical = 0x08;
-  const uint8_t all = info | warning | critical | debug;
+  const uint8_t net = 0x10;
+  const uint8_t all = info | warning | critical | debug | net;
 };
 
 /*! \brief Thread safe logging utility logs directly to a file */
@@ -155,6 +156,10 @@ private:
 
     if (level == LogLevel::debug) {
       return "[DEBUG] ";
+    }
+
+    if (level == LogLevel::net) {
+      return "[NET] ";
     }
 
     // anything else

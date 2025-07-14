@@ -164,6 +164,7 @@ public:
   static char* LocalPartition;
   static char* RemotePartition;
   static char* ServerPartition;
+  static char* Version;
 
   ConfigSettings& ConfigSettings();
   GameSession& Session();

@@ -108,6 +108,8 @@ void DownloadScene::SendHandshake()
   mySeed = (unsigned int)time(0);
   writer.Write<uint32_t>(buffer, mySeed);
 
+  writer.WriteTerminatedString(buffer, Game::Version);
+
   uint64_t id = packetProcessor->SendPacket(Reliability::ReliableOrdered, buffer).second;
   packetProcessor->UpdateHandshakeID(id);
 
@@ -431,8 +433,18 @@ void DownloadScene::RecieveTradeBlockPackageData(const Poco::Buffer<char>& buffe
 void DownloadScene::RecieveHandshake(const Poco::Buffer<char>& buffer)
 {
   BufferReader reader;
+ 
   unsigned int seed = reader.Read<uint32_t>(buffer);
   maxSeed = std::max(seed, mySeed);
+  std::string remoteVersion = reader.ReadTerminatedString(buffer);
+  if (remoteVersion.compare(Game::Version) == 0) {
+    Logger::Log(LogLevel::net, "Version matched");
+  }
+  else {
+    Logger::Log(LogLevel::critical, "Version mismatch: Local `" + std::string(Game::Version) + "` vs. Remote `" + remoteVersion + "`");
+    Abort();
+    return;
+  }
 
   // mark handshake as completed
   this->remoteHandshake = true;
@@ -769,7 +781,10 @@ void DownloadScene::onUpdate(double elapsed)
   Logger::Log(LogLevel::net, "DownloadScene tick after " + std::to_string(dif.count()) + " ms");
   if (!(packetProcessor->IsHandshakeAck() && remoteHandshake) && !aborting) return;
 
-  if (!hasTradedData) {
+  // Don't trade data until handshake has arrived.
+  // Handshake is ignored and connection aborted on version mismatch, so this
+  // will keep package data from trading even though we're going to abort.
+  if (!hasTradedData && remoteHandshake) {
     hasTradedData = true;
 
     this->TradeBlockPackageData(playerBlockPackageList);

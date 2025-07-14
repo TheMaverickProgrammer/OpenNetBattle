@@ -160,5 +160,5 @@ bool Netplay::PacketProcessor::TimedOut() {
     Logger::Log(LogLevel::net, "Would have timed out (" + std::to_string(dif) + " ms)");
   }
 
-  return timedOut = dif > MAX_TIMEOUT_SECONDS;
+  return timedOut = dif > MAX_TIMEOUT_SECONDS_2;
 }

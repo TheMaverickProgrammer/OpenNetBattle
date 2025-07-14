@@ -47,6 +47,16 @@ void VirtualInputState::Process()
   }
 
   queuedState.clear();
+
+
+
+  std::string inp = "After processing: ";
+  for (auto& [name, value] : state) {
+    inp = inp + name + " " + std::to_string(static_cast<int>(value)) + " ";
+  }
+
+  Logger::Log(LogLevel::net, inp);
+
 }
 
 const std::unordered_map<std::string, InputState> VirtualInputState::ToHash() const

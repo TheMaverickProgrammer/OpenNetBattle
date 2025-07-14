@@ -674,6 +674,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 
   IncrementFrame();
+  Logger::Log(LogLevel::net, "Logging frame " + std::to_string(frameNumber.count()));
+
 
   camera.Update((float)elapsed);
 
@@ -1392,11 +1394,11 @@ void BattleSceneBase::ProcessNewestComponents()
 
 void BattleSceneBase::FlushLocalPlayerInputQueue()
 {
+  Logger::Log(LogLevel::net, "Flushed queue");
   queuedLocalEvents.clear();
 }
 
-std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned int lag)
-{
+std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned int lag, bool gatherInput) {
   std::vector<InputEvent> outEvents;
 
   if (!localPlayer) return outEvents;
@@ -1406,19 +1408,31 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
     item.wait--;
   }
 
-  // For all new input events, set the wait time based on the network latency and append
-  const auto events_this_frame = Input().StateThisFrame();
+  
+  if (gatherInput) {
+    Logger::Log(LogLevel::net, "Gathering inputs this frame");
+    // For all new input events, set the wait time based on the network latency and append
+    const auto events_this_frame = Input().StateThisFrame();
 
-  for (auto& [name, state] : events_this_frame) {
-    InputEvent copy;
-    copy.name = name;
-    copy.state = state;
+    for (auto& [name, state] : events_this_frame) {
+     // if (state != InputState::pressed && state != InputState::held) {
+        // let VirtualInputState resolve release
+     //   continue;
+     // }
 
-    outEvents.push_back(copy);
+      InputEvent copy = InputEvent{ name, state };
+//      copy.name = name;
+ //     copy.state = InputState::pressed; // VirtualInputState will handle this
 
-    // add delay for network
-    copy.wait = lag;
-    queuedLocalEvents.push_back(copy);
+      outEvents.push_back(copy);
+
+      // add delay for network
+      copy.wait = lag;
+      queuedLocalEvents.push_back(copy);
+    }
+  }
+  else {
+    Logger::Log(LogLevel::net, "Not gathering inputs this frame");
   }
 
   // Drop inputs that are already processed at the end of the last frame
@@ -1432,6 +1446,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
     iter++;
   }
 
+ // localPlayer->InputState().Process();
   return outEvents;
 }
 

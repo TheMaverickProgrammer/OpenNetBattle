@@ -87,6 +87,7 @@ void InputManager::Update()
   queuedLastKey = sf::Keyboard::Key::Unknown;
   queuedLastButton = static_cast<Gamepad>(-1);
 
+  Logger::Log(LogLevel::net, "InputManager is processing input");
   inputState.Process();
 
   if (queuedTextEvent.has_value()) {
@@ -517,6 +518,7 @@ ConfigSettings& InputManager::GetConfigSettings()
 
 void InputManager::FlushAllInputEvents()
 {
+  Logger::Log(LogLevel::net, "InputManager is flushing all events");
   inputState.Flush();
 
   queuedSystemPasteEvent = queuedSystemCopyEvent = systemCopyEvent = systemPasteEvent = false;

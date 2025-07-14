@@ -122,10 +122,14 @@ void CharacterTransformBattleState::SkipBackdrop()
 }
 
 bool CharacterTransformBattleState::IsFinished() {
+  if (state::fadeout == currState && FadeOutBackdrop()) {
+    Logger::Log(LogLevel::net, "Transformation has finished");
+  }
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
 void CharacterTransformBattleState::onStart(const BattleSceneState*) {
+  Logger::Log(LogLevel::net, "Transformation has started");
   if (skipBackdrop) {
     currState = state::animate;
   }
@@ -137,6 +141,7 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
+  Logger::Log(LogLevel::net, "Transform state update");
   while (shineAnimations.size() < GetScene().GetAllPlayers().size()) {
     Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();

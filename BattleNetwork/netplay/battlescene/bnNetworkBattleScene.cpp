@@ -98,6 +98,27 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
 
   // We need to respond to new events later, create a resuable pointer to these states
   auto* connectSyncStatePtr = &connectSyncState.Unwrap();
+
+  /*
+    Hack? We aren't desynced on battle start because inputs aren't sent until 
+    battle is starting. Entering a different time might not actually be a 
+    problem.
+
+    Attempt to fix issue where battle could start and never have sync signals 
+    properly handled. Could be because one instance has entered battle and tried to 
+    send the sync signal, but the other instance was not in battle yet (running 
+    behind) and never got it. To cover for this, consider syncs as already 
+    reached.
+
+    By not making sure the opponent has actually started battle, it's possible we 
+    softlock by exiting card slect before the opponent's game has entered the battlescene,
+    unless packets will get resent.
+
+    If inputs are read during card select in the future (e.g. to sync the frames 
+    that custom buttons are pressed), this may desync.
+  */ 
+  connectSyncStatePtr->MarkRemoteSyncRequested();
+  connectSyncStatePtr->MarkSyncRequested();
   auto* cardSyncStatePtr = &cardSyncState.Unwrap();
   auto* comboSyncStatePtr = &comboSyncState.Unwrap();
   syncStates = { connectSyncStatePtr, cardSyncStatePtr, comboSyncStatePtr };

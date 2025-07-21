@@ -47,10 +47,13 @@ bool NetworkSyncBattleState::IsReady() const {
 }
 
 void NetworkSyncBattleState::MarkSyncRequested() {
+  Logger::Log(LogLevel::net, "Requested sync");
   requestedSync = true;
 }
 
 void NetworkSyncBattleState::MarkRemoteSyncRequested() {
+  Logger::Log(LogLevel::net, "Remote requested sync");
+
   remoteRequestedSync = true;
 }
 
@@ -63,10 +66,10 @@ bool NetworkSyncBattleState::SetSyncFrame(frame_time_t frame) {
     return false;
   }
 
-  if (frame.count() < 10) {
+  //if (frame.count() < 10) {
     // lockstep doesn't start until frame ~6, shoot for frame 10 for safety
-    frame = frames(10);
-  }
+ //   frame = frames(10);
+ // }
 
   syncFrame = frame;
   return true;

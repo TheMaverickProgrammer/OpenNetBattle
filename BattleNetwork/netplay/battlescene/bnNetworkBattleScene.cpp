@@ -111,8 +111,9 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, NetworkBa
     reached.
 
     By not making sure the opponent has actually started battle, it's possible we 
-    softlock by exiting card slect before the opponent's game has entered the battlescene,
-    unless packets will get resent.
+    softlock by exiting card select before the opponent's game has entered the battlescene,
+    unless packets will get resent. It appears that both games will hit lockstep by 
+    frame 5, though, so this doesn't seem likely.
 
     If inputs are read during card select in the future (e.g. to sync the frames 
     that custom buttons are pressed), this may desync.
@@ -273,7 +274,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
     const BattleSceneState* currentState = GetCurrentState();
     auto queueInput = currentState == startStatePtr || combatPtr->IsStateCombat(currentState);
-    Logger::Log(LogLevel::net, "Start state? " + std::to_string(currentState == startStatePtr));
     std::vector<InputEvent> events = ProcessLocalPlayerInputQueue(5, queueInput);
 
     SendFrameData(events, (FrameNumber() + frames(5)).count());

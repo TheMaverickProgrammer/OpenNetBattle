@@ -40,7 +40,7 @@
 char* Game::LocalPartition = "";
 char* Game::RemotePartition = "pvp";
 char* Game::ServerPartition = "server";
-char* Game::Version = "2.0a NetFix Beta 2";
+char* Game::Version = "2.0a NetFix Beta 4";
 
 Game::Game(DrawWindow& window) :
   window(window), 

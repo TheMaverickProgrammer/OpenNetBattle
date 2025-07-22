@@ -85,10 +85,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     if (shineAnimations[count].GetAnimationString() != "SHINE") {
       shineAnimations[count] << "SHINE";
-
       if (index == -1) {
         // If decross, turn white immediately
-        shineAnimations[count] << Animator::On(1, [=] {      
+        shineAnimations[count] << Animator::On(1, [=] {
           player->SetShader(Shaders().GetShader(ShaderType::WHITE));
         }) << Animator::On(10, onTransform);
       }
@@ -122,18 +121,16 @@ void CharacterTransformBattleState::SkipBackdrop()
 }
 
 bool CharacterTransformBattleState::IsFinished() {
-  if (state::fadeout == currState && FadeOutBackdrop()) {
-    Logger::Log(LogLevel::net, "Transformation has finished");
-  }
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
 void CharacterTransformBattleState::onStart(const BattleSceneState*) {
-  Logger::Log(LogLevel::net, "Transformation has started");
   if (skipBackdrop) {
+    Logger::Log(LogLevel::net, "Animate");
     currState = state::animate;
   }
   else {
+    Logger::Log(LogLevel::net, "FadeIn");
     currState = state::fadein;
   }
 
@@ -141,7 +138,6 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
-  Logger::Log(LogLevel::net, "Transform state update");
   while (shineAnimations.size() < GetScene().GetAllPlayers().size()) {
     Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();

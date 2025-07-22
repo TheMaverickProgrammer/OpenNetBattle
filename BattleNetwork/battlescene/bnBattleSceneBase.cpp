@@ -666,7 +666,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   // State update
   if (!current) return;
-
+  
   if (skipFrame) {
     Logger::Log(LogLevel::net, "Base is skipping and will not increment");
     skipFrame = false;
@@ -1205,6 +1205,8 @@ const bool BattleSceneBase::FadeInBackdrop(double amount, double to, bool affect
   backdropFadeIncrements = amount;
   backdropMaxOpacity = to;
   backdropAffectBG = affectBackground;
+
+  Logger::Log(LogLevel::net, "Setting fade in to increment " + std::to_string(amount) + " to " + std::to_string(to) + ". Done? " + std::to_string(backdropOpacity >= to));
 
   return (backdropOpacity >= to);
 }

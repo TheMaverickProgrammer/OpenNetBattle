@@ -79,6 +79,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     bool* completePtr = &complete;
     auto onFinish = [=]
     () {
+      Logger::Log(LogLevel::net, "Finished shine");
       player->RefreshShader();
       *completePtr = true; // set tracking data `complete` to true
     };
@@ -104,8 +105,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     } // else, it is already "SHINE" so wait the animation out...
 
-    // update for draw call later
+    // Update animation
     frameElapsed = elapsed;
+    shineAnimations[count].Update(frameElapsed, shine);
 
     count++;
   }
@@ -121,10 +123,13 @@ void CharacterTransformBattleState::SkipBackdrop()
 }
 
 bool CharacterTransformBattleState::IsFinished() {
-  return state::fadeout == currState && FadeOutBackdrop();
+  bool a = state::fadeout == currState && FadeOutBackdrop();
+  Logger::Log(LogLevel::net, "Check form finished " + std::to_string(a));
+  return a;
 }
 
 void CharacterTransformBattleState::onStart(const BattleSceneState*) {
+  Logger::Log(LogLevel::net, "Transformation has started");
   if (skipBackdrop) {
     Logger::Log(LogLevel::net, "Animate");
     currState = state::animate;
@@ -134,11 +139,15 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
     currState = state::fadein;
   }
 
+  counter = 0;
   skipBackdrop = false; // reset this flag
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
+  counter++;
+  Logger::Log(LogLevel::net, "Transform state update " + std::to_string(elapsed) + ", " + std::to_string(counter));
   while (shineAnimations.size() < GetScene().GetAllPlayers().size()) {
+    Logger::Log(LogLevel::net, "Load shine");
     Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();
     shineAnimations.push_back(animation);
@@ -146,11 +155,14 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
   switch (currState) {
   case state::fadein:
+    Logger::Log(LogLevel::net, "Update with fadein");
     if (FadeInBackdrop()) {
+      Logger::Log(LogLevel::net, "Going to animate state");
       currState = state::animate;
     }
     break;
   case state::animate:
+    Logger::Log(LogLevel::net, "Update with animate");
     UpdateAnimation(elapsed);
     break;
   }
@@ -158,7 +170,9 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
 void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 {
+  Logger::Log(LogLevel::net, "onEnd called");
   for (auto&& anims : shineAnimations) {
+    Logger::Log(LogLevel::net, "End shine state");
     anims.SetAnimation(""); // ends the shine anim
   }
 
@@ -170,11 +184,9 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
   BattleSceneBase& scene = GetScene();
 
   size_t count = 0;
+
   for (std::shared_ptr<Player>& player : scene.GetAllPlayers()) {
     auto& [index, complete] = scene.GetPlayerFormData(player);
-
-    Animation& anim = shineAnimations[count];
-    anim.Update(static_cast<float>(frameElapsed), shine);
 
     if (index != -1 && !complete) {
       // re-use the shine graphic for all animating player-types 

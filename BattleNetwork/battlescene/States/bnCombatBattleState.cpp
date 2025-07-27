@@ -108,9 +108,6 @@ void CombatBattleState::onStart(const BattleSceneState* last)
     scene.GetField()->ToggleTimeFreeze(false);
 
     hasTimeFreeze = false;
-
-    // reset bar and related flags
-    scene.SetCustomBarProgress(0);
   }
 }
 
@@ -122,9 +119,6 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
   // then reset our combat and custom progress values
   if (this->HandleNextRoundSetup(next)) {
     scene.StopBattleStepTimer();
-
-    // reset bar 
-    scene.SetCustomBarProgress(0);
   }
 
   scene.HighlightTiles(false);

@@ -250,8 +250,10 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props) {
         // Local player needs to update their form selections in the card gui
         cardStatePtr->ResetSelectedForm();
         localPlayerDecross = true;
+        Logger::Log(LogLevel::net, "Marked local player for decross");
       }
       else {
+        Logger::Log(LogLevel::net, "Marked remote player for decross");
         remotePlayerDecross = true;
       }
     }
@@ -481,6 +483,7 @@ void NetworkBattleScene::SendHandshakeSignal(uint8_t syncIndex) {
   */
 
   int form = GetPlayerFormData(GetLocalPlayer()).selectedForm;
+  Logger::Log(LogLevel::net, "Form to send is " + std::to_string(form));
   unsigned thisFrame = FrameNumber().count();
 
   if (thisFrame > 0) {
@@ -605,7 +608,12 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
   // and kick off the battle sequence
 
   //remoteState.remoteFormSelect = remoteForm;
-  remoteState.remoteChangeForm = remoteState.remoteFormSelect != remoteForm;
+
+  // Do not trigger a change if remoteForm is -1 (no form).
+  // This avoids a desync where a decross in the previous turn and no form selected 
+  // by remote in the next turn will see a changed form (X to -1).
+  remoteState.remoteChangeForm = remoteForm != -1 && remoteState.remoteFormSelect != remoteForm;
+  Logger::Log(LogLevel::net, "Will remote form change? " + std::to_string(remoteState.remoteChangeForm));
   remoteState.remoteFormSelect = remoteForm;
 
   TrackedFormData& formData = GetPlayerFormData(remotePlayer);
@@ -842,11 +850,14 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent() {
 
 std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect) {
   auto lambda = [&form, &cardSelect, this]() mutable {
+    Logger::Log(LogLevel::net, "Check for form change end");
     bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
     bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
     bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
 
     if (triggered) {
+      Logger::Log(LogLevel::net, "Really ended");
+
       remotePlayerDecross = false; // reset our decross flag
       localPlayerDecross = false;
 

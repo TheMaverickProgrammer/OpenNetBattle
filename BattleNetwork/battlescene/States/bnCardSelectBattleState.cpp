@@ -63,9 +63,13 @@ std::shared_ptr<std::vector<Battle::Card>> CardSelectBattleState::GetCardPtrList
 
 void CardSelectBattleState::onStart(const BattleSceneState*)
 {
-  CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
+  BattleSceneBase& scene = GetScene();
+  CardSelectionCust& cardCust = scene.GetCardSelectWidget();
 
   Audio().Play(AudioType::CUSTOM_SCREEN_OPEN);
+
+  // Reset bar and related flags
+  scene.SetCustomBarProgress(0.0);
 
   // Load the next cards
   cardCust.ResetState();

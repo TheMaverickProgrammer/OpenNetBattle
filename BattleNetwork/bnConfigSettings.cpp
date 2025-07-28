@@ -25,7 +25,10 @@ const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
 
 const int ConfigSettings::GetShaderLevel() const
 {
-  return shaderLevel;
+  // Turning shaders off causes the engine to crash on boot. 
+  // Don't let them be turned off for now.
+  return 1;
+  //return shaderLevel;
 }
 
 const bool ConfigSettings::TestKeyboard() const {

@@ -240,6 +240,10 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   sfxItem->SetValueRange(1, 4);
   primaryMenu.push_back(std::move(sfxItem));
 
+  /*
+    Turning shaders off causes the engine to crash on boot. 
+    Don't let them be turned off for now.
+   
   // Shaders
   shaderLevel = configSettings.GetShaderLevel();
   auto shadersItem = std::make_shared<NumberItem>(
@@ -250,6 +254,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
   shadersItem->SetValueRange(0, 1);
   //shadersItem->SetColor(DISABLED_TEXT_COLOR);
   primaryMenu.push_back(shadersItem);
+  */
 
   // Keyboard
   primaryMenu.push_back(std::make_shared<TextItem>(

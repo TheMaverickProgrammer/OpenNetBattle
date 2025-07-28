@@ -175,7 +175,7 @@ private:
   template<typename BaseType, size_t sz>
   class ISortOptions {
   protected:
-    using filter = std::function<bool(BaseType& first, BaseType& second)>;
+    using filter = std::function<bool(const BaseType& first, const BaseType& second)>;
     using base_type_t = BaseType;
     std::array<filter, sz> filters;
     bool invert{};
@@ -197,17 +197,17 @@ private:
     void SelectOption(size_t index) override {
       if (index >= sz) return;
 
-      invert = !invert;
-      if (index != lastIndex) {
-        invert = false;
-        lastIndex = index;
+      this->invert = !this->invert;
+      if (index != this->lastIndex) {
+        this->invert = false;
+        this->lastIndex = index;
       }
 
-      if (invert) {
-        std::sort(container.begin(), container.end(), filters.at(index));
+      if (this->invert) {
+        std::stable_sort(this->container.begin(), this->container.end(), this->filters.at(index));
       }
       else {
-        std::sort(container.rbegin(), container.rend(), filters.at(index));
+        std::stable_sort(this->container.rbegin(), this->container.rend(), this->filters.at(index));
       }
 
       // push empty slots at the bottom
@@ -215,7 +215,7 @@ private:
         return !el.IsEmpty();
       };
 
-      std::partition(container.begin(), container.end(), pivot);
+      std::partition(this->container.begin(), this->container.end(), pivot);
     }
   };
 

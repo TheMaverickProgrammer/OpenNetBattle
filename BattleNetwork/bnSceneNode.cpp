@@ -1,4 +1,5 @@
 #include "bnSceneNode.h"
+#include <cmath>
 
 SceneNode::SceneNode() :
 show(true), layer(0), parent(nullptr), childNodes() {

@@ -79,7 +79,6 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     bool* completePtr = &complete;
     auto onFinish = [=]
     () {
-      Logger::Log(LogLevel::net, "Finished shine");
       player->RefreshShader();
       *completePtr = true; // set tracking data `complete` to true
     };
@@ -123,31 +122,23 @@ void CharacterTransformBattleState::SkipBackdrop()
 }
 
 bool CharacterTransformBattleState::IsFinished() {
-  bool a = state::fadeout == currState && FadeOutBackdrop();
-  Logger::Log(LogLevel::net, "Check form finished " + std::to_string(a));
-  return a;
+  return state::fadeout == currState && FadeOutBackdrop();
 }
 
 void CharacterTransformBattleState::onStart(const BattleSceneState*) {
-  Logger::Log(LogLevel::net, "Transformation has started");
+  Logger::Log(LogLevel::info, "CharacterTransformBattleState::onStart");
   if (skipBackdrop) {
-    Logger::Log(LogLevel::net, "Animate");
     currState = state::animate;
   }
   else {
-    Logger::Log(LogLevel::net, "FadeIn");
     currState = state::fadein;
   }
 
-  counter = 0;
   skipBackdrop = false; // reset this flag
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
-  counter++;
-  Logger::Log(LogLevel::net, "Transform state update " + std::to_string(elapsed) + ", " + std::to_string(counter));
   while (shineAnimations.size() < GetScene().GetAllPlayers().size()) {
-    Logger::Log(LogLevel::net, "Load shine");
     Animation animation = Animation("resources/scenes/battle/boss_shine.animation");
     animation.Load();
     shineAnimations.push_back(animation);
@@ -155,14 +146,11 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
   switch (currState) {
   case state::fadein:
-    Logger::Log(LogLevel::net, "Update with fadein");
     if (FadeInBackdrop()) {
-      Logger::Log(LogLevel::net, "Going to animate state");
       currState = state::animate;
     }
     break;
   case state::animate:
-    Logger::Log(LogLevel::net, "Update with animate");
     UpdateAnimation(elapsed);
     break;
   }
@@ -170,9 +158,8 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
 void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 {
-  Logger::Log(LogLevel::net, "onEnd called");
+  Logger::Log(LogLevel::info, "CharacterTransformBattleState::onEnd");
   for (auto&& anims : shineAnimations) {
-    Logger::Log(LogLevel::net, "End shine state");
     anims.SetAnimation(""); // ends the shine anim
   }
 

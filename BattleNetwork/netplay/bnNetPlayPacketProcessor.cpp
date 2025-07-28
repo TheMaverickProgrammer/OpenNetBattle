@@ -31,16 +31,9 @@ void Netplay::PacketProcessor::OnPacket(char* buffer, int read, const Poco::Net:
   }
 
   auto now = std::chrono::steady_clock::now();
-  auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch() - lastPacketTime.time_since_epoch());
-
+  
   lastPacketTime = now;
 
-  auto lastPacketTime = dif.count();
-
-  if (lastPacketTime > 1) {
-  //  Logger::Log(LogLevel::net, "Received packet (" + std::to_string(lastPacketTime) + " ms since last packet)");
-  }
-  
   errorCount = 0;
 }
 
@@ -149,16 +142,9 @@ bool Netplay::PacketProcessor::TimedOut() {
     std::chrono::steady_clock::now() - lastPacketTime
     );
 
-  constexpr int64_t MAX_TIMEOUT_SECONDS = 5;
-  constexpr int64_t MAX_TIMEOUT_SECONDS_2 = 20;
-
+  constexpr int64_t MAX_TIMEOUT_SECONDS = 20;
 
   auto dif = timeDifference.count();
-  bool timedOut = dif > MAX_TIMEOUT_SECONDS;
 
-  if (timedOut) {
-    Logger::Log(LogLevel::net, "Would have timed out (" + std::to_string(dif) + " ms)");
-  }
-
-  return timedOut = dif > MAX_TIMEOUT_SECONDS_2;
+  return dif > MAX_TIMEOUT_SECONDS;
 }

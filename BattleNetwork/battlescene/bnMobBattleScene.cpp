@@ -113,8 +113,6 @@ MobBattleScene::MobBattleScene(ActivityController& controller, MobBattleProperti
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
   combat->subcombatStates.push_back(&forms.Unwrap());
-  //combat->subcombatStates.push_back(&battlestart.Unwrap());
-
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(intro);

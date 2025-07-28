@@ -214,6 +214,24 @@ void FreedomMissionMobScene::onLeave()
   BattleSceneBase::onLeave();
 }
 
+void FreedomMissionMobScene::onEnd() {
+  if (!IsPlayerDeleted()) {
+    BattleResults& results = BattleResultsObj();
+    std::shared_ptr<Player> player = GetLocalPlayer();
+    results.battleLength = sf::seconds(GetElapsedBattleFrames().count() / 60.f);
+    results.moveCount = player->GetMoveCount();
+    results.hitCount = playerHitCount;
+    results.turns = GetTurnCount();
+    results.counterCount = GetCounterCount();
+    results.doubleDelete = DoubleDelete();
+    results.tripleDelete = TripleDelete();
+    results.finalEmotion = player->GetEmotion();
+
+    results.CalculateScore(results, props.mobs.at(0));
+  }
+    BattleSceneBase::onEnd();
+}
+
 void FreedomMissionMobScene::IncrementTurnCount()
 {
   BattleSceneBase::IncrementTurnCount();

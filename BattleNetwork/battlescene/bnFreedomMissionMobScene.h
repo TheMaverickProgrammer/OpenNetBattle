@@ -56,6 +56,8 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   void onResume() override;
   void onLeave() override;
 
+  void onEnd() override;
+
   // 
   // override
   //

@@ -94,6 +94,11 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
 
   state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
 
+  // vulnerability patching, why is this included with lib::base :(
+  state["load"] = nullptr;
+  state["loadfile"] = nullptr;
+  state["dofile"] = nullptr;
+
   state["math"]["randomseed"] = []{
     Logger::Log(LogLevel::warning, "math.random uses the engine's random number generator and does not need to be seeded");
   };

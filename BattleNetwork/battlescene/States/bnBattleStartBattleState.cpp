@@ -14,6 +14,7 @@ BattleStartBattleState::BattleStartBattleState() : BattleTextIntroState()
 
 void BattleStartBattleState::onStart(const BattleSceneState* _)
 {
+  Logger::Log(LogLevel::net, "Start battle start state");
   BattleTextIntroState::onStart(_);
 
   GetScene().IncrementTurnCount();

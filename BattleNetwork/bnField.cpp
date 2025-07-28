@@ -329,6 +329,8 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 }
 
 void Field::Update(double _elapsed) {
+  Logger::Log(LogLevel::net, "Field Update");
+
   // This is a state flag that decides if entities added this update tick will be
   // put into a pending queue bucket or added directly onto the field
   isUpdating = true;
@@ -585,6 +587,10 @@ void Field::UpdateEntityOnce(Entity& entity, const double elapsed)
   if (elapsed > 0.0) {
     // This is a refresh frame, not an update frame
     // Do not process inputs on refresh
+    if (entity.GetTeam() == Team::red) {
+      Logger::Log(LogLevel::net, "Field is processing input");
+    }
+    
     entity.InputState().Process();
   }
 

@@ -1,61 +1,90 @@
 #include "bnNetworkSyncBattleState.h"
 #include "../bnNetworkBattleScene.h"
 #include "../../battlescene/States/bnCardSelectBattleState.h"
-#include "../../../bnPlayerControlledState.h"
-#include "../../../bnPlayer.h"
 
-NetworkSyncBattleState::NetworkSyncBattleState(std::shared_ptr<Player>& remotePlayer, NetworkBattleScene* scene) :
-  remotePlayer(remotePlayer),
+NetworkSyncBattleState::NetworkSyncBattleState(NetworkBattleScene* scene) :
   scene(scene),
-  cardSelectState(scene->cardStatePtr),
-  NetworkBattleSceneState()
-{
+  NetworkBattleSceneState() {
 }
 
-NetworkSyncBattleState::~NetworkSyncBattleState()
-{
+NetworkSyncBattleState::~NetworkSyncBattleState() {
 }
 
-void NetworkSyncBattleState::Synchronize()
-{
-  synchronized = true;
-}
-
-const bool NetworkSyncBattleState::IsSynchronized() const {
-  return synchronized;
-}
-
-void NetworkSyncBattleState::onStart(const BattleSceneState* last)
-{
-  if (cardSelectState && last == cardSelectState) {
-    // We have returned from the card select state to force a handshake and wait 
-    scene->SendHandshakeSignal();
+void NetworkSyncBattleState::onStart(const BattleSceneState* next) {
+  Logger::Log(LogLevel::net, "Starting sync state");
+  if (onStartCallback) {
+    onStartCallback(next);
   }
 }
 
-void NetworkSyncBattleState::onEnd(const BattleSceneState* next)
-{
-  if (firstConnection) {
-    GetScene().GetLocalPlayer()->ChangeState<PlayerControlledState>();
-    
-    if (remotePlayer) {
-      remotePlayer->ChangeState<PlayerControlledState>();
-    }
+void NetworkSyncBattleState::onEnd(const BattleSceneState* next) {
+  Logger::Logf(LogLevel::debug, "Synced on frame: %d", scene->FrameNumber().count());
 
-    firstConnection = false;
+  if (onEndCallback) {
+    onEndCallback(next);
   }
 
-  synchronized = false;
-  scene->remoteState.remoteHandshake = false;
+  requestedSync = false;
+  remoteRequestedSync = false;
 }
 
-void NetworkSyncBattleState::onUpdate(double elapsed)
-{
+void NetworkSyncBattleState::SetStartCallback(std::function<void(const BattleSceneState*)> callback) {
+  onStartCallback = callback;
+}
+
+void NetworkSyncBattleState::SetEndCallback(std::function<void(const BattleSceneState*)> callback) {
+  onEndCallback = callback;
+}
+
+bool NetworkSyncBattleState::IsReady() const {
+  if (requestedSync && remoteRequestedSync && scene->FrameNumber() == syncFrame) {
+    Logger::Log(LogLevel::net, "Sync state says we're ready. Move to next.");
+  }
+  else {
+    Logger::Log(LogLevel::net, "Not synced yet.");
+  }
+  
+  return requestedSync && remoteRequestedSync && scene->FrameNumber() == syncFrame;
+}
+
+void NetworkSyncBattleState::MarkSyncRequested() {
+  Logger::Log(LogLevel::net, "Requested sync");
+  requestedSync = true;
+}
+
+void NetworkSyncBattleState::MarkRemoteSyncRequested() {
+  Logger::Log(LogLevel::net, "Remote requested sync");
+
+  remoteRequestedSync = true;
+}
+
+frame_time_t NetworkSyncBattleState::GetSyncFrame() const {
+  return syncFrame;
+}
+
+bool NetworkSyncBattleState::SetSyncFrame(frame_time_t frame) {
+  Logger::Log(LogLevel::net, "Attempting to set sync frame");
+  if (frame.count() < syncFrame.count()) {
+    Logger::Log(LogLevel::net, "Failed to set sync frame. ");
+    return false;
+  }
+
+  //if (frame.count() < 10) {
+    // lockstep doesn't start until frame ~6, shoot for frame 10 for safety
+ //   frame = frames(10);
+ // }
+  Logger::Log(LogLevel::net, "Set to " + std::to_string(frame.count()));
+
+  syncFrame = frame;
+  return true;
+}
+
+void NetworkSyncBattleState::onUpdate(double elapsed) {
+  Logger::Log(LogLevel::net, "Sync update");
   flicker += from_seconds(elapsed);
 }
 
-void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface)
-{
+void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface) {
   if (flicker.count() % 60 > 30) {
     Text label = Text("Waiting...", Font::Style::thick);
     label.setScale(2.0f, 2.0f);
@@ -70,24 +99,4 @@ void NetworkSyncBattleState::onDraw(sf::RenderTexture& surface)
     label.setPosition(position);
     surface.draw(label);
   }
-}
-
-bool NetworkSyncBattleState::IsRemoteConnected()
-{
-  return firstConnection && scene->remoteState.remoteConnected;
-}
-
-bool NetworkSyncBattleState::SelectedNewChips()
-{
-  return cardSelectState && cardSelectState->SelectedNewChips() && synchronized;
-}
-
-bool NetworkSyncBattleState::NoConditions()
-{
-  return cardSelectState && cardSelectState->OKIsPressed() && synchronized;
-}
-
-bool NetworkSyncBattleState::HasForm()
-{
-  return cardSelectState && (cardSelectState->HasForm() || scene->remoteState.remoteChangeForm) && synchronized;
 }

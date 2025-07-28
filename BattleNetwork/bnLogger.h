@@ -6,6 +6,7 @@
 #include <mutex>
 #include <fstream>
 #include "bnCurrentTime.h"
+#include <filesystem>
 
 #if defined(__ANDROID__)
 #include <android/log.h>
@@ -22,7 +23,8 @@ namespace LogLevel {
   const uint8_t debug = 0x02;
   const uint8_t warning = 0x04;
   const uint8_t critical = 0x08;
-  const uint8_t all = info | warning | critical | debug;
+  const uint8_t net = 0x10;
+  const uint8_t all = info | warning | critical | debug | net;
 };
 
 /*! \brief Thread safe logging utility logs directly to a file */
@@ -57,6 +59,33 @@ public:
     logs.pop();
 
     return (logs.size()+1 > 0);
+  }
+
+  /**
+    TODO: Proper comment
+  
+    Closes the current file and creates a new one, changing the 
+    file pointer. Appends a timestamp to the new file's name.
+  */
+  static const void StartNewLog() {
+    std::scoped_lock<std::mutex> lock(m);
+
+    std::filesystem::path dir = "logs";
+    std::filesystem::create_directory(dir);
+
+    std::string logName = "logs/log.txt";
+    int num = 0;
+
+    while (std::filesystem::exists(logName)) {
+      num = num + 1;
+      logName = "logs/log_" + std::to_string(num) + ".txt";
+    }
+
+    file.close();
+    
+    file.open(logName, std::ios::app);
+    file << "==============================" << endl;
+    file << "StartTime " << CurrentTime::AsString() << endl;
   }
 
   /**
@@ -155,6 +184,10 @@ private:
 
     if (level == LogLevel::debug) {
       return "[DEBUG] ";
+    }
+
+    if (level == LogLevel::net) {
+      return "[NET] ";
     }
 
     // anything else

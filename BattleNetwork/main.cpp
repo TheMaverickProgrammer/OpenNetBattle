@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     }
 
     DrawWindow win;
-    win.Initialize("Open Net Battle v2.0a", DrawWindow::WindowMode::window);
+    win.Initialize("Open Net Battle v" + std::string(Game::Version), DrawWindow::WindowMode::window);
     Game game{ win };
 
     // Go the the title screen to kick off the rest of the app
@@ -138,6 +138,8 @@ void ParseErrorLevel(std::string in) {
   processSettings("warning", LogLevel::warning);
   processSettings("debug", LogLevel::debug);
   processSettings("info", LogLevel::info);
+  processSettings("net", LogLevel::net);
+
 
   if (settings["all"]) {
     level = LogLevel::all;

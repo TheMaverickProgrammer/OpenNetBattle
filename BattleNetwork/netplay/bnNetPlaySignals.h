@@ -17,6 +17,7 @@ enum class NetPlaySignals : uint32_t {
   //  PVP Battle Cmds  // 
   ///////////////////////
   handshake, // send round information along with hand and form selections
+  sync,
   frame_data,
 
   ///////////////////////

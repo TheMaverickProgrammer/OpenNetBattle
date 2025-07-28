@@ -37,6 +37,7 @@ void BattleTextIntroState::SetIntroText(const std::string& str)
 
 void BattleTextIntroState::onStart(const BattleSceneState*)
 {
+  Logger::Log(LogLevel::net, "Start battle text intro");
   timer.reset();
   timer.start();
 }

@@ -53,6 +53,7 @@ private:
   std::shared_ptr<sf::Texture> overlayTex;
   std::shared_ptr<sf::SoundBuffer> downloadItem, downloadComplete;
   std::shared_ptr<Netplay::PacketProcessor> packetProcessor;
+  std::chrono::steady_clock::time_point lastUpdate;
 
   void ResetRemotePartitions(); // prepare remote namespace for incoming mods
   CardPackageManager& RemoteCardPartition();

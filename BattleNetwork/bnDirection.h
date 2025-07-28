@@ -149,7 +149,7 @@ inline Direction Join(const Direction A, const Direction B) {
   // local-scope struct to make some vector math easy
   // lightweight on purpose
   struct vec_t {
-    char x{}, y{};
+    int x{}, y{};
 
     vec_t& operator+(const vec_t& other) {
       this->x = this->x + other.x;

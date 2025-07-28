@@ -11,8 +11,7 @@ namespace Overworld {
     infoText(Font::Style::thin),
     areaLabel(Font::Style::thin),
     areaLabelThick(Font::Style::thick),
-    time(Font::Style::thick)
-  {
+    time(Font::Style::thick) {
     // Load resources
     areaLabel.setPosition(127, 119);
     infoText = areaLabel;
@@ -93,8 +92,7 @@ namespace Overworld {
     selectInputCooldown = maxSelectInputCooldown;
   }
 
-  PersonalMenu::~PersonalMenu()
-  {
+  PersonalMenu::~PersonalMenu() {
   }
 
   using namespace swoosh;
@@ -120,8 +118,7 @@ namespace Overworld {
   - all the folder options have expanded
   - ease in animation is complete
   */
-  void PersonalMenu::QueueAnimTasks(const PersonalMenu::state& state)
-  {
+  void PersonalMenu::QueueAnimTasks(const PersonalMenu::state& state) {
     easeInTimer.clear();
 
     if (state == PersonalMenu::state::opening) {
@@ -199,7 +196,7 @@ namespace Overworld {
         for (auto&& opts : optionIcons) {
           opts->Reveal();
         }
-        });
+      });
 
       t8f.doTask([=](sf::Time elapsed) {
         for (size_t i = 0; i < options.size(); i++) {
@@ -207,7 +204,7 @@ namespace Overworld {
           options[i]->setPosition(36, 26 + (y * (i * 16)));
           optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
         }
-        }).withDuration(frames(12));
+      }).withDuration(frames(12));
     }
     else {
       t8f.doTask([=](sf::Time elapsed) {
@@ -253,10 +250,10 @@ namespace Overworld {
     easeInTimer
       .at(time_cast<sf::Time>(frames(14)))
       .doTask([=](sf::Time elapsed) {
-        infoBox->Reveal();
-        infoBoxAnim.SyncTime(from_seconds(elapsed.asSeconds()));
-        infoBoxAnim.Refresh(infoBox->getSprite());
-      }).withDuration(frames(4));
+      infoBox->Reveal();
+      infoBoxAnim.SyncTime(from_seconds(elapsed.asSeconds()));
+      infoBoxAnim.Refresh(infoBox->getSprite());
+    }).withDuration(frames(4));
 
     //
     // on frame 20 change state flag
@@ -266,12 +263,11 @@ namespace Overworld {
         .at(frames(20))
         .doTask([=](sf::Time elapsed) {
         currState = state::opened;
-          });
+      });
     }
   }
 
-  void PersonalMenu::CreateOptions()
-  {
+  void PersonalMenu::CreateOptions() {
     options.reserve(optionsList.size() * 2);
     optionIcons.reserve(optionsList.size() * 2);
 
@@ -299,8 +295,7 @@ namespace Overworld {
   }
 
 
-  void PersonalMenu::Update(double elapsed)
-  {
+  void PersonalMenu::Update(double elapsed) {
     frameTick += from_seconds(elapsed);
     if (frameTick.count() >= 60) {
       frameTick = frames(0);
@@ -370,7 +365,8 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveUp() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveUp();
+        Audio().Play(AudioType::CHIP_SELECT);
       }
     }
     else if (input.Has(InputEvents::pressed_ui_down) || input.Has(InputEvents::held_ui_down)) {
@@ -383,7 +379,8 @@ namespace Overworld {
           selectInputCooldown = maxSelectInputCooldown / 4.0;
         }
 
-        CursorMoveDown() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
+        CursorMoveDown();
+        Audio().Play(AudioType::CHIP_SELECT);
       }
     }
     else if (input.Has(InputEvents::pressed_confirm)) {
@@ -417,8 +414,7 @@ namespace Overworld {
   }
 
 
-  void PersonalMenu::draw(sf::RenderTarget& target, sf::RenderStates states) const
-  {
+  void PersonalMenu::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     if (IsHidden()) return;
 
     states.transform *= getTransform();
@@ -511,8 +507,7 @@ namespace Overworld {
     DrawTime(target);
   }
 
-  void PersonalMenu::SetPlayerDisplay(PlayerDisplay mode)
-  {
+  void PersonalMenu::SetPlayerDisplay(PlayerDisplay mode) {
     switch (mode) {
     case PlayerDisplay::PlayerHealth:
     {
@@ -520,7 +515,7 @@ namespace Overworld {
       icon->Hide();
     }
     break;
-    case PlayerDisplay::PlayerIcon: 
+    case PlayerDisplay::PlayerIcon:
     {
       healthUI.Hide();
       icon->Reveal();
@@ -529,8 +524,7 @@ namespace Overworld {
     }
   }
 
-  void PersonalMenu::DrawTime(sf::RenderTarget& target) const
-  {
+  void PersonalMenu::DrawTime(sf::RenderTarget& target) const {
     auto shadowColor = sf::Color(105, 105, 105);
     std::string format = (frameTick.count() < 30) ? "%OI:%OM %p" : "%OI %OM %p";
     std::string timeStr = CurrentTime::AsFormattedString(format);
@@ -561,8 +555,7 @@ namespace Overworld {
     target.draw(time);
   }
 
-  void PersonalMenu::SetArea(const std::string& name)
-  {
+  void PersonalMenu::SetArea(const std::string& name) {
     auto bounds = areaLabelThick.GetLocalBounds();
     areaName = name;
 
@@ -576,14 +569,12 @@ namespace Overworld {
     areaLabelThick.setPosition(240 - 1.f, 160 - 2.f);
   }
 
-  void PersonalMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)
-  {
+  void PersonalMenu::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture) {
     this->iconTexture = iconTexture;
     this->icon->setTexture(iconTexture, true);
   }
 
-  void PersonalMenu::ResetIconTexture()
-  {
+  void PersonalMenu::ResetIconTexture() {
     iconTexture.reset();
 
     optionAnim << "PET";
@@ -591,8 +582,7 @@ namespace Overworld {
     optionAnim.SetFrame(1, icon->getSprite());
   }
 
-  bool PersonalMenu::ExecuteSelection()
-  {
+  bool PersonalMenu::ExecuteSelection() {
     if (selectExit) {
       if (currState == state::opened) {
         Close();
@@ -612,8 +602,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PersonalMenu::SelectExit()
-  {
+  bool PersonalMenu::SelectExit() {
     if (!selectExit) {
       Audio().Play(AudioType::CHIP_SELECT);
 
@@ -634,8 +623,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PersonalMenu::SelectOptions()
-  {
+  bool PersonalMenu::SelectOptions() {
     if (selectExit) {
       selectExit = false;
       row = 0;
@@ -647,8 +635,7 @@ namespace Overworld {
     return false;
   }
 
-  bool PersonalMenu::CursorMoveUp()
-  {
+  bool PersonalMenu::CursorMoveUp() {
     if (!selectExit) {
       if (--row < 0) {
         row = static_cast<int>(optionsList.size() - 1);
@@ -657,24 +644,27 @@ namespace Overworld {
       return true;
     }
 
-    row = std::max(row, 0);
+    // else if exit is selected
+    selectExit = false;
 
     return false;
   }
 
-  bool PersonalMenu::CursorMoveDown()
-  {
+  bool PersonalMenu::CursorMoveDown() {
     if (!selectExit) {
       row = (row + 1u) % (int)optionsList.size();
 
       return true;
     }
 
+    // else if exit is selected
+
+    selectExit = false;
+
     return false;
   }
 
-  void PersonalMenu::Open()
-  {
+  void PersonalMenu::Open() {
     if (currState == state::closed) {
       Audio().Play(AudioType::CHIP_DESC);
       currState = state::opening;
@@ -684,8 +674,7 @@ namespace Overworld {
     }
   }
 
-  void PersonalMenu::Close()
-  {
+  void PersonalMenu::Close() {
     if (currState == state::opened) {
       currState = state::closing;
       QueueAnimTasks(currState);

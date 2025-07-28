@@ -1035,6 +1035,7 @@ namespace Battle {
           // We make sure to apply any tile bonuses at this stage
           if (GetState() == TileState::holy) {
             Hit::Properties props = attacker->GetHitboxProperties();
+            props.damage += 1; // rounds integer damage up -> `1 / 2 = 0`, but `(1 + 1) / 2 = 1`
             props.damage /= 2;
             attacker->SetHitboxProperties(props);
           }

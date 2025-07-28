@@ -135,6 +135,7 @@ void FreedomMissionMobScene::Init()
   }
   else {
     SpawnLocalPlayer(2, 2);
+    LoadBlueTeamMob(mob);
   }
 
   // Run block programs on the remote player now that they are spawned

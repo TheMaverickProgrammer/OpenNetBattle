@@ -668,14 +668,11 @@ void BattleSceneBase::onUpdate(double elapsed) {
   if (!current) return;
   
   if (skipFrame) {
-    Logger::Log(LogLevel::net, "Base is skipping and will not increment");
     skipFrame = false;
     return;
   }
 
   IncrementFrame();
-  Logger::Log(LogLevel::net, "Logging frame " + std::to_string(frameNumber.count()));
-
 
   camera.Update((float)elapsed);
 
@@ -780,7 +777,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
       if (iter->second->when()) {
-        Logger::Log(LogLevel::net, "Beginning new state");
         BattleSceneState* temp = iter->second->b;
         this->last = current;
         this->next = temp;
@@ -1207,8 +1203,6 @@ const bool BattleSceneBase::FadeInBackdrop(double amount, double to, bool affect
   backdropMaxOpacity = to;
   backdropAffectBG = affectBackground;
 
-  Logger::Log(LogLevel::net, "Setting fade in to increment " + std::to_string(amount) + " to " + std::to_string(to) + ". Done? " + std::to_string(backdropOpacity >= to));
-
   return (backdropOpacity >= to);
 }
 
@@ -1397,7 +1391,6 @@ void BattleSceneBase::ProcessNewestComponents()
 
 void BattleSceneBase::FlushLocalPlayerInputQueue()
 {
-  Logger::Log(LogLevel::net, "Flushed queue");
   queuedLocalEvents.clear();
 }
 
@@ -1413,19 +1406,18 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
 
   
   if (gatherInput) {
-    Logger::Log(LogLevel::net, "Gathering inputs this frame");
     // For all new input events, set the wait time based on the network latency and append
     const auto events_this_frame = Input().StateThisFrame();
 
     for (auto& [name, state] : events_this_frame) {
      // if (state != InputState::pressed && state != InputState::held) {
-        // let VirtualInputState resolve release
+     //   let VirtualInputState resolve release
      //   continue;
      // }
 
       InputEvent copy = InputEvent{ name, state };
-//      copy.name = name;
- //     copy.state = InputState::pressed; // VirtualInputState will handle this
+      copy.name = name;
+      copy.state = InputState::pressed; // VirtualInputState will handle this
 
       outEvents.push_back(copy);
 
@@ -1434,10 +1426,7 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
       queuedLocalEvents.push_back(copy);
     }
   }
-  else {
-    Logger::Log(LogLevel::net, "Not gathering inputs this frame");
-  }
-
+  
   // Drop inputs that are already processed at the end of the last frame
   for (auto iter = queuedLocalEvents.begin(); iter != queuedLocalEvents.end();) {
     if (iter->wait <= 0) {

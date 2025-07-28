@@ -11,14 +11,14 @@ NetworkSyncBattleState::~NetworkSyncBattleState() {
 }
 
 void NetworkSyncBattleState::onStart(const BattleSceneState* next) {
-  Logger::Log(LogLevel::net, "Starting sync state");
+  Logger::Log(LogLevel::net, "NetworkSyncBattleState::onStart");
   if (onStartCallback) {
     onStartCallback(next);
   }
 }
 
 void NetworkSyncBattleState::onEnd(const BattleSceneState* next) {
-  Logger::Logf(LogLevel::debug, "Synced on frame: %d", scene->FrameNumber().count());
+  Logger::Logf(LogLevel::net, "Synced on frame: %d", scene->FrameNumber().count());
 
   if (onEndCallback) {
     onEndCallback(next);
@@ -37,13 +37,6 @@ void NetworkSyncBattleState::SetEndCallback(std::function<void(const BattleScene
 }
 
 bool NetworkSyncBattleState::IsReady() const {
-  if (requestedSync && remoteRequestedSync && scene->FrameNumber() == syncFrame) {
-    Logger::Log(LogLevel::net, "Sync state says we're ready. Move to next.");
-  }
-  else {
-    Logger::Log(LogLevel::net, "Not synced yet.");
-  }
-  
   return requestedSync && remoteRequestedSync && scene->FrameNumber() == syncFrame;
 }
 
@@ -63,24 +56,17 @@ frame_time_t NetworkSyncBattleState::GetSyncFrame() const {
 }
 
 bool NetworkSyncBattleState::SetSyncFrame(frame_time_t frame) {
-  Logger::Log(LogLevel::net, "Attempting to set sync frame");
   if (frame.count() < syncFrame.count()) {
-    Logger::Log(LogLevel::net, "Failed to set sync frame. ");
     return false;
   }
 
-  //if (frame.count() < 10) {
-    // lockstep doesn't start until frame ~6, shoot for frame 10 for safety
- //   frame = frames(10);
- // }
-  Logger::Log(LogLevel::net, "Set to " + std::to_string(frame.count()));
+  Logger::Log(LogLevel::net, "Set sync frame to " + std::to_string(frame.count()));
 
   syncFrame = frame;
   return true;
 }
 
 void NetworkSyncBattleState::onUpdate(double elapsed) {
-  Logger::Log(LogLevel::net, "Sync update");
   flicker += from_seconds(elapsed);
 }
 

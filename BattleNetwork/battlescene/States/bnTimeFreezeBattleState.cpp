@@ -28,7 +28,6 @@ const bool TimeFreezeBattleState::FadeInBackdrop()
 
 const bool TimeFreezeBattleState::FadeOutBackdrop()
 {
-  Logger::Log(LogLevel::net, "Time freeze fade out backdrop call");
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
@@ -109,9 +108,8 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 {
-  Logger::Log(LogLevel::net, "Ended time freeze");
-  BattleSceneBase& scene = GetScene();
   Logger::Logf(LogLevel::info, "TimeFreezeBattleState::onEnd");
+  BattleSceneBase& scene = GetScene();
   scene.GetSelectedCardsUI().Reveal();
   scene.GetField()->ToggleTimeFreeze(false);
   scene.HighlightTiles(false);
@@ -320,14 +318,12 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
       first->action->Execute(first->user);
     }
     else {
-    Logger::Log(LogLevel::net, "Started time freeze fadeout");
       currState = state::fadeout;
     }
   }
 }
 
 bool TimeFreezeBattleState::IsOver() {
-  Logger::Log(LogLevel::net, "Test time freeze over: " + std::to_string(state::fadeout == currState));
   return state::fadeout == currState && FadeOutBackdrop();
 }
 

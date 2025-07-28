@@ -281,28 +281,6 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     SendFrameData(events, (FrameNumber() + frames(5)).count());
   }
 
-
-  auto tiles = this->GetField()->FindTiles([](Battle::Tile*) -> bool {return true; });
-
-  std::string skipPart1 = skippingUpdate ? "Skipping over " : "";
-
-  std::string fieldState = skipPart1 + "Battle Frame " + std::to_string(this->FrameNumber().count()) + " tiles: ";
-
-  for (int i = 0; i < tiles.size(); i++) {
-    int state = static_cast<int>(tiles[i]->GetState());
-    fieldState = fieldState + (state < 10 ? ("0" + std::to_string(state)) : std::to_string(state));
-  }
-
-
-  fieldState = fieldState + " Combat? " + std::to_string(combatPtr->IsStateCombat(GetCurrentState()))
-    + " Freeze? " + std::to_string(combatPtr->HasTimeFreeze()) + ", " + std::to_string(timeFreezePtr->summonTick.count()) + ", " + std::to_string(timeFreezePtr->IsOver())
-    + " Combo? " + std::to_string(cardComboStatePtr->IsDone())
-    + " Start? " + std::to_string(startStatePtr->IsFinished()) + ", " + std::to_string(startStatePtr->timer.elapsed().count())
-    + " Custom? " + std::to_string(GetCustomBarProgress());
-
-
-  Logger::Log(LogLevel::net, fieldState);
-
   if (!remoteInputQueue.empty()) {
     auto frame = remoteInputQueue.begin();
 
@@ -310,21 +288,13 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     if (sceneFrameNumber >= frame->frameNumber) {
       if (sceneFrameNumber != frame->frameNumber) {
         // for debugging, this should never appear if the code is working properly
-        Logger::Logf(LogLevel::debug, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, sceneFrameNumber, sceneFrameNumber - frame->frameNumber);
+        Logger::Logf(LogLevel::net, "DESYNC: frames #s were R%i - L%i, ahead by %i", frame->frameNumber, sceneFrameNumber, sceneFrameNumber - frame->frameNumber);
       }
 
       std::vector<InputEvent>& events = frame->events;
       remoteFrameNumber = frames(frame->frameNumber);
 
       // Logger::Logf("next remote frame # is %i", remoteFrameNumber);
-
-      std::string skipPart = skippingUpdate ? "Skipping over " : "";
-      std::string inp = skipPart + "Frame " + std::to_string(frame->frameNumber) + ": Remote inputs: ";
-      for (int i = 0; i < events.size(); i++) {
-        inp = inp + "" + events[i].name + " " + std::to_string(static_cast<int>(events[i].state)) + " ";
-      }
-
-      Logger::Log(LogLevel::net, inp);
 
       for (InputEvent& e : events) {
         remotePlayer->InputState().VirtualKeyEvent(e);
@@ -483,7 +453,6 @@ void NetworkBattleScene::SendHandshakeSignal(uint8_t syncIndex) {
   */
 
   int form = GetPlayerFormData(GetLocalPlayer()).selectedForm;
-  Logger::Log(LogLevel::net, "Form to send is " + std::to_string(form));
   unsigned thisFrame = FrameNumber().count();
 
   if (thisFrame > 0) {
@@ -522,7 +491,7 @@ void NetworkBattleScene::SendHandshakeSignal(uint8_t syncIndex) {
   if (syncStatePtr->SetSyncFrame(lastSentFrameNumber + frames(2))) {
     // + 1 in case this packet is not handled on the same frame as the input
     // + 1 again as BattleStates run after FrameIncrement
-    Logger::Log(LogLevel::debug, "Using lastSentFrameNumber for sync frame");
+    Logger::Log(LogLevel::net, "Using lastSentFrameNumber for sync frame");
   }
 }
 
@@ -540,17 +509,11 @@ void NetworkBattleScene::SendSyncSignal(uint8_t syncIndex) {
   if (syncStatePtr->SetSyncFrame(lastSentFrameNumber + frames(2))) {
     // + 1 in case this packet is not handled on the same frame as the input
     // + 1 again as BattleStates run after FrameIncrement
-    Logger::Log(LogLevel::debug, "Using lastSentFrameNumber for sync frame");
+    Logger::Log(LogLevel::net, "Using lastSentFrameNumber for sync frame");
   }
 }
 
 void NetworkBattleScene::SendFrameData(std::vector<InputEvent>& events, unsigned int frameNumber) {
-  std::string inp = "Frame " + std::to_string(frameNumber) + ": Sending inputs: ";
-  for (int i = 0; i < events.size(); i++) {
-    inp = inp + events[i].name + " " + std::to_string(static_cast<int>(events[i].state)) + " ";
-  }
-
-  Logger::Log(LogLevel::net, inp);
   Poco::Buffer<char> buffer{ 0 };
   BufferWriter writer;
   writer.Write(buffer, NetPlaySignals::frame_data);
@@ -595,11 +558,10 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
   int remoteForm = reader.Read<int32_t>(buffer);
   uint8_t cardLen = reader.Read<uint8_t>(buffer);
 
-  Logger::Logf(LogLevel::debug, "Received remote handshake. Remote sent %i cards.", (int)cardLen);
+  Logger::Logf(LogLevel::net, "Received remote handshake. Remote sent %i cards.", (int)cardLen);
   while (cardLen > 0) {
     std::string uuid = reader.ReadString<uint8_t>(buffer);
     remoteUUIDs.push_back(uuid);
-    Logger::Logf(LogLevel::debug, "Remote Card: %s", uuid.c_str());
     cardLen--;
   }
 
@@ -613,7 +575,6 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
   // This avoids a desync where a decross in the previous turn and no form selected 
   // by remote in the next turn will see a changed form (X to -1).
   remoteState.remoteChangeForm = remoteForm != -1 && remoteState.remoteFormSelect != remoteForm;
-  Logger::Log(LogLevel::net, "Will remote form change? " + std::to_string(remoteState.remoteChangeForm));
   remoteState.remoteFormSelect = remoteForm;
 
   TrackedFormData& formData = GetPlayerFormData(remotePlayer);
@@ -681,7 +642,7 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
     if (syncStatePtr->SetSyncFrame(maxRemoteFrameNumber + frames(2))) {
       // + 1 in case this packet is not handled on the same frame as the input
       // + 1 again as BattleStates run after FrameIncrement
-      Logger::Log(LogLevel::debug, "Using maxRemoteFrameNumber for sync frame");
+      Logger::Log(LogLevel::net, "Using maxRemoteFrameNumber for sync frame");
     }
   }
 }
@@ -697,7 +658,7 @@ void NetworkBattleScene::ReceiveSyncSignal(const Poco::Buffer<char>& buffer) {
     if (syncStatePtr->SetSyncFrame(maxRemoteFrameNumber + frames(2))) {
       // + 1 in case this packet is not handled on the same frame as the input
       // + 1 again as BattleStates run after FrameIncrement
-      Logger::Log(LogLevel::debug, "Using maxRemoteFrameNumber for sync frame");
+      Logger::Log(LogLevel::net, "Using maxRemoteFrameNumber for sync frame");
     }
   }
 }
@@ -708,7 +669,6 @@ void NetworkBattleScene::ReceiveFrameData(const Poco::Buffer<char>& buffer) {
   BufferReader reader;
   unsigned int frameNumber = reader.Read<uint32_t>(buffer);
 
-  Logger::Log(LogLevel::net, "Received remote inputs for " + std::to_string(frameNumber));
   maxRemoteFrameNumber = frames(frameNumber);
 
   int hp = reader.Read<int32_t>(buffer);
@@ -850,14 +810,11 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent() {
 
 std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect) {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    Logger::Log(LogLevel::net, "Check for form change end");
     bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
     bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
     bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
 
     if (triggered) {
-      Logger::Log(LogLevel::net, "Really ended");
-
       remotePlayerDecross = false; // reset our decross flag
       localPlayerDecross = false;
 

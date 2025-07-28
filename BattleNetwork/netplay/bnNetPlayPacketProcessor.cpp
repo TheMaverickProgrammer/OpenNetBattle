@@ -144,7 +144,5 @@ bool Netplay::PacketProcessor::TimedOut() {
 
   constexpr int64_t MAX_TIMEOUT_SECONDS = 20;
 
-  auto dif = timeDifference.count();
-
-  return dif > MAX_TIMEOUT_SECONDS;
+  return timeDifference.count() > MAX_TIMEOUT_SECONDS;
 }

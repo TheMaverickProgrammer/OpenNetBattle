@@ -68,7 +68,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
 
   packetProcessor->EnableKickForSilence(true);
 
-  lastUpdate = std::chrono::steady_clock::now();
   // send handshake + begin coinflip before reading packets
   SendHandshake();
   SendCoinFlip();
@@ -775,12 +774,6 @@ void DownloadScene::Abort()
 
 void DownloadScene::onUpdate(double elapsed)
 {
-  auto now = std::chrono::steady_clock::now();
-  auto dif = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch() - lastUpdate.time_since_epoch());
-
-  lastUpdate = now;
-
-  Logger::Log(LogLevel::net, "DownloadScene tick after " + std::to_string(dif.count()) + " ms");
   if (!(packetProcessor->IsHandshakeAck() && remoteHandshake) && !aborting) return;
 
   // Don't trade data until handshake has arrived.

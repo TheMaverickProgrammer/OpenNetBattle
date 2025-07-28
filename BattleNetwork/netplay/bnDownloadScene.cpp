@@ -37,8 +37,6 @@ DownloadScene::DownloadScene(swoosh::ActivityController& ac, const DownloadScene
   std::sort(playerBlockPackageList.begin(), playerBlockPackageList.end());
   playerBlockPackageList.erase(std::unique(playerBlockPackageList.begin(), playerBlockPackageList.end()), playerBlockPackageList.end());
 
-  Logger::StartNewLog();
-
   std::string working = "Cards:";
   for (int i = 0; i < playerCardPackageList.size(); i++) {
     auto p = playerCardPackageList.at(i);

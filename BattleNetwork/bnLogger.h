@@ -6,7 +6,6 @@
 #include <mutex>
 #include <fstream>
 #include "bnCurrentTime.h"
-#include <filesystem>
 
 #if defined(__ANDROID__)
 #include <android/log.h>
@@ -59,33 +58,6 @@ public:
     logs.pop();
 
     return (logs.size()+1 > 0);
-  }
-
-  /**
-    TODO: Proper comment
-  
-    Closes the current file and creates a new one, changing the 
-    file pointer. Appends a timestamp to the new file's name.
-  */
-  static const void StartNewLog() {
-    std::scoped_lock<std::mutex> lock(m);
-
-    std::filesystem::path dir = "logs";
-    std::filesystem::create_directory(dir);
-
-    std::string logName = "logs/log.txt";
-    int num = 0;
-
-    while (std::filesystem::exists(logName)) {
-      num = num + 1;
-      logName = "logs/log_" + std::to_string(num) + ".txt";
-    }
-
-    file.close();
-    
-    file.open(logName, std::ios::app);
-    file << "==============================" << endl;
-    file << "StartTime " << CurrentTime::AsString() << endl;
   }
 
   /**

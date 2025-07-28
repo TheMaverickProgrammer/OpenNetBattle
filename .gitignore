@@ -389,6 +389,3 @@ _deps
 
 # ini files
 *.ini 
-
-/logs/*
-/TestEnv/*

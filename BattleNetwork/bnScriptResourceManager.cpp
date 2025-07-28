@@ -373,7 +373,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
     "set_background", &ScriptedMob::SetBackground,
-    "stream_music", &ScriptedMob::StreamMusic,
+    "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
+      mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
+    },
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
     "enable_freedom_mission", &ScriptedMob::EnableFreedomMission,
     "spawn_player", &ScriptedMob::SpawnPlayer
@@ -449,7 +451,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::factories(
       [](const std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
       static ResourceHandle handle;
-      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(0), endMs.value_or(0));
+      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(-1), endMs.value_or(-1));
     })
   );
 

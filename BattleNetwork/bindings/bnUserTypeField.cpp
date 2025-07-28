@@ -14,15 +14,21 @@
 static sol::as_table_t<std::vector<WeakWrapper<Character>>> FindNearestCharacters(WeakWrapper<Field>& field, std::shared_ptr<Entity> test, sol::stack_object queryObject) {
   sol::protected_function query = queryObject;
 
-  // store entities in a temp to avoid issues if the scripter mutates entities in this loop
-  std::vector<WeakWrapper<Character>> characters;
-
-  field.Unwrap()->FindNearestCharacters(test, [&characters] (std::shared_ptr<Character>& character) -> bool {
-    characters.push_back(WeakWrapper(character));
-    return false;
+  // prevent mutating during loop by getting a copy of the characters sorted first, not expecting many characters to be on the field anyway
+  // alternative is collecting into a weak wrapper list, filtering, converting to a shared_ptr list, sorting, converting to a weak wrapper list
+  std::vector<std::shared_ptr<Character>> characters = field.Unwrap()->FindNearestCharacters(test, [&characters](std::shared_ptr<Character>& character) -> bool {
+    return true;
   });
 
-  return FilterEntities(characters, queryObject);
+  // convert to weak wrapper
+  std::vector<WeakWrapper<Character>> wrappedCharacters;
+
+  for (auto& character : characters) {
+    wrappedCharacters.push_back(WeakWrapper(character));
+  }
+
+  // filter the sorted list
+  return FilterEntities(wrappedCharacters, queryObject);
 }
 
 void DefineFieldUserType(sol::table& battle_namespace) {

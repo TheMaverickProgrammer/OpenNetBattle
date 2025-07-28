@@ -47,12 +47,12 @@ void BattleTextIntroState::onEnd(const BattleSceneState*)
 
 void BattleTextIntroState::onUpdate(double elapsed)
 {
-  timer.update(sf::seconds(static_cast<float>(elapsed)));
+  timer.tick();
 }
 
 void BattleTextIntroState::onDraw(sf::RenderTexture& surface)
 {
-  frame_time_t start = from_milliseconds(timer.getElapsed().asMilliseconds());
+  frame_time_t start = timer.elapsed();
 
   if (start >= startupDelay) {
     double delta = (start - startupDelay).asSeconds().value;
@@ -67,5 +67,5 @@ void BattleTextIntroState::onDraw(sf::RenderTexture& surface)
 }
 
 bool BattleTextIntroState::IsFinished() {
-  return timer.getElapsed().asSeconds() >= (startupDelay + preBattleLength).asSeconds().value;
+  return timer.elapsed() >= startupDelay + preBattleLength;
 }

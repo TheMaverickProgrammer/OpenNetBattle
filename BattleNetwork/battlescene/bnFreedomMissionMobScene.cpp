@@ -178,12 +178,14 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void FreedomMissionMobScene::onUpdate(double elapsed)
 {
-  ProcessLocalPlayerInputQueue();
+  if (GetCurrentState() == combatPtr) {
+    ProcessLocalPlayerInputQueue();
 
-  if (playerCanFlip && GetCurrentState() == combatPtr) {
-    std::shared_ptr<Player> localPlayer = GetLocalPlayer();
-    if (localPlayer->IsActionable() && localPlayer->InputState().Has(InputEvents::pressed_option)) {
-      localPlayer->SetFacing(localPlayer->GetFacingAway());
+    if (playerCanFlip) {
+      std::shared_ptr<Player> localPlayer = GetLocalPlayer();
+      if (localPlayer->IsActionable() && localPlayer->InputState().Has(InputEvents::pressed_option)) {
+        localPlayer->SetFacing(localPlayer->GetFacingAway());
+      }
     }
   }
 

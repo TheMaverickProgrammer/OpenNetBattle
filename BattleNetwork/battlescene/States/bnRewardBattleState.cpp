@@ -6,6 +6,7 @@
 #include "../../bnGameSession.h"
 #include "../../bnInputManager.h"
 #include "../../bnCardPackageManager.h"
+#include "../../frame_time_t.h"
 #include "../bnBattleSceneBase.h"
 
 #include <Swoosh/Segue.h>
@@ -37,7 +38,7 @@ void RewardBattleState::onStart(const BattleSceneState*)
   scene.GetField()->RequestBattleStop();
 
   auto& results = scene.BattleResultsObj();
-  results.battleLength = scene.GetElapsedBattleTime();
+  results.battleLength = sf::seconds(scene.GetElapsedBattleFrames().count()/60.f);
   results.moveCount = player.GetMoveCount();
   results.hitCount = *hitCount;
   results.turns = scene.GetTurnCount();

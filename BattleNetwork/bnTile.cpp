@@ -202,6 +202,7 @@ namespace Battle {
 
   void Tile::PerspectiveFlip(bool state)
   {
+    isPerspectiveFlipped = state;
     if (state) {
       red_team_atlas = blue_team_perm;
       blue_team_atlas = red_team_perm;
@@ -685,7 +686,9 @@ namespace Battle {
         }
 
         if (GetState() == TileState::lava) {
-          if (character.Hit(Hit::Properties({ 50, Hit::flash, Element::none, 0, Direction::none }))) {
+          Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, 0, Direction::none };
+          if (character.HasCollision(props)) {
+            character.Hit(props);
             field.AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
             SetState(TileState::normal);
           }
@@ -887,10 +890,10 @@ namespace Battle {
       str = str + "direction_down";
       break;
     case TileState::directionLeft:
-      str = str + "direction_left";
+      str = str + (isPerspectiveFlipped? "direction_right" : "direction_left");
       break;
     case TileState::directionRight:
-      str = str + "direction_right";
+      str = str + (isPerspectiveFlipped ? "direction_left" : "direction_right");
       break;
     case TileState::directionUp:
       str = str + "direction_up";

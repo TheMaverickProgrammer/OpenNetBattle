@@ -25,7 +25,6 @@ private:
   bool skipBackdrop{ false };
   sf::Sprite shine;
   std::vector<Animation> shineAnimations;
-
   const bool FadeInBackdrop();
   const bool FadeOutBackdrop();
   void UpdateAnimation(double elapsed);

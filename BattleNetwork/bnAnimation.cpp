@@ -448,9 +448,14 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
   std::string point = pointName;
   std::transform(point.begin(), point.end(), point.begin(), ::toupper);
 
-  auto res = animator.GetPoint(point);
+  const sf::Vector2f res = animator.GetPoint(point);
 
   return res;
+}
+
+const bool Animation::HasPoint(const std::string& pointName)
+{
+  return animator.HasPoint(pointName);
 }
 
 char Animation::GetMode()

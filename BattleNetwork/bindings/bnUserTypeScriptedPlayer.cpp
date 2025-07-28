@@ -10,9 +10,6 @@
 
 void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespace) {
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {
-    if (auto player = std::dynamic_pointer_cast<ScriptedPlayer>(entity)) {
-      return sol::make_object(*state, WeakWrapper(player));
-    }
     if (auto player = std::dynamic_pointer_cast<Player>(entity)) {
       return sol::make_object(*state, WeakWrapper(player));
     }
@@ -129,6 +126,12 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
       [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charged_attack_func; },
       [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
         player.Unwrap()->charged_attack_func = VerifyLuaCallback(value);
+      }
+    ),
+    "charged_time_table_func", sol::property(
+      [](WeakWrapper<ScriptedPlayer>& player) { return player.Unwrap()->charge_time_table_func; },
+      [](WeakWrapper<ScriptedPlayer>& player, sol::stack_object value) {
+        player.Unwrap()->charge_time_table_func = VerifyLuaCallback(value);
       }
     ),
     "special_attack_func", sol::property(

@@ -77,6 +77,8 @@ public:
 
   std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::string& path);
   
+  void HandleExpiredAudioCache();
+
   /**
    * @brief Play a sound with an Audio() priority
    * @param type Audio() to play

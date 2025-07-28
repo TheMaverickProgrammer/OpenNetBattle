@@ -24,7 +24,7 @@ SelectedCardsUI::SelectedCardsUI(std::weak_ptr<Character> owner, CardPackagePart
   ResourceHandle handle;
 
   curr = 0;
-  auto iconRect = sf::IntRect(0, 0, 14, 14);
+  sf::IntRect iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
@@ -44,9 +44,9 @@ SelectedCardsUI::~SelectedCardsUI() {
 }
 
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
-  if (this->IsHidden()) return;
+  if (IsHidden()) return;
 
-  auto owner = GetOwner();
+  const std::shared_ptr<Entity> owner = GetOwner();
 
   //auto this_states = states;
   //this_states.transform *= getTransform();
@@ -105,9 +105,9 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 void SelectedCardsUI::OnUpdate(double _elapsed) {
   elapsed = _elapsed;
 
-  if (auto character = GetOwnerAs<Character>()) {
+  if (std::shared_ptr<Character> character = GetOwnerAs<Character>()) {
     if (character->IsDeleted()) {
-      this->Hide();
+      Hide();
     }
   }
 }
@@ -118,7 +118,7 @@ void SelectedCardsUI::LoadCards(std::vector<Battle::Card> incoming) {
 }
 
 bool SelectedCardsUI::UseNextCard() {
-  auto owner = this->GetOwnerAs<Character>();
+  std::shared_ptr<Character> owner = GetOwnerAs<Character>();
 
   if (!owner) return false;
 
@@ -138,9 +138,9 @@ bool SelectedCardsUI::UseNextCard() {
     return false;
   }
 
-  auto& card = (*selectedCards)[curr];
+  Battle::Card& card = (*selectedCards)[curr];
 
-  if (!card.CanBoost()) {
+  if (card.CanBoost()) {
     card.MultiplyDamage(multiplierValue);
   }
 
@@ -153,7 +153,7 @@ bool SelectedCardsUI::UseNextCard() {
 
 void SelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
-  this->DropNextCard();
+  DropNextCard();
   CardActionUsePublisher::Broadcast(action, CurrentTime::AsMilli());
 }
 
@@ -169,7 +169,7 @@ std::optional<std::reference_wrapper<const Battle::Card>> SelectedCardsUI::Peek(
 
 bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
 {
-  auto maybe_card = this->Peek();
+  auto maybe_card = Peek();
 
   if (maybe_card.has_value()) {
     // convert meta data into a useable action object
@@ -178,8 +178,8 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (auto action = CardToAction(card, from, partition, card.props)) {
-      this->Broadcast(action); // tell the rest of the subsystems
+    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.props)) {
+      Broadcast(action); // tell the rest of the subsystems
     }
 
     return true;
@@ -193,12 +193,12 @@ void SelectedCardsUI::DropNextCard()
   curr++;
 }
 
-std::vector<std::string> SelectedCardsUI::GetUUIDList()
+std::vector<Battle::Card> SelectedCardsUI::GetRemainingCards()
 {
-  std::vector<std::string> res;
+  std::vector<Battle::Card> res;
 
   for (int i = curr; i < selectedCards->size(); i++) {
-    res.push_back((*selectedCards)[i].GetUUID());
+    res.push_back((*selectedCards)[i]);
   }
 
   return res;

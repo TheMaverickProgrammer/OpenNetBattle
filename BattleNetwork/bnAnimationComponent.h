@@ -146,6 +146,8 @@ public:
    */
   sf::Vector2f GetPoint(const std::string& pointName);
 
+  const bool HasPoint(const std::string& pointName);
+
   Animation& GetAnimationObject();
   
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
@@ -169,7 +171,7 @@ public:
 private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
-  bool stunnedLastFrame{ false };
+  bool couldUpdateLastFrame{ true };
   std::vector<SyncItem> syncList;
 
   void RefreshSyncItem(SyncItem& item);

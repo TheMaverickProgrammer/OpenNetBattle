@@ -182,6 +182,23 @@ void ScriptedPlayer::OnBattleStop() {
   }
 }
 
+frame_time_t ScriptedPlayer::CalculateChargeTime(const unsigned chargeLevel)
+{
+  if (charge_time_table_func.valid())
+  {
+    stx::result_t<frame_time_t> result = CallLuaCallbackExpectingValue<frame_time_t>(charge_time_table_func, weakWrap);
+
+    if (!result.is_error()) {
+      return result.value();
+    }
+
+    // else
+    Logger::Log(LogLevel::critical, result.error_cstr());
+  }
+
+  return Player::CalculateChargeTime(chargeLevel);
+}
+
 ScriptedPlayerFormMeta* ScriptedPlayer::CreateForm()
 {
   ScriptedPlayerFormMeta* meta = new ScriptedPlayerFormMeta(forms.size() + 1u);

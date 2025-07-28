@@ -178,6 +178,7 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       Entity::ID_t observer,
       sol::object callbackObject
     ) -> Field::NotifyID_t {
+      ExpectLuaFunction(callbackObject);
 
       return field.Unwrap()->NotifyOnDelete(
         target,
@@ -198,6 +199,8 @@ void DefineFieldUserType(sol::table& battle_namespace) {
       Entity::ID_t target,
       sol::object callbackObject
     ) -> Field::NotifyID_t {
+      ExpectLuaFunction(callbackObject);
+
       return field.Unwrap()->CallbackOnDelete(
         target,
         [callbackObject] (std::shared_ptr<Entity> e) {

@@ -1,0 +1,6 @@
+imagePath="blind.png"
+
+animation state="default"
+frame duration="0.1667" x="0" y="0" w="16" h="11" originx="8" originy="6" flipx="0" flipy="0"
+frame duration="0.05" x="15" y="0" w="16" h="12" originx="8" originy="6" flipx="0" flipy="0"
+frame duration="0.1667" x="0" y="0" w="16" h="14" originx="8" originy="6" flipx="0" flipy="0"

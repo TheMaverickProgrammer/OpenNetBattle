@@ -288,7 +288,8 @@ public:
   char GetMode();
   
   const sf::Vector2f GetPoint(const std::string& pointName);
-  
+  const bool HasPoint(const std::string& pointName);
+
   /**
    * @brief Clears all callback functors
    */

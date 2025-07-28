@@ -392,7 +392,7 @@ char Animator::GetMode()
 }
 
 const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
-  auto str = pointName;
+  std::string str = pointName;
   std::transform(str.begin(), str.end(), str.begin(), ::toupper);
   if (currentPoints.find(str) == currentPoints.end()) {
 #ifdef BN_LOG_MISSING_POINT
@@ -401,6 +401,18 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
     return sf::Vector2f();
   }
   return currentPoints[str];
+}
+
+const bool Animator::HasPoint(const std::string& pointName)
+{
+  std::string str = pointName;
+  std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+
+  if (currentPoints.find(str) == currentPoints.end()) {
+    return false;
+  }
+
+  return true;
 }
 
 void Animator::Clear() {

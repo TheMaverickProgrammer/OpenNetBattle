@@ -178,7 +178,10 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
     }
   }
 
-  if (victim.IsSuperEffective(props.element) && props.damage > 0) {
+  bool freezeBreak = victim.IsIceFrozen() && ((props.flags & Hit::breaking) == Hit::breaking);
+  bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
+
+  if (freezeBreak || superEffective) {
     std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
@@ -188,7 +191,10 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void MobBattleScene::onUpdate(double elapsed)
 {
-  ProcessLocalPlayerInputQueue();
+  if (combatPtr->IsStateCombat(GetCurrentState())) {
+    ProcessLocalPlayerInputQueue();
+  }
+
   BattleSceneBase::onUpdate(elapsed);
 }
 

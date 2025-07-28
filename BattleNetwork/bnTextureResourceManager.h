@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "bnTextureType.h"
+#include "bnResourcePaths.h"
 #include "bnLogger.h"
 #include "bnCachedResource.h"
 

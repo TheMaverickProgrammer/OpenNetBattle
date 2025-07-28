@@ -16,7 +16,7 @@ struct BattleTextIntroState : public BattleSceneState {
   frame_time_t preBattleLength{ frames(60) }; 
   frame_time_t startupDelay{ frames(0) }; /*!< Animation delay*/
   Text battleStart; /*!< e.g. "Battle Start" graphic */
-  swoosh::Timer timer; /*!< How long the start graphic should stay on screen */
+  frame_time_stopwatch_t timer; /*!< How long the start graphic should stay on screen */
   sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
   BattleTextIntroState();
   virtual ~BattleTextIntroState();

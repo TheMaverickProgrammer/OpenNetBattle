@@ -3,8 +3,10 @@
 
 #include "bnWeakWrapper.h"
 #include "bnScriptedComponent.h"
+#include "bnScriptedObstacle.h"
 #include "bnScriptedCharacter.h"
 #include "bnScriptedPlayer.h"
+#include "bnScriptedArtifact.h"
 #include "../bnSolHelpers.h"
 
 static WeakWrapper<ScriptedComponent> construct(std::shared_ptr<Entity> entity, Component::lifetimes lifetime) {
@@ -22,16 +24,25 @@ void DefineScriptedComponentUserType(sol::state& state, sol::table& battle_names
       [](WeakWrapper<Entity>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
+      [](WeakWrapper<Obstacle>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
       [](WeakWrapper<Character>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
       [](WeakWrapper<Player>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
+      [](WeakWrapper<ScriptedObstacle>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
       [](WeakWrapper<ScriptedCharacter>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       },
       [](WeakWrapper<ScriptedPlayer>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
+        return construct(owner.Unwrap(), lifetime);
+      },
+      [](WeakWrapper<ScriptedArtifact>& owner, Component::lifetimes lifetime) -> WeakWrapper<ScriptedComponent> {
         return construct(owner.Unwrap(), lifetime);
       }
     ),

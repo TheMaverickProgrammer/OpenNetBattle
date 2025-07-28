@@ -144,6 +144,25 @@ std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::s
   return loaded;
 }
 
+void AudioResourceManager::HandleExpiredAudioCache()
+{
+  auto iter = cached.begin();
+  while (iter != cached.end()) {
+    if (iter->second.GetSecondsSinceLastRequest() > 60.0f) {
+      if (iter->second.IsInUse()) {
+        iter++; continue;
+      }
+
+      // 1 minute is long enough
+      Logger::Logf(LogLevel::debug, "Audio data %s expired", iter->first.c_str());
+      iter = cached.erase(iter);
+      continue;
+    }
+
+    iter++;
+  }
+}
+
 int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   if (!isEnabled) { return -1; }
 
@@ -390,7 +409,7 @@ void AudioResourceManager::StopStream() {
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
   midiMusic.setVolume(volume);
-  midiMusic.setGain(1.0);
+  midiMusic.setGain(1.5); // midi's are quiet, make them louder
   streamVolume = volume;
 }
 

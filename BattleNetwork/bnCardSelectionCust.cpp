@@ -7,103 +7,6 @@
 
 #define WILDCARD '*'
 
-void CardSelectionCust::RefreshAvailableCards(int handSize)
-{
-  // Stage valid available cards
-  // If other cards are not compatible, set their bucket state flag to voided
-
-  enum class SelectionMode {
-    any,
-    same_name_or_code,
-    same_code,
-    same_name
-  };
-
-  // get info about the hand
-  auto resolvedCode = '*';
-  std::string resolvedName = "";
-  bool codeDiffers = false;
-  bool nameDiffers = false;
-
-  for (int i = 0; i < handSize; i++) {
-    auto& selectedCard = newSelectQueue[i]->data;
-    auto name = selectedCard->GetShortName();
-    auto code = selectedCard->GetCode();
-
-    if (i == 0) {
-      resolvedName = name;
-      resolvedCode = code;
-      continue;
-    }
-
-    if (code != WILDCARD) {
-      if (resolvedCode == WILDCARD) {
-        resolvedCode = code;
-      }
-      else if (resolvedCode != code) {
-        codeDiffers = true;
-      }
-    }
-
-    if (name != resolvedName) {
-      nameDiffers = true;
-    }
-  }
-
-  // resolve mode
-  auto selectionMode = SelectionMode::any;
-
-  if (nameDiffers && resolvedCode != WILDCARD) {
-    selectionMode = SelectionMode::same_code;
-  }
-  else if (codeDiffers) {
-    selectionMode = SelectionMode::same_name;
-  }
-  else if (resolvedCode != WILDCARD) {
-    selectionMode = SelectionMode::same_name_or_code;
-  }
-
-  // voiding, this could be reduced
-  for (int i = 0; i < cardCount; i++) {
-    auto& bucket = queue[i];
-    auto* card = bucket.data;
-    bool matchingName = card->GetShortName() == resolvedName;
-    bool matchingCode = card->GetCode() == resolvedCode || card->GetCode() == WILDCARD;
-
-    bool shouldVoid = false;
-
-    switch (selectionMode) {
-    case SelectionMode::any:
-      // we could prob just skip this loop to begin with for SelectionMode::any
-      break;
-    case SelectionMode::same_name_or_code:
-      shouldVoid = !matchingName && !matchingCode;
-      break;
-    case SelectionMode::same_code:
-      shouldVoid = !matchingCode;
-      break;
-    case SelectionMode::same_name:
-      shouldVoid = !matchingName;
-      break;
-    }
-
-    if (shouldVoid) {
-      bucket.state = CardSelectionCust::Bucket::state::voided;
-    }
-  }
-}
-
-void CardSelectionCust::SetSelectedFormIndex(int index)
-{
-  if (selectedFormIndex != index)
-  {
-    previousFormItem = currentFormItem;
-    previousFormIndex = selectedFormIndex;
-    selectedFormIndex = index;
-    Broadcast(index);
-  }
-}
-
 CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   props(std::move(_props)),
   greyscale(Shaders().GetShader(ShaderType::GREYSCALE)),
@@ -150,8 +53,8 @@ CardSelectionCust::CardSelectionCust(CardSelectionCust::Props _props) :
   // TODO: fully use scene nodes on all card slots and the GUI sprite
   // AddSprite(custSprite);
 
-  auto iconSize = sf::IntRect{ 0,0,14,14 };
-  auto iconScale = sf::Vector2f(2.f, 2.f);
+  sf::IntRect iconSize = sf::IntRect{ 0,0,14,14 };
+  sf::Vector2f iconScale = sf::Vector2f(2.f, 2.f);
   icon.setTextureRect(iconSize);
   icon.setScale(iconScale);
 
@@ -615,7 +518,7 @@ void CardSelectionCust::GetNextCards() {
 
 void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> forms)
 {
-  for (auto&& f : forms) {
+  for (PlayerFormMeta* f : forms) {
     this->forms.push_back(f);
     sf::Sprite ui;
     ui.setTexture(*Textures().LoadFromFile(f->GetUIPath()));
@@ -640,10 +543,10 @@ void CardSelectionCust::LockInPlayerFormSelection()
 
 void CardSelectionCust::ErasePlayerFormOption(size_t index)
 {
-  for (int i = 0; i < this->forms.size() && this->formUI.size(); i++) {
-    if (this->forms[i]->GetFormIndex() == index) {
-      this->forms.erase(this->forms.begin() + i);
-      this->formUI.erase(this->formUI.begin() + i);
+  for (int i = 0; i < forms.size() && formUI.size(); i++) {
+    if (forms[i]->GetFormIndex() == index) {
+      forms.erase(forms.begin() + i);
+      formUI.erase(formUI.begin() + i);
     }
   }
 
@@ -658,7 +561,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   states.transform = getTransform();
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
+  float offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
   custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
   target.draw(custSprite, states);
 
@@ -682,7 +585,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
 
-  auto lastEmblemPos = emblem.getPosition();
+  sf::Vector2f lastEmblemPos = emblem.getPosition();
   emblem.setPosition(emblem.getPosition() + sf::Vector2f(offset, 0));
   target.draw(emblem, states);
   emblem.setPosition(lastEmblemPos);
@@ -717,7 +620,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
     if (queue[i].state == Bucket::state::voided) {
       icon.SetShader(greyscale);
-      auto statesCopy = states;
+      sf::RenderStates statesCopy = states;
       statesCopy.shader = greyscale;
 
       target.draw(icon,statesCopy);
@@ -769,16 +672,16 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       else {
         texture = noCard;
       }
-      cardCard.setTexture(texture);
+      cardCard.setTexture(texture, false);
 
-      auto lastPos = cardCard.getPosition();
+      sf::Vector2f lastPos = cardCard.getPosition();
       cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
       cardCard.SetShader(nullptr);
 
       if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
         cardCard.SetShader(greyscale);
 
-        auto statesCopy = states;
+        sf::RenderStates statesCopy = states;
         statesCopy.shader = greyscale;
 
         target.draw(cardCard, statesCopy);
@@ -826,10 +729,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
 
-      auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
+      sf::IntRect elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
       element.setTextureRect(elementRect);
 
-      auto elementLastPos = element.getPosition();
+      sf::Vector2f elementLastPos = element.getPosition();
       element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
 
       target.draw(element, states);
@@ -837,7 +740,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       element.setPosition(elementLastPos);
     }
     else {
-      auto cardNoDataLastPos = cardNoData.getPosition();
+      sf::Vector2f cardNoDataLastPos = cardNoData.getPosition();
       cardNoData.setPosition(cardNoData.getPosition() + sf::Vector2f(offset, 0));
       target.draw(cardNoData, states);
       cardNoData.setPosition(cardNoDataLastPos);
@@ -849,12 +752,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   }
   else {
-    auto cardSendDataLastPos = cardSendData.getPosition();
+    sf::Vector2f cardSendDataLastPos = cardSendData.getPosition();
     cardSendData.setPosition(cardSendData.getPosition() + sf::Vector2f(offset, 0));
     target.draw(cardSendData, states);
     cardSendData.setPosition(cardSendDataLastPos);
 
-    auto cursorBigLastPos = cursorBig.getPosition();
+    sf::Vector2f cursorBigLastPos = cursorBig.getPosition();
     cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
     target.draw(cursorBig, states);
     cursorBig.setPosition(cursorBigLastPos);
@@ -876,7 +779,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // draw the dark card in on top of it so it looks brighter
   if (isDarkCardSelected) {
-    auto lastPos = cardCard.getPosition();
+    sf::Vector2f lastPos = cardCard.getPosition();
     cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
     target.draw(cardCard, states);
     cardCard.setPosition(lastPos);
@@ -885,7 +788,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {
       int i = 0;
-      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
+      float offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
       for (sf::Sprite f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
@@ -894,12 +797,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         f.setPosition(offset + 16.f, 16.f + float(i*32.0f));
 
         if (i != selectedFormRow && i != formCursorRow && selectedFormRow > -1) {
-          auto greyscaleState = states;
+          sf::RenderStates greyscaleState = states;
           greyscaleState.shader = handle.Shaders().GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
         else if (i == selectedFormRow && selectedFormRow > -1) {
-          auto aquaMarineState = states;
+          sf::RenderStates aquaMarineState = states;
           aquaMarineState.shader = handle.Shaders().GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
           target.draw(f, aquaMarineState);
@@ -926,7 +829,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // Reveal the new form icon in the HUD after the flash
   if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
-    auto rect = currentFormItem.getTextureRect();
+    sf::IntRect rect = currentFormItem.getTextureRect();
     currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
     currentFormItem.setPosition(sf::Vector2f(4, 36.f));
     target.draw(currentFormItem, states);
@@ -935,8 +838,8 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // draw the white flash
   if (isInFormSelect && formSelectQuitTimer <= seconds_cast<float>(frames(20))) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
-    const auto& view = target.getView();
+    double delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
+    const sf::View& view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(delta * 255.0)));
     target.draw(screen, sf::RenderStates::Default);
@@ -979,7 +882,7 @@ void CardSelectionCust::Update(double elapsed)
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
   formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
+  float offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);
@@ -1109,4 +1012,100 @@ void CardSelectionCust::PreventRetreat()
 
 bool CardSelectionCust::AreCardsReady() {
   return areCardsReady;
+}
+
+void CardSelectionCust::RefreshAvailableCards(int handSize)
+{
+  // Stage valid available cards
+  // If other cards are not compatible, set their bucket state flag to voided
+
+  enum class SelectionMode {
+    any,
+    same_name_or_code,
+    same_code,
+    same_name
+  };
+
+  // get info about the hand
+  char resolvedCode = '*';
+  std::string resolvedName = "";
+  bool codeDiffers = false;
+  bool nameDiffers = false;
+
+  for (int i = 0; i < handSize; i++) {
+    Battle::Card* selectedCard = newSelectQueue[i]->data;
+    const std::string& name = selectedCard->GetShortName();
+    char code = selectedCard->GetCode();
+
+    if (i == 0) {
+      resolvedName = name;
+      resolvedCode = code;
+      continue;
+    }
+
+    if (code != WILDCARD) {
+      if (resolvedCode == WILDCARD) {
+        resolvedCode = code;
+      }
+      else if (resolvedCode != code) {
+        codeDiffers = true;
+      }
+    }
+
+    if (name != resolvedName) {
+      nameDiffers = true;
+    }
+  }
+
+  // resolve mode
+  SelectionMode selectionMode = SelectionMode::any;
+
+  if (nameDiffers && resolvedCode != WILDCARD) {
+    selectionMode = SelectionMode::same_code;
+  }
+  else if (codeDiffers) {
+    selectionMode = SelectionMode::same_name;
+  }
+  else if (resolvedCode != WILDCARD) {
+    selectionMode = SelectionMode::same_name_or_code;
+  }
+
+  // voiding, this could be reduced
+  for (int i = 0; i < cardCount; i++) {
+    CardSelectionCust::Bucket& bucket = queue[i];
+    Battle::Card* card = bucket.data;
+    bool matchingName = card->GetShortName() == resolvedName;
+    bool matchingCode = card->GetCode() == resolvedCode || card->GetCode() == WILDCARD;
+    bool shouldVoid = false;
+
+    switch (selectionMode) {
+    case SelectionMode::any:
+      // we could prob just skip this loop to begin with for SelectionMode::any
+      break;
+    case SelectionMode::same_name_or_code:
+      shouldVoid = !matchingName && !matchingCode;
+      break;
+    case SelectionMode::same_code:
+      shouldVoid = !matchingCode;
+      break;
+    case SelectionMode::same_name:
+      shouldVoid = !matchingName;
+      break;
+    }
+
+    if (shouldVoid) {
+      bucket.state = CardSelectionCust::Bucket::state::voided;
+    }
+  }
+}
+
+void CardSelectionCust::SetSelectedFormIndex(int index)
+{
+  if (selectedFormIndex != index)
+  {
+    previousFormItem = currentFormItem;
+    previousFormIndex = selectedFormIndex;
+    selectedFormIndex = index;
+    Broadcast(index);
+  }
 }

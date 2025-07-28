@@ -4,7 +4,7 @@
 #include <sol/sol.hpp>
 #include "../bnPlayer.h"
 #include "../bnPlayerState.h"
-#include "../bnTextureType.h"
+#include "../bnResourcePaths.h"
 #include "../bnChargeEffectSceneNode.h"
 #include "../bnAnimationComponent.h"
 #include "../bnAI.h"
@@ -43,7 +43,7 @@ public:
   void OnUpdate(double _elapsed) override;
   void OnBattleStart() override;
   void OnBattleStop() override;
-
+  frame_time_t CalculateChargeTime(const unsigned chargeLevel) override;
   ScriptedPlayerFormMeta* CreateForm();
 
   const float GetHeight() const;
@@ -61,7 +61,7 @@ public:
   sol::object charged_attack_func;
   sol::object special_attack_func;
   sol::object on_spawn_func;
-
+  sol::object charge_time_table_func;
 };
 
 #endif

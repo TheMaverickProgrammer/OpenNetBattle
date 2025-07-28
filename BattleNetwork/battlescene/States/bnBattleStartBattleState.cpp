@@ -19,7 +19,8 @@ void BattleStartBattleState::onStart(const BattleSceneState* _)
   GetScene().IncrementTurnCount();
 
   // only reveal first player's UI widget to them
-  auto ui = GetScene().GetLocalPlayer()->GetFirstComponent<PlayerSelectedCardsUI>();
+  std::shared_ptr<Player> localPlayer = GetScene().GetLocalPlayer();
+  std::shared_ptr<PlayerSelectedCardsUI> ui = localPlayer->GetFirstComponent<PlayerSelectedCardsUI>();
 
   if (ui) {
     ui->Reveal();

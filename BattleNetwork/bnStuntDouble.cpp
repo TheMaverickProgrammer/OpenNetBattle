@@ -21,19 +21,19 @@ void StuntDouble::Init() {
   Character::Init();
 
   // add common components and copy
-  auto anim = CreateComponent<AnimationComponent>(weak_from_this());
+  std::shared_ptr<AnimationComponent> anim = CreateComponent<AnimationComponent>(weak_from_this());
 
   // palette swap if applicable
-  if (auto palette = ref->GetPalette()) {
+  if (std::shared_ptr<sf::Texture> palette = ref->GetPalette()) {
     SetPalette(palette);
   }
 
   // animation component if applicable
-  if (auto otherAnim = ref->GetFirstComponent<AnimationComponent>()) {
+  if (std::shared_ptr<AnimationComponent> otherAnim = ref->GetFirstComponent<AnimationComponent>()) {
     anim->CopyFrom(*otherAnim);
 
     // sync items in the animation if applicable
-    for (auto&& item : otherAnim->GetSyncItems()) {
+    for (AnimationComponent::SyncItem& item : otherAnim->GetSyncItems()) {
       anim->AddToSyncList(item);
     }
 

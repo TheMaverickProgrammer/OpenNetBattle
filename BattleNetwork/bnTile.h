@@ -35,7 +35,7 @@ class Artifact;
 #include "bnEntity.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTeam.h"
-#include "bnTextureType.h"
+#include "bnResourcePaths.h"
 #include "bnTileState.h"
 #include "bnAnimation.h"
 #include "bnDefenseRule.h"
@@ -332,6 +332,7 @@ namespace Battle {
     bool isTimeFrozen{ false };
     bool isBattleOver{ false };
     bool isBattleStarted{ false };
+    bool isPerspectiveFlipped{ false };
     float width{};
     float height{};
     static double teamCooldownLength;

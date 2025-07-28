@@ -1,14 +1,15 @@
 #version 120
 
-const int WHITEOUT = 0;
-const int BLACKOUT = 1;
+const int WHITEOUT  = 0;
+const int BLACKOUT  = 1;
 const int HIGHLIGHT = 2;
+const int ICEOUT    = 3;
 
 uniform sampler2D texture;
 uniform sampler2D palette;
 uniform bool swapPalette;
 uniform bool additiveMode;
-uniform float states[3];
+uniform float states[4];
 
 vec4 colorize(in vec4 pixel) {
     vec4 color = gl_Color * vec4((pixel.r+pixel.g+pixel.b)/3.0);
@@ -16,8 +17,8 @@ vec4 colorize(in vec4 pixel) {
     return color;
 }
 
-vec4 additive(in vec4 pixel) {
-    vec4 color = (gl_Color*gl_Color.a) * (vec4(1.0)-pixel);
+vec4 additive(in vec4 mix_color, in vec4 pixel) {
+    vec4 color = (mix_color*mix_color.a) * (vec4(1.0)-pixel);
     color = color + pixel;
     color.a = pixel.a;
     return color;
@@ -74,13 +75,19 @@ void main()
         pixel = palette_swap(pixel);
     }
 
+    if(states[ICEOUT] > 0.01) {
+        vec4 bright_blue = vec4(0.8, 0.8, 1.0, 1.0);
+        gl_FragColor = additive(bright_blue, pixel);
+        return;
+    }
+
     if(states[HIGHLIGHT] > 0.01) {
         gl_FragColor = highlight(pixel);
         return;
     }
     
     if(additiveMode) {
-        gl_FragColor = additive(pixel);
+        gl_FragColor = additive(gl_Color, pixel);
         return;
     }
 

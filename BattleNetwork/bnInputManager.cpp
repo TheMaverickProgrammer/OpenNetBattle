@@ -171,12 +171,12 @@ void InputManager::EventPoll() {
   this->mutex.lock();
 
   // update gamepad inputs
-  if (sf::Joystick::isConnected(currGamepad)) {
+  if (sf::Joystick::isConnected(currGamepad) && hasFocus) {
     queuedGamepadState.clear();
 
     // track buttons
     for (unsigned int i = 0; i < sf::Joystick::getButtonCount(currGamepad); i++) {
-      auto buttonPressed = sf::Joystick::isButtonPressed(currGamepad, i);
+      bool buttonPressed = sf::Joystick::isButtonPressed(currGamepad, i);
 
       queuedGamepadState[i] = buttonPressed;
 
@@ -201,7 +201,7 @@ void InputManager::EventPoll() {
       axisXPower += sf::Joystick::getAxisPosition(currGamepad, sf::Joystick::Axis::X);
     }
 
-    if (sf::Joystick::hasAxis(currGamepad, sf::Joystick::Axis::Y)) {
+    if (sf::Joystick::hasAxis(currGamepad, sf::Joystick::Axis::Y) && hasFocus) {
       axisYPower += sf::Joystick::getAxisPosition(currGamepad, sf::Joystick::Axis::Y) * (invertThumbstick ? -1 : 1);
     }
 
@@ -229,7 +229,7 @@ void InputManager::EventPoll() {
       for (auto& [name, actionBindings] : bindings) {
         bool isActive = false;
 
-        for (auto& binding : actionBindings) {
+        for (InputManager::Binding& binding : actionBindings) {
           isActive |=
             binding.isKeyboardBinding
               ? useKeyboardControls && queuedKeyboardState[binding.input]

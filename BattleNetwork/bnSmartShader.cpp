@@ -103,7 +103,17 @@
       return;
     }
 
-    iiter iIter = iuniforms.begin();
+    // NOTE: Leaving this in here in case this comes back to haunt me.
+    //       Basically, revoking shaders was erasing the last shader to update 
+    //       and BattleCharacter shader is shared between all entities in the battle scene
+    //       So when someone was dying, the white shader replaced their BattleCharacter shader
+    //       but it erased all fields in the last BattleCharacter shader to update which wasn't
+    //       neccessarily the dying entity's own shader.
+    //       This caused some characters to turn black until a successfull RefreshShader() was called.
+    //       Update order is not the same as Draw order either! I may need to add this code in here again
+    //       but will need address the fact the underlining shader in a SmartShader are shared between many resources
+    //       and we need to be careful about overwriting their values in a frame!
+    /*iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
     diter dIter = duniforms.begin();
     farriter farrIter = farruniforms.begin();
@@ -144,7 +154,7 @@
 
     for (; texTypeIter != textypeuniforms.end(); texTypeIter++) {
       ref->setUniform(texTypeIter->first, sf::Shader::CurrentTexture);
-    }
+    }*/
 
     iuniforms.clear();
     funiforms.clear();

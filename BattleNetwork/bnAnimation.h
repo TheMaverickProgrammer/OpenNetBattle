@@ -172,6 +172,7 @@ public:
   void operator<<(const std::function<void()>& onFinish);
 
   sf::Vector2f GetPoint(const std::string& pointName);
+  const bool HasPoint(const std::string& pointName);
 
   char GetMode();
 

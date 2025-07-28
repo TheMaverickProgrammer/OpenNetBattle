@@ -8,7 +8,7 @@
 template<typename T>
 class CachedResource {
   long long lastRequestTime{}; //!< Used to determine if we should remove this resource
-  unsigned int useCount{}; //!< Higher useCount means this is frequently used
+  unsigned int relevanceCount{}; //!< Higher count means this is important
   bool permanent{}; //!< Never delete resource when timer is up
   using SharedPtrType = std::shared_ptr<std::remove_pointer_t<T>>;
   SharedPtrType resource; //!< shared ptr to the actual resource
@@ -20,7 +20,7 @@ public:
     permanent(perm)
   {
     lastRequestTime = CurrentTime::AsMilli();
-    useCount = 0;
+    relevanceCount = 0;
   }
 
   CachedResource(SharedPtrType ref, bool perm = false) : 
@@ -28,12 +28,12 @@ public:
     permanent(perm)
   {
     lastRequestTime = CurrentTime::AsMilli();
-    useCount = 0;
+    relevanceCount = 0;
   }
 
-  /*! \brief returns use count*/
-  const unsigned int GetUseCount() const {
-    return useCount;
+  /*! \brief returns get() counter*/
+  const unsigned int GetRelevanceCount() const {
+    return relevanceCount;
   }
 
   /*! \brief checks if this resource is still in use*/
@@ -46,7 +46,7 @@ public:
     the "last requested" timer.
   */
   SharedPtrType GetResource() {
-    useCount++;
+    relevanceCount++;
     lastRequestTime = CurrentTime::AsMilli();
     return resource;
   }

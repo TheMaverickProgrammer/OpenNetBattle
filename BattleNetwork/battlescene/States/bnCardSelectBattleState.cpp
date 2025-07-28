@@ -63,9 +63,13 @@ std::shared_ptr<std::vector<Battle::Card>> CardSelectBattleState::GetCardPtrList
 
 void CardSelectBattleState::onStart(const BattleSceneState*)
 {
-  CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
+  BattleSceneBase& scene = GetScene();
+  CardSelectionCust& cardCust = scene.GetCardSelectWidget();
 
   Audio().Play(AudioType::CUSTOM_SCREEN_OPEN);
+
+  // Reset bar and related flags
+  scene.SetCustomBarProgress(0.0);
 
   // Load the next cards
   cardCust.ResetState();
@@ -79,17 +83,19 @@ void CardSelectBattleState::onStart(const BattleSceneState*)
 
 void CardSelectBattleState::onUpdate(double elapsed)
 {
+  BattleSceneBase& scene = GetScene();
+  Camera& camera = scene.GetCamera();
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
 
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
-    GetScene().GetCamera().MoveCamera(sf::Vector2f(240.f, 134.f), sf::seconds(0.1f));
+    camera.MoveCamera(sf::Vector2f(240.f, 134.f), sf::seconds(0.1f));
     return;
   }
 
   if (!cardCust.IsOutOfView() && currState == state::slideout) {
     cardCust.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
-    GetScene().GetCamera().MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.1f));
+    camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.1f));
     return;
   }
 
@@ -189,18 +195,25 @@ void CardSelectBattleState::onUpdate(double elapsed)
           Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
 
           // If the list is untouched, we do not re-assign the cards
-          bool hasNewHand = cardCust.HasNewHand();
+          hasNewChips = cardCust.HasNewHand();
           std::vector<Battle::Card> newCards = cardCust.GetCards();
 
-          std::shared_ptr<Player> player = GetScene().GetLocalPlayer();
+          std::shared_ptr<Player> player = scene.GetLocalPlayer();
           std::shared_ptr<PlayerSelectedCardsUI> ui = player->GetFirstComponent<PlayerSelectedCardsUI>();
 
-          if (ui && hasNewHand) {
-            *cards = newCards;
-            GetScene().FilterSupportCards(player, *cards);
-            ui->LoadCards(*cards);
-            ui->Hide();
-            hasNewChips = true;
+          if (ui) {
+            if (hasNewChips) {
+              *cards = newCards;
+              // inform scene implementations of the new hand
+              scene.OnSelectNewCards(player, *cards);
+              scene.FilterSupportCards(player, *cards);
+              ui->LoadCards(*cards);
+              ui->Hide();
+            }
+            else {
+              // Send off the remaining hands to any scene implementations that need it
+              scene.OnSelectNewCards(player, ui->GetRemainingCards());
+            }
           }
 
           CheckFormChanges();
@@ -219,7 +232,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
         }
       }
-      else if (Input().Has(InputEvents::pressed_cancel) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+      else if (Input().Has(InputEvents::pressed_cancel)) {
         cardCust.CursorCancel() ? Audio().Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
       }
       else if (Input().Has(InputEvents::held_option)) {

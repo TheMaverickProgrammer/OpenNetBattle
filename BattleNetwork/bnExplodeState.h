@@ -26,10 +26,10 @@ class ExplodeState : public AIState<Any>
 {
 protected:
   std::shared_ptr<ExplosionSpriteNode> explosion; /*!< The root explosion object */
-  sf::Shader* whiteout; /*!< Flash the dying entity white */
-  double elapsed;
-  int numOfExplosions; /*!< Number of explosions to spawn */
-  double playbackSpeed; /*!< how fast the animation should be */
+  sf::Shader* whiteout{ nullptr }; /*!< Flash the dying entity white */
+  double elapsed{};
+  int numOfExplosions{}; /*!< Number of explosions to spawn */
+  double playbackSpeed{}; /*!< how fast the animation should be */
 
   void CleanupExplosions(Any& e);
 
@@ -72,11 +72,11 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
-  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height*0.8f);
+  sf::Vector2f area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height*0.8f);
 
   explosion->SetOffsetArea(area);
 
-  auto animation = e.template GetFirstComponent<AnimationComponent>();
+  std::shared_ptr<AnimationComponent> animation = e.template GetFirstComponent<AnimationComponent>();
 
   if (animation) {
     animation->SetPlaybackSpeed(0);

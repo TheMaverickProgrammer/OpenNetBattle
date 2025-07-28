@@ -370,7 +370,7 @@ void Player::ActivateFormAt(int index)
   }
 
   if (index >= 0 || index < forms.size()) {
-    auto meta = forms[index];
+    PlayerFormMeta* meta = forms[index];
     activeForm = meta->BuildForm();
 
     if (activeForm) {
@@ -383,7 +383,7 @@ void Player::ActivateFormAt(int index)
   }
 
   // Find nodes that do not have tags, those are newly added
-  for (auto& node : GetChildNodes()) {
+  for (std::shared_ptr<SceneNode>& node : GetChildNodes()) {
     // if untagged and not the charge effect...
     if (!node->HasTag(Player::BASE_NODE_TAG) && node != chargeEffect) {
       // Tag it as a form node

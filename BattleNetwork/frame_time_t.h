@@ -140,3 +140,40 @@ template<typename T>
 frame_time_t::operator T() const {
   return time_cast<T>(*this);
 }
+
+/**
+* stop watch implementation that uses frame_time_t
+*/
+
+
+class frame_time_stopwatch_t {
+private:
+  frame_time_t timer{ frames(0) };
+  bool paused{ true };
+
+public:
+  inline void tick(frame_time_t frames = ::frames(1)) {
+    if (paused) return;
+    timer += frames;
+  }
+
+  inline void start() {
+    paused = false;
+  }
+
+  inline void pause() {
+    paused = true;
+  }
+
+  inline void reset() {
+    timer = frames(0);
+  }
+
+  inline const frame_time_t elapsed() const {
+    return timer;
+  }
+
+  inline const bool is_paused() const {
+    return paused;
+  }
+};

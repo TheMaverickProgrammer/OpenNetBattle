@@ -108,9 +108,6 @@ void CombatBattleState::onStart(const BattleSceneState* last)
     scene.GetField()->ToggleTimeFreeze(false);
 
     hasTimeFreeze = false;
-
-    // reset bar and related flags
-    scene.SetCustomBarProgress(0);
   }
 }
 
@@ -122,9 +119,6 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
   // then reset our combat and custom progress values
   if (this->HandleNextRoundSetup(next)) {
     scene.StopBattleStepTimer();
-
-    // reset bar 
-    scene.SetCustomBarProgress(0);
   }
 
   scene.HighlightTiles(false);
@@ -207,7 +201,7 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
   // Only intercept this event if we are active
   if (scene.GetCurrentState() != this) return;
 
-  Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i", scene.FrameNumber().count());
+  Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i, with gauge progress %f", scene.FrameNumber().count(), this->GetScene().GetCustomBarProgress());
   if (!IsMobCleared()) {
     hasTimeFreeze = action->GetMetaData().timeFreeze;
   }

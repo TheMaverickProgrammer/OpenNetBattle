@@ -27,7 +27,7 @@ class CardSelectBattleState final : public BattleSceneState {
   bool pvpMode{ false };
   bool hasNewChips{ false }; 
   bool formSelected{ false };
-  bool firstTime{ true };
+  bool firstTime{ true }; //!< Show opposing mob's names on the first round
   int currForm{ -1 };
   float streamVolume{ -1.f };
   Font font;

@@ -29,7 +29,7 @@ struct DownloadSceneProps;
 class DownloadScene final : public Scene {
 private:
   bool& downloadSuccess;
-  bool inView{}, handshakeSent{};
+  bool inView{};
   bool downloadFlagSet{}, transitionSignalSent{}, transitionToPvp{}, aborting{}, remoteSuccess{}, remoteHandshake{}, hasTradedData{}, coinFlipComplete{};
   bool playerPackageRequested{}, cardPackageRequested{}, blockPackageRequested{};
   bool downloadSoundPlayed{};

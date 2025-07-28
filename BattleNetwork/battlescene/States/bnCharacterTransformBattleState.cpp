@@ -85,10 +85,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     if (shineAnimations[count].GetAnimationString() != "SHINE") {
       shineAnimations[count] << "SHINE";
-
       if (index == -1) {
         // If decross, turn white immediately
-        shineAnimations[count] << Animator::On(1, [=] {      
+        shineAnimations[count] << Animator::On(1, [=] {
           player->SetShader(Shaders().GetShader(ShaderType::WHITE));
         }) << Animator::On(10, onTransform);
       }
@@ -105,8 +104,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     } // else, it is already "SHINE" so wait the animation out...
 
-    // update for draw call later
+    // Update animation
     frameElapsed = elapsed;
+    shineAnimations[count].Update(frameElapsed, shine);
 
     count++;
   }
@@ -126,6 +126,7 @@ bool CharacterTransformBattleState::IsFinished() {
 }
 
 void CharacterTransformBattleState::onStart(const BattleSceneState*) {
+  Logger::Log(LogLevel::info, "CharacterTransformBattleState::onStart");
   if (skipBackdrop) {
     currState = state::animate;
   }
@@ -157,6 +158,7 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
 void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 {
+  Logger::Log(LogLevel::info, "CharacterTransformBattleState::onEnd");
   for (auto&& anims : shineAnimations) {
     anims.SetAnimation(""); // ends the shine anim
   }
@@ -169,11 +171,9 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
   BattleSceneBase& scene = GetScene();
 
   size_t count = 0;
+
   for (std::shared_ptr<Player>& player : scene.GetAllPlayers()) {
     auto& [index, complete] = scene.GetPlayerFormData(player);
-
-    Animation& anim = shineAnimations[count];
-    anim.Update(static_cast<float>(frameElapsed), shine);
 
     if (index != -1 && !complete) {
       // re-use the shine graphic for all animating player-types 

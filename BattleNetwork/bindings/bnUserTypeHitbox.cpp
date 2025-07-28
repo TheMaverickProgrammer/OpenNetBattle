@@ -139,7 +139,8 @@ void DefineHitboxUserTypes(sol::state& state, sol::table& battle_namespace) {
     "Breaking", Hit::breaking,
     "Bubble", Hit::bubble,
     "Freeze", Hit::freeze,
-    "Drag", Hit::drag
+    "Drag", Hit::drag,
+    "Blind", Hit::blind
   );
 
   state.new_usertype<Hit::Drag>("Drag",

@@ -1,0 +1,19 @@
+imagePath="ice_fx.png"
+
+animation state="SMALL"
+frame duration="1.0" x="68" y="65" w="21" h="22" originx="10" originy="11"
+frame duration="0.1" x="68" y="33" w="21" h="22" originx="10" originy="11"
+frame duration="0.1" x="0" y="97" w="21" h="22" originx="10" originy="11"
+frame duration="0.1" x="21" y="97" w="21" h="22" originx="10" originy="11"
+
+animation state="MEDIUM"
+frame duration="1.0" x="0" y="0" w="24" h="33" originx="12" originy="16"
+frame duration="0.1" x="24" y="0" w="24" h="33" originx="12" originy="16"
+frame duration="0.1" x="48" y="0" w="24" h="33" originx="12" originy="16"
+frame duration="0.1" x="72" y="0" w="24" h="33" originx="12" originy="16"
+
+animation state="LARGE"
+frame duration="1.0" x="0" y="33" w="34" h="32" originx="17" originy="16"
+frame duration="0.1" x="34" y="33" w="34" h="32" originx="17" originy="16"
+frame duration="0.1" x="0" y="65" w="34" h="32" originx="17" originy="16"
+frame duration="0.1" x="34" y="65" w="34" h="32" originx="17" originy="16"

@@ -15,11 +15,11 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
-  auto actor = actorWeak.lock();
+  std::shared_ptr<Character> actor = actorWeak.lock();
 
   busterAttachment = &AddAttachment("buster");
 
-  auto& busterAnim = busterAttachment->GetAnimationObject();
+  Animation& busterAnim = busterAttachment->GetAnimationObject();
   busterAnim.Load(actor->GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
@@ -29,7 +29,9 @@ BusterCardAction::BusterCardAction(std::weak_ptr<Character> actorWeak, bool char
   buster->EnableParentShader(true);
   buster->AddTags({Player::BASE_NODE_TAG});
 
-  this->SetLockout({ CardAction::LockoutType::async, 0.5 });
+  busterAnim.Refresh(buster->getSprite());
+
+  SetLockout({ CardAction::LockoutType::async, 0.5 });
 }
 
 void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
@@ -38,8 +40,8 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
   // On shoot frame, drop projectile
   auto onFire = [this, user]() -> void {
     Team team = user->GetTeam();
-    auto b = std::make_shared<Buster>(team, charged, damage);
-    auto field = user->GetField();
+    std::shared_ptr<Buster> b = std::make_shared<Buster>(team, charged, damage);
+    std::shared_ptr<Field> field = user->GetField();
 
     b->SetMoveDirection(user->GetFacing());
 
@@ -52,13 +54,13 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
     field->AddEntity(b, *user->GetTile());
     Audio().Play(AudioType::BUSTER_PEA);
 
-    auto& attachment = busterAttachment->AddAttachment("endpoint");
+    CardAction::Attachment& attachment = busterAttachment->AddAttachment("endpoint");
 
-    auto flare = attachment.GetSpriteNode();
+    std::shared_ptr<SpriteProxyNode> flare = attachment.GetSpriteNode();
     flare->setTexture(Textures().LoadFromFile(NODE_PATH));
     flare->SetLayer(-1);
 
-    auto& flareAnim = attachment.GetAnimationObject();
+    Animation& flareAnim = attachment.GetAnimationObject();
     flareAnim = Animation(NODE_ANIM);
     flareAnim.SetAnimation("DEFAULT");
   };
@@ -73,13 +75,13 @@ void BusterCardAction::Update(double _elapsed)
 
 void BusterCardAction::OnActionEnd()
 {
-  auto actor = GetActor();
+  std::shared_ptr<Character> actor = GetActor();
   if (!actor) return;
 
-  auto field = actor->GetField();
+  std::shared_ptr<Field> field = actor->GetField();
 
   if (field) {
-    field->DropNotifier(this->notifier);
+    field->DropNotifier(notifier);
   }
 }
 

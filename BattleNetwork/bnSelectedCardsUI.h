@@ -81,9 +81,9 @@ public:
   void DropNextCard();
 
   /**
-  * @brief Returns the uuids of all the cards
+  * @brief Returns the uuids of all the remaining cards
   */
-  std::vector<std::string> GetUUIDList();
+  std::vector<Battle::Card> GetRemainingCards();
 
 protected:
 

@@ -7,9 +7,6 @@
 
 void DefineScriptedObstacleUserType(sol::state& state, sol::table& battle_namespace) {
   auto from = [state = &state] (std::shared_ptr<Entity> entity) {
-    if (auto obstacle = std::dynamic_pointer_cast<ScriptedObstacle>(entity)) {
-      return sol::make_object(*state, WeakWrapper(obstacle));
-    }
     if (auto obstacle = std::dynamic_pointer_cast<Obstacle>(entity)) {
       return sol::make_object(*state, WeakWrapper(obstacle));
     }

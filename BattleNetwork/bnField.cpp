@@ -582,7 +582,12 @@ void Field::UpdateEntityOnce(Entity& entity, const double elapsed)
   if(updatedEntities.find(entity.GetID()) != updatedEntities.end())
       return;
 
-  entity.InputState().Process();
+  if (elapsed > 0.0) {
+    // This is a refresh frame, not an update frame
+    // Do not process inputs on refresh 
+    entity.InputState().Process();
+  }
+
   entity.Update(elapsed);
   updatedEntities.insert(std::make_pair(entity.GetID(), (void*)0));
 }

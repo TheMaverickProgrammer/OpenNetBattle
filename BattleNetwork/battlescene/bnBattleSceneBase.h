@@ -146,9 +146,9 @@ private:
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
 
   // sprites
-  swoosh::Timer comboInfoTimer; /*!< How long the info should stay on screen */
-  swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
-  swoosh::Timer battleTimer; /*!< Total duration of active battle time */
+  frame_time_stopwatch_t comboInfoTimer; /*!< How long the info should stay on screen */
+  frame_time_stopwatch_t multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
+  frame_time_stopwatch_t battleTimer; /*!< Total duration of active battle time */
 
   // shader fx
   double shaderCooldown;
@@ -279,7 +279,7 @@ protected:
   */
   void ProcessNewestComponents();
   void FlushLocalPlayerInputQueue();
-  std::vector<InputEvent> ProcessLocalPlayerInputQueue(unsigned int lag = 0);
+  std::vector<InputEvent> ProcessLocalPlayerInputQueue(unsigned int lag = 0, bool gatherInput = true);
   void OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp) override final;
   void OnCounter(Entity& victim, Entity& aggressor) override final;
   void OnSpawnEvent(std::shared_ptr<Character>& spawned) override final;
@@ -374,7 +374,7 @@ public:
   virtual void onEnd() override;
 
   // Define what happens on scenes that need to inspect pre-filtered card selections
-  virtual void OnFilterSupportCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
+  virtual void OnSelectNewCards(const std::shared_ptr<Player>& player, std::vector<Battle::Card>& cards) {};
 
   void DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf);
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
@@ -409,7 +409,7 @@ public:
   virtual void IncrementRoundCount();
   void SkipFrame();
   void IncrementFrame();
-  const sf::Time GetElapsedBattleTime();
+  const frame_time_t GetElapsedBattleFrames();
 
   const bool FadeInBackdrop(double amount, double to, bool affectBackground);
   const bool FadeOutBackdrop(double amount);

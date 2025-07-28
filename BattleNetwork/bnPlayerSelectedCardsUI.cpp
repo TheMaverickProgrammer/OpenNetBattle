@@ -35,9 +35,9 @@ PlayerSelectedCardsUI::~PlayerSelectedCardsUI() {
 }
 
 void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  if (this->IsHidden()) return;
+  if (IsHidden()) return;
 
-  const auto orange = sf::Color(225, 140, 0);
+  const sf::Color orange = sf::Color(225, 140, 0);
   bool canBoost{};
 
   text.SetString("");
@@ -48,16 +48,16 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
   //this_states.transform *= getTransform();
   states.transform *= getTransform();
 
-  if (auto player = GetOwnerAs<Player>()) {
+  if (std::shared_ptr<Player> player = GetOwnerAs<Player>()) {
     int cardOrder = 0;
 
     // i = curr so we only see the cards that are left
     int curr = GetCurrentCardIndex();
     unsigned multiplierValue = GetMultiplier();
-    auto& selectedCards = GetSelectedCards();
+    std::vector<Battle::Card>& selectedCards = GetSelectedCards();
     int cardCount = selectedCards.size();
-    auto& icon = IconNode();
-    auto& frame = FrameNode();
+    SpriteProxyNode& icon = IconNode();
+    SpriteProxyNode& frame = FrameNode();
 
     for (int i = curr; i < cardCount; i++) {
       // The first card appears in front
@@ -136,7 +136,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
 
     // If we have a valid card, update and draw the data
     if (cardCount > 0 && curr < cardCount) {
-      auto& currCard = selectedCards[curr];
+      Battle::Card& currCard = selectedCards[curr];
 
       canBoost = currCard.CanBoost();
 
@@ -172,7 +172,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
   }
 
   // shadow beneath
-  auto textPos = text.getPosition();
+  sf::Vector2f textPos = text.getPosition();
   text.SetColor(sf::Color::Black);
   text.setPosition(textPos.x + 2.f, textPos.y + 2.f);
   target.draw(text);
@@ -187,7 +187,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
 
   if (canBoost) {
     // shadow
-    auto multiPos = multiplier.getPosition();
+    sf::Vector2f multiPos = multiplier.getPosition();
     multiplier.SetColor(sf::Color::Black);
     multiplier.setPosition(multiPos.x + 2.f, multiPos.y + 2.f);
     target.draw(multiplier);
@@ -214,7 +214,7 @@ void PlayerSelectedCardsUI::OnUpdate(double _elapsed) {
 
 void PlayerSelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
-  auto player = GetOwnerAs<Player>();
+  std::shared_ptr<Player> player = GetOwnerAs<Player>();
 
   if (player && player->GetEmotion() == Emotion::angry) {
     player->SetEmotion(Emotion::normal);

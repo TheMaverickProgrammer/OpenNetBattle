@@ -566,18 +566,39 @@ void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, 
             meta.filterHandStep(cards[i].props, adjCards);
           }
 
+          size_t this_card = i;
+          /* 
+            Whether or not to do another loop on this index.
+            True when left, right, or this card were deleted.
+
+            By setting true on left and right delete, the filter 
+            step will run for this card again so that it can run 
+            with the new adjacent cards.
+
+            By setting true when deleting itself, the new card 
+            coming into this index won't be skipped.
+          */
+          bool check_again = false;
+
           if (adjCards.deleteLeft) {
-            cards.erase(cards.begin() + i - 1u);
-            i--;
+            cards.erase(cards.begin() + this_card - 1u);
+            this_card--;
+            check_again = true;
           }
 
           if (adjCards.deleteRight) {
-            cards.erase(cards.begin() + i + 1u);
-            i--;
+            cards.erase(cards.begin() + this_card + 1u);
+            // This card index hasn't changed
+
+            check_again = true;
           }
 
           if (adjCards.deleteThisCard) {
-            cards.erase(cards.begin() + i);
+            cards.erase(cards.begin() + this_card);
+            check_again = true;
+          }
+
+          if (check_again) {
             i--;
           }
         }

@@ -24,6 +24,8 @@ public:
   void OnCollision(const std::shared_ptr<Entity> other) override;
   void Attack(std::shared_ptr<Entity> e) override;
   void OnSpawn(Battle::Tile& spawn) override;
+  void OnBattleStart() override;
+  void OnBattleStop() override;
   const float GetHeight() const;
   void SetHeight(const float height);
 

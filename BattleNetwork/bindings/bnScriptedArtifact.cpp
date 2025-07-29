@@ -43,6 +43,32 @@ void ScriptedArtifact::OnSpawn(Battle::Tile& tile)
   }
 }
 
+void ScriptedArtifact::OnBattleStart() {
+  if (battle_start_func.valid())
+  {
+    auto result = CallLuaCallback(battle_start_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+
+  Artifact::OnBattleStart();
+}
+
+void ScriptedArtifact::OnBattleStop() {
+  Artifact::OnBattleStop();
+
+  if (battle_end_func.valid())
+  {
+    auto result = CallLuaCallback(battle_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+}
+
 void ScriptedArtifact::OnDelete()
 {
   if (delete_func.valid()) 

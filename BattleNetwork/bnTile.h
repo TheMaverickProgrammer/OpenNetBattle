@@ -335,12 +335,12 @@ namespace Battle {
     bool isPerspectiveFlipped{ false };
     float width{};
     float height{};
-    static double teamCooldownLength;
-    static double brokenCooldownLength;
-    static double flickerTeamCooldownLength;
-    double teamCooldown{};
-    double brokenCooldown{};
-    double flickerTeamCooldown{};
+    static frame_time_t teamCooldownLength;
+    static frame_time_t brokenCooldownLength;
+    static frame_time_t flickerTeamCooldownLength;
+    frame_time_t teamCooldown{};
+    frame_time_t brokenCooldown{};
+    frame_time_t flickerTeamCooldown{};
     double totalElapsed{};
     double elapsedBurnTime{};
     double burncycle{};

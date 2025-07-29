@@ -1303,7 +1303,9 @@ void Entity::ResolveFrameBattleDamage()
       GetTile()->SetState(TileState::normal);
     }
     
-    if (props.filtered.element == Element::elec
+    // TODO: Replace with Sea state check when Sea panels 
+    // are added. Disabling bonus damage for now.
+    if (false && props.filtered.element == Element::elec
       && GetTile()->GetState() == TileState::ice) {
       tileDamage = props.filtered.damage;
     }

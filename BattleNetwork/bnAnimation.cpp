@@ -145,6 +145,20 @@ static float GetFloatValue(std::string_view line, std::string_view key) {
   return std::strtof(valueView.data(), nullptr);
 }
 
+static frame_time_t GetFrameValue(std::string_view line, std::string_view key) {
+  std::string_view valueView = GetValue(line, key);
+
+  if (valueView.empty()) return frames(0);
+
+  // frame value
+  if (valueView.at(valueView.size() - 1) == 'f') {
+    valueView = valueView.substr(0, valueView.size() - 1);
+    return frames(static_cast<int64_t>(std::strtof(valueView.data(), nullptr)));
+  }
+
+  return from_seconds(std::fabs(std::strtof(valueView.data(), nullptr)));
+}
+
 static bool GetBoolValue(std::string_view line, std::string_view key) {
   std::string_view valueView = GetValue(line, key);
   return valueView == "1" || valueView == "true";
@@ -216,10 +230,7 @@ void Animation::LoadWithData(const string& data)
         continue;
       }
 
-      float duration = GetFloatValue(line, "duration");
-
-      // prevent negative frame numbers
-      frame_time_t currentFrameDuration = from_seconds(std::fabs(duration));
+      frame_time_t currentFrameDuration = GetFrameValue(line, "duration");
 
       frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect{}, sf::Vector2f{ 0, 0 }, false, false);
     }

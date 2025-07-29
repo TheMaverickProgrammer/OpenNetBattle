@@ -258,7 +258,7 @@ std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, F
 std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+    bool triggered = form.IsFinished() && playerDecross;
 
     if (triggered) {
       playerDecross = false; // reset our decross flag
@@ -281,9 +281,7 @@ std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBatt
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
     TrackedFormData& formData = GetPlayerFormData(localPlayer);
 
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
+    bool changeState = playerDecross && (formData.selectedForm != -1);
 
     if (changeState) {
       formData.selectedForm = -1;

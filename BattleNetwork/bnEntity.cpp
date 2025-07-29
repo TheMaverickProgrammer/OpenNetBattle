@@ -957,6 +957,9 @@ void Entity::Delete()
 
   deleted = true;
 
+  // zero all blocking statuses
+  freezeCooldown = stunCooldown = rootCooldown = blindCooldown = frames(0);
+
   OnDelete();
 }
 

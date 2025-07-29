@@ -685,7 +685,7 @@ namespace Battle {
           elapsedBurnTime = 0;
         }
 
-        if (GetState() == TileState::lava) {
+        if (GetState() == TileState::lava && character.GetElement() != Element::fire) {
           Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, 0, Direction::none };
           if (character.HasCollision(props)) {
             character.Hit(props);

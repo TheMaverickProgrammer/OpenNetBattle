@@ -200,6 +200,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
       else{
         first->user->Reveal();
+        first->action->EndAction();
         scene.UntrackMobCharacter(first->stuntDouble);
         scene.GetField()->DeallocEntity(first->stuntDouble->GetID());
 

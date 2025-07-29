@@ -453,7 +453,9 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
 
   HitListener::Subscribe(*localPlayer);
 
-  PreparePlayerFullSynchro(localPlayer);
+  if (localPlayer->GetEmotion() == Emotion::full_synchro) {
+    PreparePlayerFullSynchro(localPlayer);
+  }
 }
 
 void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
@@ -481,7 +483,9 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
 
   HitListener::Subscribe(*player);
 
-  PreparePlayerFullSynchro(player);
+  if (player->GetEmotion() == Emotion::full_synchro) {
+    PreparePlayerFullSynchro(player);
+  }
 }
 
 void BattleSceneBase::LoadRedTeamMob(Mob& mob)

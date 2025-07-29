@@ -339,6 +339,22 @@ void Entity::Init() {
 void Entity::Update(double _elapsed) {
   ResolveFrameBattleDamage();
 
+  // Wood entities heal on grass tiles over a specific time
+  if (GetElement() == Element::wood && GetTile()->GetState() == TileState::grass) {
+    grassHealCooldown -= from_seconds(_elapsed);
+
+    // Heal and reset based on current health
+    if (grassHealCooldown <= frames(0)) {
+      SetHealth(GetHealth() + 1);
+      if (GetHealth() >= 9) {
+        grassHealCooldown = frames(20);
+      }
+      else {
+        grassHealCooldown = frames(180);
+      }
+    }
+  }
+
   if (fieldStart && ((maxHealth > 0 && health <= 0) || IsDeleted())) {
     // Ensure entity is deleted if health is zero
     if (manualDelete == false) {

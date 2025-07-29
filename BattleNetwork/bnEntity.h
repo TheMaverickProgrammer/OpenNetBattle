@@ -769,6 +769,7 @@ protected:
   ActionQueue actionQueue;
   frame_time_t moveStartupDelay{};
   std::optional<frame_time_t> moveEndlagDelay;
+  frame_time_t grassHealCooldown{ 0 }; /*!< Timer until next healing is allowed */
   frame_time_t stunCooldown{ 0 }; /*!< Timer until stun is over */
   frame_time_t rootCooldown{ 0 }; /*!< Timer until root is over */
   frame_time_t freezeCooldown{ 0 }; /*!< Timer until freeze is over */

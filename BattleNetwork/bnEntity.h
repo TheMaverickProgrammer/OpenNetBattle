@@ -704,9 +704,10 @@ public:
    * @brief Toggle whether or not to highlight a tile
    * @param mode
    * 
-   * FLASH - flicker every other frame
-   * SOLID - Stay yellow
-   * NONE  - this is the default. No effects are applied.
+   * flash      - Flicker every other frame
+   * solid      - Stay yellow
+   * none       - This is the default. No effects are applied.
+   * automatic  - Highlight yellow when attacking. This will auto disable when done.
    */
   void HighlightTile(Battle::TileHighlight mode);
 

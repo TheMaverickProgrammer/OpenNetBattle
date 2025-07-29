@@ -1203,7 +1203,46 @@ const bool Entity::Hit(Hit::Properties props) {
     props.damage *= 2;
   }
 
-  SetHealth(GetHealth() - props.damage);
+  int tileDamage = 0;
+  int extraDamage = 0;
+
+  // Calculate elemental damage if the tile the character is on is super effective to it
+  if (props.element == Element::fire
+    && GetTile()->GetState() == TileState::grass) {
+    tileDamage = props.damage;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  // TODO: Replace with Sea state check when Sea panels 
+  // are added. Disabling bonus damage for now.
+  if (false && props.element == Element::elec
+    && GetTile()->GetState() == TileState::ice) {
+    tileDamage = props.damage;
+  }
+
+  /*
+  if (props.element == Element::aqua
+    && GetTile()->GetState() == TileState::ice
+    && !frameFreezeCancel) {
+    willFreeze = true;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  if ((props.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
+    extraDamage = props.damage;
+    frameFreezeCancel = true;
+  }
+  */
+
+  int totalDamage = props.damage + (tileDamage + extraDamage);
+
+  // Broadcast the hit before we apply statuses and change the entity's state flags
+  if (totalDamage > 0) {
+    SetHealth(GetHealth() - (tileDamage + extraDamage));
+    HitPublisher::Broadcast(*this, props);
+  }
+
+  SetHealth(GetHealth() - totalDamage);
 
   if (IsTimeFrozen()) {
     props.flags |= Hit::no_counter;
@@ -1294,40 +1333,6 @@ void Entity::ResolveFrameBattleDamage()
       }
     };
 
-    int tileDamage = 0;
-    int extraDamage = 0;
-
-    // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.filtered.element == Element::fire
-      && GetTile()->GetState() == TileState::grass) {
-      tileDamage = props.filtered.damage;
-      GetTile()->SetState(TileState::normal);
-    }
-    
-    // TODO: Replace with Sea state check when Sea panels 
-    // are added. Disabling bonus damage for now.
-    if (false && props.filtered.element == Element::elec
-      && GetTile()->GetState() == TileState::ice) {
-      tileDamage = props.filtered.damage;
-    }
-
-    if (props.filtered.element == Element::aqua 
-      && GetTile()->GetState() == TileState::ice 
-      && !frameFreezeCancel) {
-      willFreeze = true;
-      GetTile()->SetState(TileState::normal);
-    }
-
-    if ((props.filtered.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
-      extraDamage = props.filtered.damage;
-      frameFreezeCancel = true;
-    }
-
-    // Broadcast the hit before we apply statuses and change the entity's state flags
-    if (props.filtered.damage > 0) {
-      SetHealth(GetHealth() - (tileDamage + extraDamage));
-      HitPublisher::Broadcast(*this, props.filtered);
-    }
 
     // start of new scope
     {

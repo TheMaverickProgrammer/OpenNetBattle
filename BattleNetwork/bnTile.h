@@ -49,6 +49,7 @@ namespace Battle {
     none = 0,
     flash = 1,
     solid = 2,
+    automatic = 3
   };
 
   class Tile : public SpriteProxyNode, public ResourceHandle {
@@ -328,6 +329,8 @@ namespace Battle {
 
     int x{}; /**< Column number*/
     int y{}; /**< Row number*/
+    float offsetX{};
+    float offsetY{};
     bool willHighlight{ false }; /**< Highlights when there is a spell occupied in this tile */
     bool isTimeFrozen{ false };
     bool isBattleOver{ false };
@@ -341,9 +344,9 @@ namespace Battle {
     frame_time_t teamCooldown{};
     frame_time_t brokenCooldown{};
     frame_time_t flickerTeamCooldown{};
-    double totalElapsed{};
-    double elapsedBurnTime{};
-    double burncycle{};
+    frame_time_t totalElapsed{};
+    frame_time_t elapsedBurnTime{};
+    frame_time_t burncycle{};
     std::weak_ptr<Field> fieldWeak;
     std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;
@@ -368,7 +371,7 @@ namespace Battle {
 
     Animation animation;
     Animation volcanoErupt;
-    double volcanoEruptTimer{ 4 }; // seconds
+    frame_time_t volcanoEruptTimer{ 240 };
     std::shared_ptr<SpriteProxyNode> volcanoSprite;
   };
 

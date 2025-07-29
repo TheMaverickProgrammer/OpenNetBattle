@@ -2,6 +2,7 @@
 #include <Swoosh/ActivityController.h>
 #include <atomic>
 #include <thread>
+#include <filesystem>
 
 #include "cxxopts/cxxopts.hpp"
 #include "bnTaskGroup.h"
@@ -16,6 +17,8 @@
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
 #include "bnPackageManager.h"
+
+#define APP_NAME "OpenNetBattle"
 
 #define ONB_REGION_JAPAN 0
 #define ONB_ENABLE_PIXELATE_GFX 0
@@ -64,6 +67,7 @@ private:
   bool frameByFrame{}, isDebug{}, quitting{ false };
   bool singlethreaded{ false };
   bool isRecording{}, isRecordOutSaving{}, recordPressed{};
+  const char* appName{ APP_NAME };
 
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
@@ -146,14 +150,14 @@ public:
   void Record(bool enabled = true);
   void SetSubtitle(const std::string& subtitle);
 
-  const std::string AppDataPath();
-  const std::string CacheDataPath();
-  const std::string DesktopPath();
-  const std::string DownloadsPath();
-  const std::string DocumentsPath();
-  const std::string VideosPath();
-  const std::string PicturesPath();
-  const std::string SaveGamesPath();
+  const std::filesystem::path AppDataPath();
+  const std::filesystem::path CacheDataPath();
+  const std::filesystem::path DesktopPath();
+  const std::filesystem::path DownloadsPath();
+  const std::filesystem::path DocumentsPath();
+  const std::filesystem::path VideosPath();
+  const std::filesystem::path PicturesPath();
+  const std::filesystem::path SaveGamesPath();
 
   CardPackagePartitioner& CardPackagePartitioner();
   PlayerPackagePartitioner& PlayerPackagePartitioner();

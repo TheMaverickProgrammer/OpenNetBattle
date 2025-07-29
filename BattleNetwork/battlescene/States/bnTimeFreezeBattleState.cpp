@@ -238,8 +238,12 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   double tfcTimerScale = 0;
 
-  if (summonTick.asSeconds().value > fadeInOutLength.asSeconds().value) {
-    tfcTimerScale = swoosh::ease::linear((double)(summonTick - fadeInOutLength).value, (double)summonTextLength.asSeconds().value, 1.0);
+  double summonTickSeconds = summonTick.asSeconds().value;
+  double fadeSeconds = fadeInOutLength.asSeconds().value;
+
+
+  if (summonTickSeconds > fadeSeconds) {
+    tfcTimerScale = swoosh::ease::linear((summonTickSeconds - fadeSeconds), (double)(summonTextLength.asSeconds().value - fadeSeconds), 1.0);
   }
 
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
@@ -249,7 +253,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   bar.setScale(2.f, 2.f);
 
   if (summonTick >= summonTextLength) {
-    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
+    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeSeconds, 1.0);
     scale = std::max(scale, 0.0);
   }
 
@@ -289,6 +293,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
+
     bar.setFillColor(sf::Color(255, 255, b));
     scene.DrawWithPerspective(bar, surface);
   }

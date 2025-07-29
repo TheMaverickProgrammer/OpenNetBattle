@@ -220,6 +220,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     }
     break;
   }
+
+  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
+    ChargeEffectSceneNode& chargeNode = player->GetChargeComponent();
+    chargeNode.Animate(elapsed);
+  }
 }
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)

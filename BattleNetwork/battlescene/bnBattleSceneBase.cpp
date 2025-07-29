@@ -1275,6 +1275,7 @@ std::vector<std::reference_wrapper<const Character>> BattleSceneBase::BlueTeamMo
 
 void BattleSceneBase::Quit(const FadeOut& mode) {
   if(quitting) return; 
+  quitting = true;
 
   // end the current state
   if(current) {
@@ -1285,7 +1286,6 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
   // NOTE: swoosh quirk
   if (getController().getStackSize() == 1) {
     getController().pop();
-    quitting = true;
     return;
   }
 
@@ -1301,8 +1301,6 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
     // mode == FadeOut::pixelate
     getController().pop<segue<PixelateBlackWashFade>>();
   }
-
-  quitting = true;
 }
 
 

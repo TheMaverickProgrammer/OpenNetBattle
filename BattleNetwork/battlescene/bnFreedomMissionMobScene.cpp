@@ -216,7 +216,13 @@ void FreedomMissionMobScene::onLeave()
 }
 
 void FreedomMissionMobScene::onEnd() {
-  if (!IsPlayerDeleted()) {
+  /*
+    Handle results here, because there is no rewards state.
+    Do not do anything if the Player was defeated or the 
+    scene is ending by the player quitting. This avoids 
+    sending a score to a server when one isn't appropriate.
+  */
+  if (!IsQuitting() && !IsPlayerDeleted()) {
     BattleResults& results = BattleResultsObj();
     std::shared_ptr<Player> player = GetLocalPlayer();
     results.battleLength = sf::seconds(GetElapsedBattleFrames().count() / 60.f);

@@ -959,24 +959,31 @@ namespace Battle {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
 
+    bool hitByWind{}, hitByFire{}, hitByAqua{};
+
     // Now that spells and characters have updated and moved, they are due to check for attack outcomes
     std::vector<std::shared_ptr<Character>> characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (std::shared_ptr<Character>& character : characters_copy) {
-      // the entity is a character (can be hit) and the team isn't the same
-      // we see if it passes defense checks, then call attack
+    for (Entity::ID_t ID: queuedAttackers) {
+      std::shared_ptr<Entity> attacker = field.GetEntity(ID);
+
+      if (!attacker) {
+        Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
+        continue;
+      }
+
+      Hit::Properties props = attacker->GetHitboxProperties();
+
+      hitByWind = hitByWind || props.element == Element::wind;
+      hitByFire = hitByFire || props.element == Element::fire;
+      hitByAqua = hitByAqua || props.element == Element::aqua;
 
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
-      for (Entity::ID_t ID : queuedAttackers) {
-        std::shared_ptr<Entity> attacker = field.GetEntity(ID);
-
-        if (!attacker) {
-          Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
-          continue;
-        }
-
+      for (std::shared_ptr<Character>& character : characters_copy) {
+        // the entity is a character (can be hit) and the team isn't the same
+        // we see if it passes defense checks, then call attack
         if (!character->IsHitboxAvailable())
           continue;
 
@@ -1006,7 +1013,6 @@ namespace Battle {
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        Hit::Properties props = attacker->GetHitboxProperties();
         if (!character->HasCollision(props)) continue;
 
         // Obstacles can hit eachother, even on the same team
@@ -1053,17 +1059,29 @@ namespace Battle {
           attacker->SetHitboxProperties(props);
         }
 
+        if (retangible) character->SetPassthrough(false);
+
         judge.PrepareForNextAttack();
       } // end each spell loop
 
       judge.ExecuteAllTriggers();
 
-      if (retangible) character->SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
     queuedAttackers.clear();
-    // taggedAttackers.clear();
+
+    // TODO: Uncomment when Sand is in.
+//    if (GetState() == TileState::sand && hitByWind) {
+//      SetState(TileState::normal);
+//    }
+//    else
+    if (GetState() == TileState::grass && hitByFire) {
+      SetState(TileState::normal);
+    }
+    else if (GetState() == TileState::volcano && hitByAqua) {
+      SetState(TileState::normal);
+    }
   }
 
   void Tile::UpdateSpells(Field& field, const double elapsed)
@@ -1075,11 +1093,6 @@ namespace Battle {
       if (!spell->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
           highlightMode = (TileHighlight)request;
-        }
-
-        Element hitboxElement = spell->GetElement();
-        if (hitboxElement == Element::aqua && state == TileState::volcano) {
-          SetState(TileState::normal);
         }
 
         field.UpdateEntityOnce(*spell, elapsed);

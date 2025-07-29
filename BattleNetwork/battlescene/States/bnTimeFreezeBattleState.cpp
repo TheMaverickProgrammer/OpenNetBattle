@@ -64,6 +64,10 @@ void TimeFreezeBattleState::ProcessInputs()
   for (std::shared_ptr<Player>& p : this->GetScene().GetAllPlayers()) {
     p->InputState().Process();
 
+    if (summonTick < tfcStartFrame) {
+      continue;
+    }
+
     if (p->InputState().Has(InputEvents::pressed_use_chip)) {
       Logger::Logf(LogLevel::info, "InputEvents::pressed_use_chip for player %i", player_idx);
       std::shared_ptr<PlayerSelectedCardsUI> cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
@@ -74,7 +78,7 @@ void TimeFreezeBattleState::ProcessInputs()
           // convert meta data into a useable action object
           const Battle::Card& card = *maybe_card;
 
-          if (card.IsTimeFreeze() && CanCounter(p) && summonTick > summonTextLength) {
+          if (card.IsTimeFreeze() && CanCounter(p)) {
             if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();

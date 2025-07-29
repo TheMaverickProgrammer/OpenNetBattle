@@ -179,10 +179,14 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void FreedomMissionMobScene::onUpdate(double elapsed)
 {
-  if (GetCurrentState() == combatPtr) {
+  const BattleSceneState* cur = GetCurrentState();
+
+  // Must process inputs for combat and subcombat states, 
+  // but only the combat state lets player flip.
+  if (combatPtr->IsStateCombat(cur)) {
     ProcessLocalPlayerInputQueue();
 
-    if (playerCanFlip) {
+    if (cur == combatPtr && playerCanFlip) {
       std::shared_ptr<Player> localPlayer = GetLocalPlayer();
       if (localPlayer->IsActionable() && localPlayer->InputState().Has(InputEvents::pressed_option)) {
         localPlayer->SetFacing(localPlayer->GetFacingAway());

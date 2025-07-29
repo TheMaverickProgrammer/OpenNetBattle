@@ -230,27 +230,7 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
     victim.ToggleCounter(false); // disable counter frame for the victim
     victim.Stun(frames(150));
 
-    if (p->IsInForm() == false && p->GetEmotion() != Emotion::evil) {
-      if (p == localPlayer) {
-        field->RevealCounterFrames(true);
-      }
-
-      // node positions are relative to the parent node's origin
-      sf::FloatRect bounds = p->getLocalBounds();
-      counterReveal->setPosition(0, -bounds.height / 4.0f);
-      p->AddNode(counterReveal);
-
-      std::shared_ptr<PlayerSelectedCardsUI> cardUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
-
-      if (cardUI) {
-        cardUI->SetMultiplier(2);
-      }
-
-      p->SetEmotion(Emotion::full_synchro);
-
-      // when players get hit by impact, battle scene takes back counter blessings
-      p->AddDefenseRule(counterCombatRule);
-    }
+    PreparePlayerFullSynchro(p);
   }
 }
 
@@ -472,6 +452,8 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   allPlayerTeamHash[localPlayer.get()] = team;
 
   HitListener::Subscribe(*localPlayer);
+
+  PreparePlayerFullSynchro(localPlayer);
 }
 
 void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
@@ -498,6 +480,8 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   allPlayerTeamHash[player.get()] = team;
 
   HitListener::Subscribe(*player);
+
+  PreparePlayerFullSynchro(player);
 }
 
 void BattleSceneBase::LoadRedTeamMob(Mob& mob)
@@ -1054,6 +1038,30 @@ void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& su
 
   shape.setPosition(position);
   shape.setOrigin(origin);
+}
+
+void BattleSceneBase::PreparePlayerFullSynchro(const std::shared_ptr<Player>& player) {
+  if (player->IsInForm() == true || player->GetEmotion() == Emotion::evil) return;
+
+  if (player == localPlayer) {
+    field->RevealCounterFrames(true);
+  }
+
+  // node positions are relative to the parent node's origin
+  sf::FloatRect bounds = player->getLocalBounds();
+  counterReveal->setPosition(0, -bounds.height / 4.0f);
+  player->AddNode(counterReveal);
+
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->GetFirstComponent<PlayerSelectedCardsUI>();
+
+  if (cardUI) {
+    cardUI->SetMultiplier(2);
+  }
+
+  player->SetEmotion(Emotion::full_synchro);
+
+  // when players get hit by impact, battle scene takes back counter blessings
+  player->AddDefenseRule(counterCombatRule);
 }
 
 void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf)

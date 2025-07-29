@@ -74,7 +74,7 @@ void TimeFreezeBattleState::ProcessInputs()
           // convert meta data into a useable action object
           const Battle::Card& card = *maybe_card;
 
-          if (card.IsTimeFreeze() && CanCounter(p)) {
+          if (card.IsTimeFreeze() && CanCounter(p) && summonTick > summonTextLength) {
             if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
@@ -228,14 +228,19 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   BattleSceneBase& scene = GetScene();
   const auto& first = tfEvents.begin();
 
-  double tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
+  double tfcTimerScale = 0;
+
+  if (summonTick.asSeconds().value > fadeInOutLength.asSeconds().value) {
+    tfcTimerScale = swoosh::ease::linear((double)(summonTick - fadeInOutLength).value, (double)summonTextLength.asSeconds().value, 1.0);
+  }
+
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
   scale = std::min(scale, 1.0);
 
   bar = sf::RectangleShape({ 100.f * static_cast<float>(1.0 - tfcTimerScale), 2.f });
   bar.setScale(2.f, 2.f);
 
-  if (summonTick >= summonTextLength - fadeInOutLength) {
+  if (summonTick >= summonTextLength) {
     scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
     scale = std::max(scale, 0.0);
   }

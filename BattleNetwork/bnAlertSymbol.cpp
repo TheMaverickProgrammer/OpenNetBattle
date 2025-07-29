@@ -1,4 +1,4 @@
-#include "bnElementalDamage.h"
+#include "bnAlertSymbol.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
@@ -9,7 +9,7 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage() : 
+AlertSymbol::AlertSymbol() :
   Artifact()
 {
   SetLayer(0);
@@ -19,7 +19,7 @@ ElementalDamage::ElementalDamage() :
   progress = 0;
 }
 
-void ElementalDamage::OnUpdate(double _elapsed) {
+void AlertSymbol::OnUpdate(double _elapsed) {
   progress += _elapsed;
 
   float alpha = swoosh::ease::wideParabola(static_cast<float>(progress), 0.5f, 4.0f);
@@ -32,10 +32,10 @@ void ElementalDamage::OnUpdate(double _elapsed) {
   Entity::drawOffset = {-30.0f, -30.0f };
 }
 
-void ElementalDamage::OnDelete()
+void AlertSymbol::OnDelete()
 {
 }
 
-ElementalDamage::~ElementalDamage()
+AlertSymbol::~AlertSymbol()
 {
 }

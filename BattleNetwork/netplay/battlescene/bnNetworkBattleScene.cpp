@@ -7,7 +7,7 @@
 #include "../bnBufferReader.h"
 #include "../bnBufferWriter.h"
 #include "../../bnFadeInState.h"
-#include "../../bnElementalDamage.h"
+#include "../../bnAlertSymbol.h"
 #include "../../bnBlockPackageManager.h"
 #include "../../bnPlayerHealthUI.h"
 
@@ -216,7 +216,7 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props) {
   bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
 
   if (freezeBreak || superEffective) {
-    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<AlertSymbol> seSymbol = std::make_shared<AlertSymbol>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight() + (victim.getLocalBounds().height * 0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());

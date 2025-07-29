@@ -1,5 +1,6 @@
 #include "bnGame.h"
 #include "battlescene/bnMobBattleScene.h"
+#include "battlescene/bnFreedomMissionMobScene.h"
 #include "bindings/bnScriptedMob.h"
 #include "bindings/bnScriptedBlock.h"
 #include "bindings/bnScriptedPlayer.h"
@@ -285,6 +286,20 @@ int HandleBattleOnly(Game& g, TaskGroup tasks, const std::string& playerpath, co
   }
 
   static PA programAdvance;
+
+  if (mob->IsFreedomMission()) {
+    FreedomMissionProps props{
+      { player, programAdvance, std::move(folder), field, mob->GetBackground() },
+      { mob },
+      mob->GetTurnLimit(),
+      sf::Sprite(*mugshot),
+      mugshotAnim,
+      emotions,
+    };
+
+    g.push<FreedomMissionMobScene>(std::move(props));
+    return EXIT_SUCCESS;
+  }
 
   MobBattleProperties props{
     { player, programAdvance, std::move(folder), field, mob->GetBackground() },

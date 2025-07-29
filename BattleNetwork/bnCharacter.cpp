@@ -7,7 +7,7 @@
 #include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnElementalDamage.h"
+#include "bnAlertSymbol.h"
 #include "bnShaderResourceManager.h"
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"

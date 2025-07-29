@@ -5,19 +5,19 @@
 class Field;
 
 /**
- * @class ElementalDamage
+ * @class AlertSymbol
  * @author mav
  * @date 04/05/19
  * @brief <!> symbol that appears on field when elemental damage occurs
  */
-class ElementalDamage : public Artifact
+class AlertSymbol : public Artifact
 {
 private:
   double progress;
 
 public:
-  ElementalDamage();
-  ~ElementalDamage();
+  AlertSymbol();
+  ~AlertSymbol();
 
   /**
    * @brief Grow and shrink quickly. Appear over the sprite.

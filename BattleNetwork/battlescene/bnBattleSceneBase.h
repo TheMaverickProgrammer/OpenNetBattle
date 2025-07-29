@@ -383,6 +383,7 @@ public:
   bool TrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackMobCharacter(std::shared_ptr<Character>& character);
+  void PreparePlayerFullSynchro(const std::shared_ptr<Player>& player);
   bool IsPlayerDeleted() const;
 
   std::shared_ptr<Player> GetLocalPlayer();

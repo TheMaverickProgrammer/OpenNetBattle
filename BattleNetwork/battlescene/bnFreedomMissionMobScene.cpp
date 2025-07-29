@@ -1,6 +1,6 @@
 #include "bnFreedomMissionMobScene.h"
 #include "../bnMob.h"
-#include "../bnElementalDamage.h"
+#include "../bnAlertSymbol.h"
 #include "../../bnPlayer.h"
 
 #include "States/bnTimeFreezeBattleState.h"
@@ -170,7 +170,7 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<AlertSymbol> seSymbol = std::make_shared<AlertSymbol>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());

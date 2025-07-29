@@ -21,6 +21,7 @@
 #include "bnField.h"
 #include "bnParticlePoof.h"
 #include "bnPlayerCustScene.h"
+#include "bnAlertSymbol.h"
 #include "bnRandom.h"
 
 #include "bindings/bnLuaLibrary.h"
@@ -678,6 +679,15 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::factories([](int count, double speed) -> WeakWrapper<Entity> {
       std::shared_ptr<Entity> artifact = std::make_shared<Explosion>(count, speed);
       auto wrappedArtifact = WeakWrapper(artifact);
+      wrappedArtifact.Own();
+      return wrappedArtifact;
+    })
+  );
+
+  const auto& alertsymbol_record = battle_namespace.new_usertype<AlertSymbol>("AlertSymbol",
+    sol::factories([]() -> WeakWrapper<Entity> {
+      std::shared_ptr<Entity> bang = std::make_shared<AlertSymbol>();
+      auto wrappedArtifact = WeakWrapper(bang);
       wrappedArtifact.Own();
       return wrappedArtifact;
     })

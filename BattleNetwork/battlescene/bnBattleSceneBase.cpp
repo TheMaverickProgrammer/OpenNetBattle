@@ -1130,6 +1130,14 @@ std::vector<std::shared_ptr<Player>> BattleSceneBase::GetAllPlayers()
   return result;
 }
 
+Mob* BattleSceneBase::GetRedTeamMob() {
+  return redTeamMob;
+}
+
+Mob* BattleSceneBase::GetBlueTeamMob() {
+  return blueTeamMob;
+}
+
 
 std::shared_ptr<Field> BattleSceneBase::GetField()
 {

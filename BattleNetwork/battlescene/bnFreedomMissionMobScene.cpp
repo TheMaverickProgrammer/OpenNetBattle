@@ -221,6 +221,11 @@ void FreedomMissionMobScene::onEnd() {
     Do not do anything if the Player was defeated or the 
     scene is ending by the player quitting. This avoids 
     sending a score to a server when one isn't appropriate.
+
+    Currently, this results in slightly different behavior 
+    compared to the MobBattleScene. In a MobBattle, quitting 
+    while the last enemies are deleting counts as a victory.
+    Here, it counts as running away, because IsQuitting is true.
   */
   if (!IsQuitting() && !IsPlayerDeleted()) {
     BattleResults& results = BattleResultsObj();
@@ -316,6 +321,24 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
 std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 {
   auto outOfTurns = [this]() mutable {
+    Mob* redTeam = GetRedTeamMob();
+    Mob* blueTeam = GetBlueTeamMob();
+
+    /*
+      Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
+      This makes a distinction on whether or not to watch for Entities which
+      are currently being deleted.
+
+      By using this, the battle will not end while all enemies are untracked
+      but still deleting.
+    */
+    bool redTeamCleared = redTeam && redTeam->IsCleared();
+    bool blueTeamCleared = blueTeam && blueTeam->IsCleared();
+
+    if (redTeamCleared || blueTeamCleared) {
+      return false;
+    }
+
     if (GetCustomBarProgress() >= GetCustomBarDuration() && GetTurnCount() == FreedomMissionMobScene::props.maxTurns) {
       overStatePtr->context = FreedomMissionOverState::Conditions::player_failed;
       return true;
@@ -330,6 +353,23 @@ std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
 {
   auto cardGaugeIsFull = [this]() mutable {
+    Mob* redTeam = GetRedTeamMob();
+    Mob* blueTeam = GetBlueTeamMob();
+  
+    /*
+      Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
+      This makes a distinction on whether or not to watch for Entities which 
+      are currently being deleted.
+      
+      By using this, the turn will not time out while all enemies are untracked 
+      but still deleting. 
+    */
+    bool redTeamCleared = redTeam && redTeam->IsCleared();
+    bool blueTeamCleared = blueTeam && blueTeam->IsCleared();
+
+    if (redTeamCleared || blueTeamCleared) {
+      return false;
+    }
     return GetCustomBarProgress() >= GetCustomBarDuration();
   };
 

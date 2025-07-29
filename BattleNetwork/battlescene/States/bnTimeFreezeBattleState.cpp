@@ -85,8 +85,6 @@ void TimeFreezeBattleState::ProcessInputs()
             }
           }
         }
-
-        p->GetChargeComponent().SetCharging(false);
       }
     }
     player_idx++;

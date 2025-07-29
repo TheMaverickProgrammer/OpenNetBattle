@@ -122,6 +122,7 @@ const int PA::FindPA(std::vector<Battle::Card>& input)
         iter->canBoost,
         iter->timeFreeze,
         false,
+        true,
         iter->name,
         iter->action,
         iter->action,

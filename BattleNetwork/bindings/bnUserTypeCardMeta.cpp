@@ -39,6 +39,7 @@ void DefineCardMetaUserTypes(ScriptResourceManager* scriptManager, sol::state& s
     "shortname", &Battle::Card::Properties::shortname,
     "time_freeze", &Battle::Card::Properties::timeFreeze,
     "skip_time_freeze_intro", &Battle::Card::Properties::skipTimeFreezeIntro,
+    "counterable", &Battle::Card::Properties::counterable,
     "long_description", &Battle::Card::Properties::verboseDescription
   );
 

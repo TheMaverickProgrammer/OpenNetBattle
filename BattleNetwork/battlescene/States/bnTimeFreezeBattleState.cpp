@@ -276,7 +276,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setPosition(position);
   scene.DrawWithPerspective(summonsLabel, surface);
 
-  if (currState == state::display_name) {
+  if (currState == state::display_name && first->action->GetMetaData().counterable) {
     // draw TF bar underneath
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
@@ -425,21 +425,26 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
   // tfc window ended
   if (summonTick > summonTextLength) return false;
 
-  bool addEvent = true;
+  // bool addEvent = true;
 
   if (!tfEvents.empty()) {
+    std::shared_ptr<CardAction> action = tfEvents.begin()->action;
+
+    // some actions cannot be countered
+    if (!action->GetMetaData().counterable) return false;
+
     // only opposing players can counter
-    std::shared_ptr<Character> lastActor = tfEvents.begin()->action->GetActor();
+    std::shared_ptr<Character> lastActor = action->GetActor();
     if (!lastActor->Teammate(user->GetTeam())) {
       playerCountered = true;
       Logger::Logf(LogLevel::info, "Player was countered!");
     }
     else {
-      addEvent = false;
+      return false;
     }
   }
 
-  return addEvent;
+  return true;
 }
 
 void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> action, uint64_t timestamp)

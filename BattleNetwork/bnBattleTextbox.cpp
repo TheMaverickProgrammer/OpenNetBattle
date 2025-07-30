@@ -16,7 +16,11 @@ void Battle::TextBox::DescribeCard(Battle::Card* card)
     DequeMessage();
   }
 
-  EnqueMessage(mug, anim, new Message(card->GetVerboseDescription()));
+  // use the long description unless it is not provided (empty) otherwise 
+  // use the short card description instead
+  const std::string& longDescr = card->GetVerboseDescription();
+  const std::string& shortDescr = card->GetDescription();
+  EnqueMessage(mug, anim, new Message(longDescr.empty() ? shortDescr : longDescr));
   Open();
 }
 

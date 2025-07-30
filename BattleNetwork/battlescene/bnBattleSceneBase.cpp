@@ -1132,12 +1132,16 @@ std::vector<std::shared_ptr<Player>> BattleSceneBase::GetAllPlayers()
   return result;
 }
 
-Mob* BattleSceneBase::GetRedTeamMob() {
-  return redTeamMob;
+Mob& BattleSceneBase::GetRedTeamMob() {
+  assert(redTeamMob != nullptr && "redTeamMob was nullptr!");
+
+  return *redTeamMob;
 }
 
-Mob* BattleSceneBase::GetBlueTeamMob() {
-  return blueTeamMob;
+Mob& BattleSceneBase::GetBlueTeamMob() {
+  assert(blueTeamMob != nullptr && "blueTeamMob was nullptr!");
+
+  return *blueTeamMob;
 }
 
 

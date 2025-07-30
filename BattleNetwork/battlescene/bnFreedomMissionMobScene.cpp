@@ -323,8 +323,8 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
 std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 {
   auto outOfTurns = [this]() mutable {
-    Mob* redTeam = GetRedTeamMob();
-    Mob* blueTeam = GetBlueTeamMob();
+    Mob redTeam = GetRedTeamMob();
+    Mob blueTeam = GetBlueTeamMob();
 
     /*
       Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
@@ -334,8 +334,8 @@ std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
       By using this, the battle will not end while all enemies are untracked
       but still deleting.
     */
-    bool redTeamCleared = redTeam && redTeam->IsCleared();
-    bool blueTeamCleared = blueTeam && blueTeam->IsCleared();
+    bool redTeamCleared = redTeam.IsCleared();
+    bool blueTeamCleared = blueTeam.IsCleared();
 
     if (redTeamCleared || blueTeamCleared) {
       return false;
@@ -355,8 +355,8 @@ std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
 {
   auto cardGaugeIsFull = [this]() mutable {
-    Mob* redTeam = GetRedTeamMob();
-    Mob* blueTeam = GetBlueTeamMob();
+    Mob redTeam = GetRedTeamMob();
+    Mob blueTeam = GetBlueTeamMob();
   
     /*
       Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
@@ -366,8 +366,8 @@ std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
       By using this, the turn will not time out while all enemies are untracked 
       but still deleting. 
     */
-    bool redTeamCleared = redTeam && redTeam->IsCleared();
-    bool blueTeamCleared = blueTeam && blueTeam->IsCleared();
+    bool redTeamCleared = redTeam.IsCleared();
+    bool blueTeamCleared = blueTeam.IsCleared();
 
     if (redTeamCleared || blueTeamCleared) {
       return false;

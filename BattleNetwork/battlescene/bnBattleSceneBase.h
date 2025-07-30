@@ -390,8 +390,8 @@ public:
   const std::shared_ptr<Player> GetLocalPlayer() const;
   std::vector<std::shared_ptr<Player>> GetOtherPlayers();
   std::vector<std::shared_ptr<Player>> GetAllPlayers();
-  Mob* GetRedTeamMob();
-  Mob* GetBlueTeamMob();
+  Mob& GetRedTeamMob();
+  Mob& GetBlueTeamMob();
   std::shared_ptr<Field> GetField();
   const std::shared_ptr<Field> GetField() const;
   CardSelectionCust& GetCardSelectWidget();

@@ -1416,8 +1416,8 @@ std::vector<InputEvent> BattleSceneBase::ProcessLocalPlayerInputQueue(unsigned i
      // }
 
       InputEvent copy = InputEvent{ name, state };
-      copy.name = name;
-      copy.state = InputState::pressed; // VirtualInputState will handle this
+     // copy.name = name;
+     // copy.state = InputState::pressed; // VirtualInputState will handle this
 
       outEvents.push_back(copy);
 

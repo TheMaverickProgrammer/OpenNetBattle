@@ -40,7 +40,7 @@
 char* Game::LocalPartition = "";
 char* Game::RemotePartition = "pvp";
 char* Game::ServerPartition = "server";
-char* Game::Version = "2.0.6";
+char* Game::Version = "2.0.6a";
 
 Game::Game(DrawWindow& window) :
   window(window), 

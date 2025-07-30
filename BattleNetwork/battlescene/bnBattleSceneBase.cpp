@@ -1289,13 +1289,14 @@ std::vector<std::reference_wrapper<const Character>> BattleSceneBase::BlueTeamMo
 
 void BattleSceneBase::Quit(const FadeOut& mode) {
   if(quitting) return; 
-  quitting = true;
 
   // end the current state
   if(current) {
     current->onEnd();
     current = nullptr;
   }
+
+  quitting = true;
 
   // NOTE: swoosh quirk
   if (getController().getStackSize() == 1) {

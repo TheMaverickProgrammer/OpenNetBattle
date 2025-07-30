@@ -8,6 +8,7 @@
 #include "../../bnTextureResourceManager.h"
 
 #include <Swoosh/Ease.h>
+#include "../bnFreedomMissionMobScene.h"
 
 FreedomMissionOverState::FreedomMissionOverState() :
   BattleTextIntroState()
@@ -17,14 +18,40 @@ void FreedomMissionOverState::onStart(const BattleSceneState* _)
 {
   BattleTextIntroState::onStart(_);
 
-  auto& results = GetScene().BattleResultsObj();
+  FreedomMissionMobScene& scene = static_cast<FreedomMissionMobScene&>(GetScene());
+  BattleResults& results = scene.BattleResultsObj();
   results.runaway = false;
 
-  if (GetScene().IsPlayerDeleted()) {
+  if (scene.IsPlayerDeleted()) {
     context = Conditions::player_deleted;
+  }
+  else {
+    /*
+    Handle results here, because there is no rewards state.
+    If player was deleted, no other results should matter.
+
+    This will still set results if the player failed, which may 
+    be useful to a server so that emotion can be kept and so on.
+    The rest of the data is unlikely to be useful in a failure, 
+    but is added anyway.
+  */
+    std::shared_ptr<Player> player = scene.GetLocalPlayer();
+    results.battleLength = sf::seconds(scene.GetElapsedBattleFrames().count() / 60.f);
+    results.moveCount = player->GetMoveCount();
+    results.hitCount = scene.GetPlayerHitCount();
+    results.turns = scene.GetTurnCount();
+    results.counterCount = scene.GetCounterCount();
+    results.doubleDelete = scene.DoubleDelete();
+    results.tripleDelete = scene.TripleDelete();
+    results.finalEmotion = player->GetEmotion();
   }
 
   Audio().StopStream();
+
+  // Only calculate score on successful mission
+  if (!(context == Conditions::player_deleted || context == Conditions::player_failed)) {
+    results.CalculateScore(results, scene.GetProps().mobs.at(0));
+  }
 
   switch (context) {
   case Conditions::player_deleted:

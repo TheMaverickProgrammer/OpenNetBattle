@@ -219,33 +219,12 @@ void FreedomMissionMobScene::onLeave()
   BattleSceneBase::onLeave();
 }
 
-void FreedomMissionMobScene::onEnd() {
-  /*
-    Handle results here, because there is no rewards state.
-    Do not do anything if the Player was defeated or the 
-    scene is ending by the player quitting. This avoids 
-    sending a score to a server when one isn't appropriate.
+int FreedomMissionMobScene::GetPlayerHitCount() {
+  return playerHitCount;
+}
 
-    Currently, this results in slightly different behavior 
-    compared to the MobBattleScene. In a MobBattle, quitting 
-    while the last enemies are deleting counts as a victory.
-    Here, it counts as running away, because IsQuitting is true.
-  */
-  if (!IsQuitting() && !IsPlayerDeleted()) {
-    BattleResults& results = BattleResultsObj();
-    std::shared_ptr<Player> player = GetLocalPlayer();
-    results.battleLength = sf::seconds(GetElapsedBattleFrames().count() / 60.f);
-    results.moveCount = player->GetMoveCount();
-    results.hitCount = playerHitCount;
-    results.turns = GetTurnCount();
-    results.counterCount = GetCounterCount();
-    results.doubleDelete = DoubleDelete();
-    results.tripleDelete = TripleDelete();
-    results.finalEmotion = player->GetEmotion();
-
-    results.CalculateScore(results, props.mobs.at(0));
-  }
-    BattleSceneBase::onEnd();
+FreedomMissionProps& FreedomMissionMobScene::GetProps() {
+  return props;
 }
 
 void FreedomMissionMobScene::IncrementTurnCount()

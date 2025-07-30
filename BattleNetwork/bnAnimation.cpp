@@ -151,9 +151,9 @@ static frame_time_t GetFrameValue(std::string_view line, std::string_view key) {
   if (valueView.empty()) return frames(0);
 
   // frame value
-  if (valueView.at(valueView.size() - 1) == 'f') {
+  if (valueView.at(valueView.size() - 1) == 'f') {    
     valueView = valueView.substr(0, valueView.size() - 1);
-    return frames(static_cast<int64_t>(std::strtof(valueView.data(), nullptr)));
+    return frames(std::atoi(valueView.data()));
   }
 
   return from_seconds(std::fabs(std::strtof(valueView.data(), nullptr)));

@@ -464,8 +464,10 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
   return res;
 }
 
-const bool Animation::HasPoint(const std::string& pointName)
+const bool Animation::HasPoint(std::string pointName)
 {
+  std::transform(pointName.begin(), pointName.end(), pointName.begin(), ::toupper);
+
   return animator.HasPoint(pointName);
 }
 
@@ -510,8 +512,10 @@ void Animation::SetInterruptCallback(const std::function<void()> onInterrupt)
   interruptCallback = onInterrupt;
 }
 
-const bool Animation::HasAnimation(const std::string& state) const
+const bool Animation::HasAnimation(std::string state) const
 {
+  std::transform(state.begin(), state.end(), state.begin(), ::toupper);
+
   return animations.find(state) != animations.end();
 }
 

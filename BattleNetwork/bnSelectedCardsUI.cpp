@@ -142,9 +142,8 @@ bool SelectedCardsUI::UseNextCard() {
 
   if (card.CanBoost()) {
     card.MultiplyDamage(multiplierValue);
+    multiplierValue = 1; // multiplier is reset because it has been consumed 
   }
-
-  multiplierValue = 1; // reset 
 
   // add a peek event to the action queue
   owner->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);

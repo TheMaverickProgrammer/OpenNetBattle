@@ -216,7 +216,8 @@ void PlayerSelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
 {
   std::shared_ptr<Player> player = GetOwnerAs<Player>();
 
-  if (player && player->GetEmotion() == Emotion::angry) {
+  bool angry = player && player->GetEmotion() == Emotion::angry;
+  if (angry && action->GetMetaData().canBoost) {
     player->SetEmotion(Emotion::normal);
   }
 

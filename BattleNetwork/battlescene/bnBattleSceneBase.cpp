@@ -390,7 +390,9 @@ std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
 
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  HandleCounterLoss(*action->GetActor(), true);
+  if (action->GetMetaData().canBoost) {
+    HandleCounterLoss(*action->GetActor(), true);
+  }
 }
 
 sf::Vector2f BattleSceneBase::PerspectiveOffset(const sf::Vector2f& pos)

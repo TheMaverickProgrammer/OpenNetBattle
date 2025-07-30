@@ -29,6 +29,10 @@ CardMeta& CardMeta::SetIconTexture(const std::shared_ptr<sf::Texture> icon)
 CardMeta& CardMeta::SetCodes(const std::vector<char> codes)
 {
   this->codes = codes;
+
+  // codes can only be upper case
+  std::transform(this->codes.begin(), this->codes.end(), this->codes.begin(), ::toupper);
+
   return *this;
 }
 

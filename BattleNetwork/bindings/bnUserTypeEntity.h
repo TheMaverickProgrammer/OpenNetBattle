@@ -270,6 +270,10 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
     auto& animation = animationComponent->GetAnimationObject();
     return AnimationWrapper(entity.GetWeak(), animation);
   };
+  entity_table["set_counter_frame_range"] = [](WeakWrapper<E>& entity, int frameStart, int frameEnd) {
+    auto animationComponent = entity.Unwrap()->template GetFirstComponent<AnimationComponent>();
+    animationComponent->SetCounterFrameRange(frameStart, frameEnd);
+  };
   entity_table["create_node"] = [](WeakWrapper<E>& entity) -> WeakWrapper<SpriteProxyNode> {
     auto child = std::make_shared<SpriteProxyNode>();
     entity.Unwrap()->AddNode(child);

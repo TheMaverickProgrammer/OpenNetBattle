@@ -1416,8 +1416,6 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          // assume some defense rule strips out flinch, prevent abuse of stun
-          frameStunCancel = frameStunCancel ||(props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
 
           if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
             // cancel stun

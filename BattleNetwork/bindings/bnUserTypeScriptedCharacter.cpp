@@ -84,6 +84,10 @@ void DefineScriptedCharacterUserType(ScriptResourceManager* scriptManager, const
         character.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
+    "can_attack", [](WeakWrapper<ScriptedCharacter>& character) {
+      auto characterPtr = character.Unwrap();
+      return characterPtr->CanAttack();
+    },
     "get_rank", [](WeakWrapper<ScriptedCharacter>& character) -> Character::Rank {
       return character.Unwrap()->GetRank();
     },

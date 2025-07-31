@@ -1550,20 +1550,28 @@ void Entity::ResolveFrameBattleDamage()
       slideFromDrag = true;
       Battle::Tile* dest = GetTile() + postDragEffect.dir;
 
-      if (CanMoveTo(dest)) {
-        // Enqueue a move action at the top of our priorities
-        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+      if (!CanMoveTo(dest)) {
+        dest = GetTile();
+        postDragEffect.count = 0;
+      }
 
-        std::queue<CombatHitProps> oldQueue = statusQueue;
-        statusQueue = {};
-        // Re-queue the drag status to be re-considered FIRST in our next combat checks
-        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+      // The final drag event applies endlag
+      // 22 frames matches the amount of fixed frames applied to player recoil
+      const frame_time_t endlag = 
+        postDragEffect.count == 0 ? frames(22) : frames(0);
+     
+      // Enqueue a move action at the top of our priorities
+      actionQueue.Add(MoveEvent{ frames(4), frames(0), endlag, 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
-        // append the old queue items after
-        while (!oldQueue.empty()) {
-          statusQueue.push(oldQueue.front());
-          oldQueue.pop();
-        }
+      std::queue<CombatHitProps> oldQueue = statusQueue;
+      statusQueue = {};
+      // Re-queue the drag status to be re-considered FIRST in our next combat checks
+      statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+
+      // append the old queue items after
+      while (!oldQueue.empty()) {
+        statusQueue.push(oldQueue.front());
+        oldQueue.pop();
       }
     }
   }

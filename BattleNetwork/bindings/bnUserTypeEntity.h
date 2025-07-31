@@ -360,6 +360,18 @@ void DefineEntityFunctionsOn(sol::basic_usertype<WeakWrapper<E>, sol::basic_refe
   entity_table["shake_camera"] = [](WeakWrapper<E>& entity, double power, float duration) {
     entity.Unwrap()->EventChannel().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
   };
+  entity_table["is_stunned"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsStunned();
+  };
+  entity_table["is_rooted"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsRooted();
+  };
+  entity_table["is_frozen"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsIceFrozen();
+  };
+  entity_table["is_blind"] = [](WeakWrapper<E>& entity) -> bool {
+    return entity.Unwrap()->IsBlind();
+  };
 }
 
 #endif

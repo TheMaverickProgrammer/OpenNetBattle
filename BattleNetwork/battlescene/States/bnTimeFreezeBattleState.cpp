@@ -172,6 +172,12 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     for (TimeFreezeBattleState::EventData& e : tfEvents) {
       if (e.animateCounter) {
         e.alertFrameCount += frames(1);
+        //Set animation to false if we're done animating.
+        if (e.alertFrameCount.value > alertAnimFrames.value) {
+          e.animateCounter = false;
+        }
+        //Delay while animating. We can't counter right now.
+        summonTick = frames(0);
       }
     }
   }
@@ -284,8 +290,8 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setPosition(position);
   scene.DrawWithPerspective(summonsLabel, surface);
 
-  if (currState == state::display_name && first->action->GetMetaData().counterable) {
-    // draw TF bar underneath
+  if (currState == state::display_name && first->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
+    // draw TF bar underneath if conditions are met
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
     scene.DrawWithPerspective(bar, surface);
@@ -437,8 +443,14 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
   // bool addEvent = true;
 
   if (!tfEvents.empty()) {
+    // Don't counter during alert symbol. BN6 accurate. See notes from Alrysc.
     std::shared_ptr<CardAction> action = tfEvents.begin()->action;
 
+    for (TimeFreezeBattleState::EventData& e : tfEvents) {
+      if (e.animateCounter) {
+        return false;
+      }
+    }
     // some actions cannot be countered
     if (!action->GetMetaData().counterable) return false;
 

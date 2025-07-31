@@ -504,9 +504,14 @@ namespace Battle {
 
   void Tile::Update(Field& field, double _elapsed) {
     willHighlight = false;
+
     totalElapsed += from_seconds(_elapsed);
 
     if (!isTimeFrozen && isBattleStarted) {
+      // Grass Tiles
+      grassHealCooldown1 -= from_seconds(_elapsed);
+      grassHealCooldown2 -= from_seconds(_elapsed);
+
       // LAVA TILES
       elapsedBurnTime -= from_seconds(_elapsed);
 
@@ -578,6 +583,9 @@ namespace Battle {
         HandleTileBehaviors(field, *character);
       }
     }
+
+    if (grassHealCooldown1 <= frames(0)) grassHealCooldown1 = frames(20);
+    if (grassHealCooldown2 <= frames(0)) grassHealCooldown1 = frames(180);
   }
 
   void Tile::ToggleTimeFreeze(bool state)
@@ -724,6 +732,23 @@ namespace Battle {
           }
         }
       }
+    }
+    const int health = character.GetHealth();
+    const Element charElement = character.GetElement();
+
+    const bool doGrassCheck =
+      charElement == Element::wood
+      && state == TileState::grass;
+
+    const bool heal = doGrassCheck &&
+      (
+        (grassHealCooldown1 == frames(0) && health <= 9)
+        ||
+        (grassHealCooldown2 == frames(0) && health > 9)
+      );
+
+    if (heal) {
+      character.SetHealth(health + 1);
     }
   }
 

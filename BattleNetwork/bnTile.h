@@ -347,6 +347,8 @@ namespace Battle {
     frame_time_t totalElapsed{};
     frame_time_t elapsedBurnTime{};
     frame_time_t burncycle{};
+    frame_time_t grassHealCooldown1{ 180 }; /**< Heal cooldown with <= 9 HP*/
+    frame_time_t grassHealCooldown2{ 20 }; /**< Heal cooldown with > 9 HP*/
     std::weak_ptr<Field> fieldWeak;
     std::shared_ptr<sf::Texture> red_team_atlas, red_team_perm;
     std::shared_ptr<sf::Texture> blue_team_atlas, blue_team_perm;

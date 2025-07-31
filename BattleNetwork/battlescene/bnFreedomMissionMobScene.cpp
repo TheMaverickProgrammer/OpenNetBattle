@@ -302,8 +302,8 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
 std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 {
   auto outOfTurns = [this]() mutable {
-    Mob redTeam = GetRedTeamMob();
-    Mob blueTeam = GetBlueTeamMob();
+    Mob& redTeam = GetRedTeamMob();
+    Mob& blueTeam = GetBlueTeamMob();
 
     /*
       Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
@@ -334,8 +334,8 @@ std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
 {
   auto cardGaugeIsFull = [this]() mutable {
-    Mob redTeam = GetRedTeamMob();
-    Mob blueTeam = GetBlueTeamMob();
+    Mob& redTeam = GetRedTeamMob();
+    Mob& blueTeam = GetBlueTeamMob();
   
     /*
       Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.

@@ -380,6 +380,7 @@ public:
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
   void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
   void PerspectiveFlip(bool flipped);
+  bool IsPerspectiveFlipped();
   bool TrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackMobCharacter(std::shared_ptr<Character>& character);

@@ -265,7 +265,13 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
   sf::Vector2f position = sf::Vector2f(64.f, 82.f);
 
-  if (first->team == Team::blue) {
+  Team leftTeam = scene.IsPerspectiveFlipped() ? Team::blue : Team::red;
+  bool flip = first->team != leftTeam;
+  
+  // Set position for DrawCardData based on perspective. DrawCardData
+  // cannot use DrawWithPerspective because the text positions will be 
+  // incorrect, so this handles it.
+  if (flip) {
     position = sf::Vector2f(416.f, 82.f);
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
@@ -280,14 +286,17 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     // draw TF bar underneath if conditions are met
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
-    scene.DrawWithPerspective(bar, surface);
+
+    // Avoid drawing with perspective, because origin and position 
+    // were already set based on perspective
+    surface.draw(bar);
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
 
     bar.setFillColor(sf::Color(255, 255, b));
-    scene.DrawWithPerspective(bar, surface);
+    surface.draw(bar);
   }
 
   // draw the !! sprite
@@ -344,9 +353,13 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
   float multiplierOffset = 0.f;
   float dmgOffset = 0.f;
 
+  BattleSceneBase& scene = GetScene();
+  Team leftTeam = scene.IsPerspectiveFlipped() ? Team::blue : Team::red;
+  bool flip = event.team != leftTeam;
+
   // helper function
-  auto setSummonLabelOrigin = [](Team team, Text& text) {
-    if (team == Team::red) {
+  auto setSummonLabelOrigin = [flip](Team team, Text& text) {
+    if (!flip) {
       text.setOrigin(0, text.GetLocalBounds().height * 0.5f);
     }
     else {
@@ -406,7 +419,7 @@ void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vect
   }
 
   // based on team, render the text from left-to-right or right-to-left alignment
-  if (event.team == Team::red) {
+  if (!flip) {
     summonsLabel.setPosition(pos);
     dmg.setPosition(summonsLabel.getPosition().x + summonsLabel.GetWorldBounds().width + dmgOffset, pos.y);
     multiplier.setPosition(dmg.getPosition().x + dmg.GetWorldBounds().width + multiplierOffset, pos.y);

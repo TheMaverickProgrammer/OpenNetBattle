@@ -1107,6 +1107,10 @@ void BattleSceneBase::PerspectiveFlip(bool flipped)
   perspectiveFlip = flipped;
 }
 
+bool BattleSceneBase::IsPerspectiveFlipped() {
+  return perspectiveFlip;
+}
+
 bool BattleSceneBase::IsPlayerDeleted() const
 {
   return isPlayerDeleted;

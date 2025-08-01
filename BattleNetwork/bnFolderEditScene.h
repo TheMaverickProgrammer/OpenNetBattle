@@ -179,12 +179,16 @@ private:
     using base_type_t = BaseType;
     std::array<filter, sz> filters;
     bool invert{};
+    std::function<bool(const ICardView&)> pivotPred{ nullptr };
     size_t freeIdx{}, lastIndex{};
   public:
     virtual ~ISortOptions() {}
 
     size_t size() { return sz; }
     bool AddOption(const filter& filter) { if (freeIdx >= filters.size()) return false;  filters.at(freeIdx++) = filter; return true; }
+    void SetPivotPredicate(const std::function<bool(const ICardView&)>& predicate) {
+      pivotPred = predicate;
+    }
     virtual void SelectOption(size_t index) = 0;
   };
 
@@ -203,19 +207,36 @@ private:
         this->lastIndex = index;
       }
 
+      if (pivotPred) {
+        auto pivot = std::partition(this->container.begin(), this->container.end(), pivotPred);
+        size_t pivotDist = std::distance(this->container.begin(), pivot);
+
+        std::vector<T> copy = std::vector<T>(this->container.begin(), pivot);
+
+        std::sort(copy.begin(), copy.end(), this->filters.at(index));
+
+        if (this->invert) {
+          std::reverse(copy.begin(), copy.end());
+        }
+
+        std::vector<T> copy_end = std::vector<T>(this->container.begin() + pivotDist, this->container.end());
+
+        this->container.clear();
+        this->container.reserve(copy.size() + copy_end.size());
+        this->container.insert(this->container.end(), copy.begin(), copy.end());
+        this->container.insert(this->container.end(), copy_end.begin(), copy_end.end());
+
+        return;
+      }
+
+      std::vector<T> copy = this->container;
+      std::sort(copy.begin(), copy.end(), this->filters.at(index));
+
       if (this->invert) {
-        std::stable_sort(this->container.begin(), this->container.end(), this->filters.at(index));
-      }
-      else {
-        std::stable_sort(this->container.rbegin(), this->container.rend(), this->filters.at(index));
+        std::reverse(copy.begin(), copy.end());
       }
 
-      // push empty slots at the bottom
-      auto pivot = [](const ICardView& el) {
-        return !el.IsEmpty();
-      };
-
-      std::partition(this->container.begin(), this->container.end(), pivot);
+      this->container = copy;
     }
   };
 
@@ -248,7 +269,8 @@ private:
   void WriteNewFolderData();
 
   template<typename ElementType>
-  void RefreshCurrentCardDock(CardView& view, const std::vector<ElementType>& list);
+  void RefreshCardDock(CardView& view, const std::vector<ElementType>& list);
+  void RefreshCurrentCardSelection();
 
 public:
   void onStart() override;
@@ -265,29 +287,27 @@ public:
 };
 
 template<typename T>
-void FolderEditScene::RefreshCurrentCardDock(FolderEditScene::CardView& view, const std::vector<T>& list) {
+void FolderEditScene::RefreshCardDock(FolderEditScene::CardView& view, const std::vector<T>& list)
+{
   if (view.currCardIndex < list.size()) {
     T slot = list[view.currCardIndex]; // copy data, do not mutate it
 
-    // If we have selected a new card, display the appropriate texture for its type
-    if (view.currCardIndex != view.prevIndex) {
-      sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
-      Battle::Card card;
-      slot.GetCard(card); // Returns and frees the card from the bucket, this is why we needed a copy
+    sf::Sprite& sprite = currViewMode == ViewMode::folder ? cardHolder : packCardHolder;
+    Battle::Card card;
+    slot.GetCard(card); // Returns and frees the card from the bucket, this is why we needed a copy
 
-      switch (card.GetClass()) {
-      case Battle::CardClass::mega:
-        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_MEGA));
-        break;
-      case Battle::CardClass::giga:
-        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_GIGA));
-        break;
-      case Battle::CardClass::dark:
-        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_DARK));
-        break;
-      default:
-        sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
-      }
+    switch (card.GetClass()) {
+    case Battle::CardClass::mega:
+      sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_MEGA));
+      break;
+    case Battle::CardClass::giga:
+      sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_GIGA));
+      break;
+    case Battle::CardClass::dark:
+      sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER_DARK));
+      break;
+    default:
+      sprite.setTexture(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
     }
   }
 }

@@ -186,7 +186,7 @@ void Character::AddAction(const PeekCardEvent& event, const ActionOrder& order)
 void Character::HandleCardEvent(const CardEvent& event, const ActionQueue::ExecutionType& exec)
 {
   if (currCardAction == nullptr) {
-    if (event.action->GetMetaData().timeFreeze) {
+    if (event.action->GetMetaData().GetProps().timeFreeze) {
       CardActionUsePublisher::Broadcast(event.action, CurrentTime::AsMilli());
       actionQueue.Pop();
     }

@@ -165,7 +165,7 @@ void DefineScriptedCardActionUserType(const std::string& namespaceId, ScriptReso
       cardAction.Unwrap()->SetMetaData(props);
     },
     "copy_metadata", [](WeakWrapper<ScriptedCardAction>& cardAction) -> Battle::Card::Properties {
-      return cardAction.Unwrap()->GetMetaData();
+      return cardAction.Unwrap()->GetMetaData().GetProps();
     },
     "update_func", sol::property(
       [](WeakWrapper<ScriptedCardAction>& cardAction) { return cardAction.Unwrap()->update_func; },

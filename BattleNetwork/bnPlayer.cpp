@@ -156,7 +156,7 @@ void Player::Attack() {
     if (action) {
       action->PreventCounters();
 
-      Battle::Card::Properties props = action->GetMetaData();
+      Battle::Card::Properties props = action->GetMetaData().GetProps();
 
       if (!fullyCharged) {
         props.timeFreeze = false;

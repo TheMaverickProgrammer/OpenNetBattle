@@ -79,7 +79,7 @@ void TimeFreezeBattleState::ProcessInputs()
           const Battle::Card& card = *maybe_card;
 
           if (card.IsTimeFreeze() && CanCounter(p)) {
-            if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
+            if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.GetProps())) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
             }
@@ -103,7 +103,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   if (tfEvents.empty()) return;
 
   const auto& first = tfEvents.begin();
-  if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
+  if (first->action && first->action->GetMetaData().GetProps().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 }
@@ -290,7 +290,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setPosition(position);
   scene.DrawWithPerspective(summonsLabel, surface);
 
-  if (currState == state::display_name && first->action->GetMetaData().counterable && summonTick > tfcStartFrame) {
+  if (currState == state::display_name && first->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
     // draw TF bar underneath if conditions are met
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
@@ -426,9 +426,9 @@ void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
+  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().GetProps().shortname.c_str(), summonTick.count(), summonTextLength.count());
 
-  if (!(action && action->GetMetaData().timeFreeze)) return;
+  if (!(action && action->GetMetaData().GetProps().timeFreeze)) return;
  
   if (CanCounter(action->GetActor())) {
     HandleTimeFreezeCounter(action, timestamp);
@@ -452,7 +452,7 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
       }
     }
     // some actions cannot be countered
-    if (!action->GetMetaData().counterable) return false;
+    if (!action->GetMetaData().GetProps().counterable) return false;
 
     // only opposing players can counter
     std::shared_ptr<Character> lastActor = action->GetActor();
@@ -472,7 +472,7 @@ void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> 
 {
   TimeFreezeBattleState::EventData data;
   data.action = action;
-  data.name = action->GetMetaData().shortname;
+  data.name = action->GetMetaData().GetProps().shortname;
   data.team = action->GetActor()->GetTeam();
   data.user = action->GetActor();
   lockedTimestamp = timestamp;

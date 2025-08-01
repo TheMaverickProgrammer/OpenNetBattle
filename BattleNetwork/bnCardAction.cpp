@@ -145,7 +145,7 @@ const std::shared_ptr<Character> CardAction::GetActor() const
   return actor.lock();
 }
 
-const Battle::Card::Properties& CardAction::GetMetaData() const
+const Battle::Card& CardAction::GetMetaData() const
 {
   return meta;
 }
@@ -195,9 +195,9 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   }
 }
 
-void CardAction::SetMetaData(const Battle::Card::Properties& props)
+void CardAction::SetMetaData(const Battle::Card& card)
 {
-  meta = props;
+  meta = card;
 }
 
 void CardAction::Execute(std::shared_ptr<Character> user)

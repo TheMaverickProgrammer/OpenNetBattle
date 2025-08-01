@@ -598,11 +598,11 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
 
       if (packageManager.HasPackage(addr.packageId)) {
         card = packageManager.FindPackageByID(addr.packageId).GetCardProperties();
-        card.props.uuid = packageManager.WithNamespace(card.props.uuid);
+        card.GetProps().uuid = packageManager.WithNamespace(card.GetProps().uuid);
       }
       else if (localPackageManager.HasPackage(addr.packageId)) {
         card = localPackageManager.FindPackageByID(addr.packageId).GetCardProperties();
-        card.props.uuid = localPackageManager.WithNamespace(card.props.uuid);
+        card.GetProps().uuid = localPackageManager.WithNamespace(card.GetProps().uuid);
       }
 
       remoteHand.push_back(card);

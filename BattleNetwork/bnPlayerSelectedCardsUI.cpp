@@ -146,7 +146,7 @@ void PlayerSelectedCardsUI::draw(sf::RenderTarget& target, sf::RenderStates stat
       text.setPosition(2.0f, 296.0f);
 
       // Text sits at the bottom-left of the screen
-      int unmodDamage = currCard.GetUnmoddedProps().damage;
+      int unmodDamage = currCard.GetBaseProps().damage;
       int delta = currCard.GetDamage() - unmodDamage;
       sf::String dmgText = std::to_string(unmodDamage);
 
@@ -217,7 +217,7 @@ void PlayerSelectedCardsUI::Broadcast(std::shared_ptr<CardAction> action)
   std::shared_ptr<Player> player = GetOwnerAs<Player>();
 
   bool angry = player && player->GetEmotion() == Emotion::angry;
-  if (angry && action->GetMetaData().canBoost) {
+  if (angry && action->GetMetaData().GetProps().canBoost) {
     player->SetEmotion(Emotion::normal);
   }
 

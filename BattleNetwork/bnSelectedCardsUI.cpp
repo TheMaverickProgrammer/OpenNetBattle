@@ -177,7 +177,7 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.props)) {
+    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.GetProps())) {
       Broadcast(action); // tell the rest of the subsystems
     }
 

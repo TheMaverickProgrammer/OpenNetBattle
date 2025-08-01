@@ -47,7 +47,6 @@ namespace Battle {
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
 
-    Properties props;
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
@@ -65,7 +64,12 @@ namespace Battle {
 
     ~Card();
 
-    const Card::Properties& GetUnmoddedProps() const;
+    Card::Properties& GetProps(); // Modded props
+    Card::Properties& GetBaseProps(); // Unmodded props
+
+    // const qualified
+    const Card::Properties& GetProps() const;
+    const Card::Properties& GetBaseProps() const;
 
     /**
       * @brief Get extra card description. Shows up on library.
@@ -173,6 +177,7 @@ namespace Battle {
 
   private:
     Properties unmodded;
-    unsigned int multiplier{ 0 };
+    Properties props;
+    unsigned int multiplier{ 1 };
   };
 }

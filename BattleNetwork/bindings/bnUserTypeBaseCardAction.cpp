@@ -70,7 +70,7 @@ void DefineBaseCardActionUserType(sol::state& state, sol::table& battle_namespac
       cardAction.Unwrap()->SetMetaData(props);
     },
     "copy_metadata", [](WeakWrapper<CardAction>& cardAction) -> Battle::Card::Properties {
-      return cardAction.Unwrap()->GetMetaData();
+      return cardAction.Unwrap()->GetMetaData().GetProps();
     }
   );
 

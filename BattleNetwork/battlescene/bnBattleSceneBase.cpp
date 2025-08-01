@@ -390,7 +390,7 @@ std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
 
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  if (action->GetMetaData().canBoost) {
+  if (action->GetMetaData().GetProps().canBoost) {
     HandleCounterLoss(*action->GetActor(), true);
   }
 }
@@ -542,18 +542,18 @@ void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, 
 
           if (i > 0 && cards[i - 1u].CanBoost()) {
             adjCards.hasCardToLeft = true;
-            adjCards.leftCard = &cards[i - 1u].props;
+            adjCards.leftCard = &cards[i - 1u].GetProps();
           }
 
           if (i < cards.size() - 1 && cards[i + 1u].CanBoost()) {
             adjCards.hasCardToRight = true;
-            adjCards.rightCard = &cards[i + 1u].props;
+            adjCards.rightCard = &cards[i + 1u].GetProps();
           }
 
           CardMeta& meta = cardPackageManager.FindPackageByID(addr.packageId);
 
           if (meta.filterHandStep) {
-            meta.filterHandStep(cards[i].props, adjCards);
+            meta.filterHandStep(cards[i].GetProps(), adjCards);
           }
 
           size_t this_card = i;

@@ -28,7 +28,7 @@ std::shared_ptr<CardAction> CardToAction(
       std::shared_ptr<CardAction> result = cardImpl->BuildCardAction(character, props);
 
       if (result) {
-        result->SetMetaData(props);
+        result->SetMetaData(card);
         return result;
       }
     }

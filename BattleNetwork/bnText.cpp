@@ -2,18 +2,20 @@
 #include <cmath>
 #include <cctype> // for control codes
 
-void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
-{
+#include <Poco/UTF8Encoding.h>
+#include <Poco/TextIterator.h>
+
+void Text::AddLetterQuad(sf::Vector2f position, const sf::Color& color, uint32_t letter) const {
   font.SetLetter(letter);
   const auto texcoords = font.GetTextureCoords();
   const auto origin = font.GetOrigin();
   const sf::Texture& texture = font.GetTexture();
-  float width  = static_cast<float>(texture.getSize().x);
+  float width = static_cast<float>(texture.getSize().x);
   float height = static_cast<float>(texture.getSize().y);
-  
-  float left   = 0;
-  float top    = 0;
-  float right  = static_cast<float>(texcoords.width);
+
+  float left = 0;
+  float top = 0;
+  float right = static_cast<float>(texcoords.width);
   float bottom = static_cast<float>(texcoords.height);
 
   // fit tall letters on the same line
@@ -37,8 +39,7 @@ void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char le
   vertices.append(sf::Vertex(sf::Vector2f(position.x + right, position.y), color, sf::Vector2f(u2, v1)));
 }
 
-void Text::UpdateGeometry() const
-{
+void Text::UpdateGeometry() const {
   if (!geometryDirty) return;
 
   vertices.clear();
@@ -54,23 +55,35 @@ void Text::UpdateGeometry() const
   float y = 0.f;
   float width = 0.f;
 
-  for (char letter : message) {
+  Poco::UTF8Encoding utf8Encoding;
+  Poco::TextIterator begin(message, utf8Encoding);
+  Poco::TextIterator end(message);
+  Poco::TextIterator it = begin;
+
+  for (; it != end; ++it) {
+    uint32_t letter = *it;
+
     // Handle special characters
-    if ((letter == L' ') || (letter == L'\n') || (letter == L'\t'))
+    if ((letter == U' ') || (letter == U'\n') || (letter == U'\t'))
     {
       switch (letter)
       {
-      case L' ':  x += whitespaceWidth;     break;
-      case L'\t': x += whitespaceWidth * 4; break;
-      case L'\n': y += lineSpacing; x = 0;  break;
+      case U' ':  x += whitespaceWidth;     break;
+      case U'\t': x += whitespaceWidth * 4; break;
+      case U'\n': y += lineSpacing; x = 0;  break;
       }
-    } else {
+    }
+    else {
       // skip user-defined control codes
-      if (letter > 0 && iscntrl(letter)) continue;
+      if (letter > 0 && letter <= 0xff && iscntrl(letter)) continue;
 
       AddLetterQuad(sf::Vector2f(x, y), color, letter);
 
-      x += font.GetLetterWidth() + letterSpacing;
+      if (it != begin) {
+        x += letterSpacing;
+      }
+
+      x += font.GetLetterWidth();
     }
 
     width = std::max(x, width);
@@ -85,24 +98,21 @@ void Text::UpdateGeometry() const
   geometryDirty = false;
 }
 
-Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
-{
+Text::Text(const Font& font) : font(font), message(""), geometryDirty(true) {
   letterSpacing = 1.0f;
   lineSpacing = 1.0f;
   color = sf::Color::White;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const std::string& message, const Font& font) : font(font), message(message), geometryDirty(true)
-{
+Text::Text(const std::string& message, const Font& font) : font(font), message(message), geometryDirty(true) {
   letterSpacing = 1.0f;
   lineSpacing = 1.0f;
   color = sf::Color::White;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const Text& rhs) : font(rhs.font)
-{
+Text::Text(const Text& rhs) : font(rhs.font) {
   letterSpacing = rhs.letterSpacing;
   lineSpacing = rhs.lineSpacing;
   message = rhs.message;
@@ -112,12 +122,10 @@ Text::Text(const Text& rhs) : font(rhs.font)
   geometryDirty = rhs.geometryDirty;
 }
 
-Text::~Text()
-{
+Text::~Text() {
 }
 
-void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
-{
+void Text::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   UpdateGeometry();
 
   states.transform *= getTransform();
@@ -126,26 +134,22 @@ void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
   target.draw(vertices, states);
 }
 
-void Text::SetFont(const Font& font)
-{
+void Text::SetFont(const Font& font) {
   geometryDirty |= Text::font.GetStyle() != font.GetStyle();
   Text::font = font;
 }
 
-void Text::SetString(const std::string& message)
-{
+void Text::SetString(const std::string& message) {
   geometryDirty |= Text::message != message;
   Text::message = message;
 }
 
-void Text::SetString(char c)
-{
+void Text::SetString(char c) {
   geometryDirty |= Text::message != std::to_string(c);
   Text::message = std::string(1, c);
 }
 
-void Text::SetColor(const sf::Color & color)
-{
+void Text::SetColor(const sf::Color& color) {
   geometryDirty |= Text::color == color;
 
   Text::color = color;
@@ -159,43 +163,36 @@ void Text::SetColor(const sf::Color & color)
   }
 }
 
-void Text::SetLetterSpacing(float spacing)
-{
+void Text::SetLetterSpacing(float spacing) {
   geometryDirty |= letterSpacing != spacing;
 
   letterSpacing = spacing;
 }
 
-void Text::SetLineSpacing(float spacing)
-{
+void Text::SetLineSpacing(float spacing) {
   geometryDirty |= lineSpacing != spacing;
 
   lineSpacing = spacing;
 }
 
-const std::string & Text::GetString() const
-{
+const std::string& Text::GetString() const {
   return message;
 }
 
-const Font & Text::GetFont() const
-{
+const Font& Text::GetFont() const {
   return font;
 }
 
-const Font::Style & Text::GetStyle() const
-{
+const Font::Style& Text::GetStyle() const {
   return font.GetStyle();
 }
 
-sf::FloatRect Text::GetLocalBounds() const
-{
+sf::FloatRect Text::GetLocalBounds() const {
   UpdateGeometry();
 
   return bounds;
 }
 
-sf::FloatRect Text::GetWorldBounds() const
-{
+sf::FloatRect Text::GetWorldBounds() const {
   return getTransform().transformRect(GetLocalBounds());
 }

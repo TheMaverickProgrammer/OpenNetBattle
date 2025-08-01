@@ -65,7 +65,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardActionUseListe
   const bool FadeInBackdrop();
   bool IsOver();
   
-  // void DrawCardData(sf::RenderTarget& target); // TODO: we are missing some data from the selected UI to draw the info we need
+  void DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target);
 
   std::shared_ptr<Character> CreateStuntDouble(std::shared_ptr<Character> from);
 };

@@ -4,7 +4,7 @@
 #include <tuple>
 
 namespace Battle {
-  Card::Card() : props(), unmodded(props) 
+  Card::Card() 
   { }
 
   Card::Card(const Card::Properties& props) : props(props), unmodded(props)

@@ -176,8 +176,8 @@ namespace Battle {
     friend struct Compare;
 
   private:
-    Properties unmodded;
-    Properties props;
+    Properties unmodded{};
+    Properties props{};
     unsigned int multiplier{ 1 };
   };
 }

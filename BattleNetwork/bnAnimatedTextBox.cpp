@@ -291,6 +291,8 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
   }
 
   if (canDraw) {
+    mugAnimator.Refresh(lastSpeaker);
+
     sf::Vector2f oldpos = lastSpeaker.getPosition();
     auto pos = oldpos;
     pos += getPosition();
@@ -307,8 +309,6 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
     pos += sf::Vector2f(6.0f, 2.0f - lastSpeaker.getGlobalBounds().height / 2.0f);
 
     lastSpeaker.setPosition(pos);
-
-    mugAnimator.Update(0, lastSpeaker);
 
     if (lightenMug) {
       lastSpeaker.setColor(sf::Color(255, 255, 255, 125));

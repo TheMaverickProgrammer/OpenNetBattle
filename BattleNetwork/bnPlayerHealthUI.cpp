@@ -28,6 +28,7 @@ PlayerHealthUI::~PlayerHealthUI()
 
 void PlayerHealthUI::SetFontStyle(Font::Style style)
 {
+  glyphs.SetFont(style);
 }
 
 void PlayerHealthUI::SetHP(int hp)
@@ -127,6 +128,7 @@ PlayerHealthUIComponent::~PlayerHealthUIComponent() {
 void PlayerHealthUIComponent::Inject(BattleSceneBase& scene)
 {
   scene.Inject(shared_from_base<PlayerHealthUIComponent>());
+  this->scene - &scene;
 }
 
 void PlayerHealthUIComponent::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -150,6 +152,7 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
   isBattleOver = Injected() ? (Scene()->IsRedTeamCleared() || Scene()->IsBlueTeamCleared()) : true;
 
+  ui.Update(elapsed);
   if (auto player = GetOwnerAs<Player>()) {
     ui.SetHP(player->GetHealth());
 
@@ -172,11 +175,9 @@ void PlayerHealthUIComponent::OnUpdate(double elapsed) {
       ui.SetFontStyle(Font::Style::gradient_gold);
 
       // If HP is low, play beep with high priority
-      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver) {
+      if (player->GetHealth() <= startHP * 0.25 && !isBattleOver && scene && scene->GetSelectedCardsUI().IsHidden()) {
         ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
       }
     }
   }
-
-  ui.Update(elapsed);
 }

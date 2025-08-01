@@ -55,6 +55,10 @@ void DefineScriptedPlayerUserType(sol::state& state, sol::table& battle_namespac
         player.Unwrap()->AddAction(CardEvent{ cardAction.UnwrapAndRelease() }, order);
       }
     ),
+    "can_attack", [](WeakWrapper<ScriptedPlayer>& player) {
+      auto playerPtr = player.Unwrap();
+      return playerPtr->CanAttack();
+    },
     "get_attack_level", [](WeakWrapper<ScriptedPlayer>& player) -> unsigned int {
       return player.Unwrap()->GetAttackLevel();
     },

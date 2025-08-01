@@ -40,10 +40,10 @@ void DefineSpriteNodeUserType(sol::state& state, sol::table& engine_namespace) {
     "remove_node", [](WeakWrapper<SpriteProxyNode>& node, WeakWrapper<SpriteProxyNode>& child) {
       node.Unwrap()->RemoveNode(child.Unwrap().get());
     },
-    "add_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
+    "add_tags", [](WeakWrapper<SpriteProxyNode>& node, std::vector<std::string> tags) {
       node.Unwrap()->AddTags(tags);
     },
-    "remove_tags", [](WeakWrapper<SpriteProxyNode>& node, std::initializer_list<std::string> tags) {
+    "remove_tags", [](WeakWrapper<SpriteProxyNode>& node, std::vector<std::string> tags) {
       node.Unwrap()->RemoveTags(tags);
     },
     "has_tag", [](WeakWrapper<SpriteProxyNode>& node, const std::string& tag) -> bool{

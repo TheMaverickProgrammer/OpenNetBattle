@@ -203,7 +203,7 @@ void CombatBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uin
 
   Logger::Logf(LogLevel::debug, "CombatBattleState::OnCardActionUsed() on frame #%i, with gauge progress %f", scene.FrameNumber().count(), this->GetScene().GetCustomBarProgress());
   if (!IsMobCleared()) {
-    hasTimeFreeze = action->GetMetaData().timeFreeze;
+    hasTimeFreeze = action->GetMetaData().GetProps().timeFreeze;
   }
 }
 

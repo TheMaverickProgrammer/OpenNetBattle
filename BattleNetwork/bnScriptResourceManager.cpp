@@ -21,6 +21,7 @@
 #include "bnField.h"
 #include "bnParticlePoof.h"
 #include "bnPlayerCustScene.h"
+#include "bnAlertSymbol.h"
 #include "bnRandom.h"
 
 #include "bindings/bnLuaLibrary.h"
@@ -93,6 +94,11 @@ void ScriptResourceManager::SetSystemFunctions(ScriptPackage& scriptPackage)
   const std::string& namespaceId = scriptPackage.address.namespaceId;
 
   state.open_libraries(sol::lib::base, sol::lib::math, sol::lib::table);
+
+  // vulnerability patching, why is this included with lib::base :(
+  state["load"] = nullptr;
+  state["loadfile"] = nullptr;
+  state["dofile"] = nullptr;
 
   state["math"]["randomseed"] = []{
     Logger::Log(LogLevel::warning, "math.random uses the engine's random number generator and does not need to be seeded");
@@ -368,7 +374,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
       return self.CreateSpawner(namespaceId, fqn, rank);
     },
     "set_background", &ScriptedMob::SetBackground,
-    "stream_music", &ScriptedMob::StreamMusic,
+    "stream_music", [](ScriptedMob& mob, const std::string& path, std::optional<long long> startMs, std::optional<long long> endMs) {
+      mob.StreamMusic(path, startMs.value_or(-1), endMs.value_or(-1));
+    },
     "get_field", [](ScriptedMob& o) { return WeakWrapper(o.GetField()); },
     "enable_freedom_mission", &ScriptedMob::EnableFreedomMission,
     "spawn_player", &ScriptedMob::SpawnPlayer
@@ -444,7 +452,7 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::factories(
       [](const std::string& path, std::optional<bool> loop, std::optional<long long> startMs, std::optional<long long> endMs) {
       static ResourceHandle handle;
-      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(0), endMs.value_or(0));
+      return handle.Audio().Stream(path, loop.value_or(true), startMs.value_or(-1), endMs.value_or(-1));
     })
   );
 
@@ -537,7 +545,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Down", InputEvents::pressed_move_down,
     "Use", InputEvents::pressed_use_chip,
     "Special", InputEvents::pressed_special,
-    "Shoot", InputEvents::pressed_shoot
+    "Shoot", InputEvents::pressed_shoot,
+    "Left_Shoulder", InputEvents::pressed_shoulder_left,
+    "Right_Shoulder", InputEvents::pressed_shoulder_right
   );
 
   input_event_record.new_enum("Held",
@@ -547,7 +557,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Down", InputEvents::held_move_down,
     "Use", InputEvents::held_use_chip,
     "Special", InputEvents::held_special,
-    "Shoot", InputEvents::held_shoot
+    "Shoot", InputEvents::pressed_shoot,
+    "Left_Shoulder", InputEvents::pressed_shoulder_left,
+    "Right_Shoulder", InputEvents::pressed_shoulder_right
   );
 
   input_event_record.new_enum("Released",
@@ -557,7 +569,9 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     "Down", InputEvents::released_move_down,
     "Use", InputEvents::released_use_chip,
     "Special", InputEvents::released_special,
-    "Shoot", InputEvents::released_shoot
+    "Shoot", InputEvents::pressed_shoot,
+    "Left_Shoulder", InputEvents::pressed_shoulder_left,
+    "Right_Shoulder", InputEvents::pressed_shoulder_right
   );
 
   const auto& character_rank_record = state.new_enum("Rank",
@@ -671,6 +685,15 @@ void ScriptResourceManager::ConfigureEnvironment(ScriptPackage& scriptPackage) {
     sol::factories([](int count, double speed) -> WeakWrapper<Entity> {
       std::shared_ptr<Entity> artifact = std::make_shared<Explosion>(count, speed);
       auto wrappedArtifact = WeakWrapper(artifact);
+      wrappedArtifact.Own();
+      return wrappedArtifact;
+    })
+  );
+
+  const auto& alertsymbol_record = battle_namespace.new_usertype<AlertSymbol>("AlertSymbol",
+    sol::factories([]() -> WeakWrapper<Entity> {
+      std::shared_ptr<Entity> bang = std::make_shared<AlertSymbol>();
+      auto wrappedArtifact = WeakWrapper(bang);
       wrappedArtifact.Own();
       return wrappedArtifact;
     })

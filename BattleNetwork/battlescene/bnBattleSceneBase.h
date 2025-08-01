@@ -380,15 +380,19 @@ public:
   void DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& surf);
   void DrawWithPerspective(Text& text, sf::RenderTarget& surf);
   void PerspectiveFlip(bool flipped);
+  bool IsPerspectiveFlipped();
   bool TrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackOtherPlayer(std::shared_ptr<Player>& other);
   void UntrackMobCharacter(std::shared_ptr<Character>& character);
+  void PreparePlayerFullSynchro(const std::shared_ptr<Player>& player);
   bool IsPlayerDeleted() const;
 
   std::shared_ptr<Player> GetLocalPlayer();
   const std::shared_ptr<Player> GetLocalPlayer() const;
   std::vector<std::shared_ptr<Player>> GetOtherPlayers();
   std::vector<std::shared_ptr<Player>> GetAllPlayers();
+  Mob& GetRedTeamMob();
+  Mob& GetBlueTeamMob();
   std::shared_ptr<Field> GetField();
   const std::shared_ptr<Field> GetField() const;
   CardSelectionCust& GetCardSelectWidget();

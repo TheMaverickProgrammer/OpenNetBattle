@@ -37,6 +37,7 @@ namespace Battle {
       bool canBoost{ true }; /*!< Can this card be boosted by other cards? */
       bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
       bool skipTimeFreezeIntro{ false }; /*! Skips the fade in/out and name appearing for this card */
+      bool counterable{ true };  /*!< During the tf intro, can this card be countered? */
       string shortname;
       string action; 
       string description;
@@ -46,7 +47,6 @@ namespace Battle {
       std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
     };
 
-    Properties props;
     /**
       * @brief Cards are not designed to have default or partial data. Must provide all at once.
       */
@@ -64,7 +64,12 @@ namespace Battle {
 
     ~Card();
 
-    const Card::Properties& GetUnmoddedProps() const;
+    Card::Properties& GetProps(); // Modded props
+    Card::Properties& GetBaseProps(); // Unmodded props
+
+    // const qualified
+    const Card::Properties& GetProps() const;
+    const Card::Properties& GetBaseProps() const;
 
     /**
       * @brief Get extra card description. Shows up on library.
@@ -171,7 +176,8 @@ namespace Battle {
     friend struct Compare;
 
   private:
-    Properties unmodded;
-    unsigned int multiplier{ 0 };
+    Properties unmodded{};
+    Properties props{};
+    unsigned int multiplier{ 1 };
   };
 }

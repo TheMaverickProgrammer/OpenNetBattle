@@ -172,7 +172,7 @@ public:
   void operator<<(const std::function<void()>& onFinish);
 
   sf::Vector2f GetPoint(const std::string& pointName);
-  const bool HasPoint(const std::string& pointName);
+  const bool HasPoint(std::string pointName);
 
   char GetMode();
 
@@ -184,7 +184,7 @@ public:
 
   void SetInterruptCallback(const std::function<void()> onInterrupt);
 
-  const bool HasAnimation(const std::string& state) const;
+  const bool HasAnimation(std::string state) const;
 
   const double GetPlaybackSpeed() const;
   void SetPlaybackSpeed(double factor);
@@ -214,5 +214,5 @@ protected:
   frame_time_t progress; /*!< Current progress of animation */
   double playbackSpeed{ 1.0 }; /*!< Factor to multiply against update `dt`*/
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
-  std::function<void()> interruptCallback;
+  std::function<void()> interruptCallback{ nullptr };
 };

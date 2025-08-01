@@ -93,6 +93,32 @@ void ScriptedSpell::OnSpawn(Battle::Tile& spawn)
   }
 }
 
+void ScriptedSpell::OnBattleStart() {
+  if (battle_start_func.valid())
+  {
+    auto result = CallLuaCallback(battle_start_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+
+  Spell::OnBattleStart();
+}
+
+void ScriptedSpell::OnBattleStop() {
+  Spell::OnBattleStop();
+
+  if (battle_end_func.valid())
+  {
+    auto result = CallLuaCallback(battle_end_func, weakWrap);
+
+    if (result.is_error()) {
+      Logger::Log(LogLevel::critical, result.error_cstr());
+    }
+  }
+}
+
 const float ScriptedSpell::GetHeight() const
 {
   return height;

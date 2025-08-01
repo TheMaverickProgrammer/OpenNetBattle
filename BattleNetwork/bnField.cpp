@@ -373,7 +373,7 @@ void Field::Update(double _elapsed) {
   for (int i = 0; i < tiles.size(); i++) {
     for (int j = 0; j < tiles[i].size(); j++) {
       Battle::Tile* t = tiles[i][j];
-      if (t->teamCooldown > 0) {
+      if (t->teamCooldown > frames(0)) {
         syncCol.insert(syncCol.begin(), j);
       }
       else if(t->GetTeam() != t->ogTeam){
@@ -451,7 +451,7 @@ void Field::Update(double _elapsed) {
 
   // sync stolen tiles with their corresponding columns
   for (int col : syncCol) {
-    double maxTimer = 0.0;
+    frame_time_t maxTimer = frames(0);
     for (size_t i = 1; i <= GetHeight(); i++) {
       Battle::Tile* t = tiles[i][col];
       maxTimer = std::max(maxTimer, t->teamCooldown);

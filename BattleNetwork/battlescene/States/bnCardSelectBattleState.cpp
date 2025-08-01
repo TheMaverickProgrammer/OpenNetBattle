@@ -212,7 +212,8 @@ void CardSelectBattleState::onUpdate(double elapsed)
             }
             else {
               // Send off the remaining hands to any scene implementations that need it
-              scene.OnSelectNewCards(player, ui->GetRemainingCards());
+              std::vector<Battle::Card> cards = ui->GetRemainingCards();
+              scene.OnSelectNewCards(player, cards);
             }
           }
 

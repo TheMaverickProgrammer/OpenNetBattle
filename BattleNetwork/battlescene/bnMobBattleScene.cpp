@@ -1,6 +1,6 @@
 #include "bnMobBattleScene.h"
 #include "../bnMob.h"
-#include "../bnElementalDamage.h"
+#include "../bnAlertSymbol.h"
 #include "../../bnPlayer.h"
 
 #include "States/bnRewardBattleState.h"
@@ -182,7 +182,7 @@ void MobBattleScene::OnHit(Entity& victim, const Hit::Properties& props)
   bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
 
   if (freezeBreak || superEffective) {
-    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<AlertSymbol> seSymbol = std::make_shared<AlertSymbol>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
@@ -258,7 +258,7 @@ std::function<bool()> MobBattleScene::HookRetreat(RetreatBattleState& retreat, F
 std::function<bool()> MobBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+    bool triggered = form.IsFinished() && playerDecross;
 
     if (triggered) {
       playerDecross = false; // reset our decross flag
@@ -281,9 +281,7 @@ std::function<bool()> MobBattleScene::HookFormChangeStart(CharacterTransformBatt
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
     TrackedFormData& formData = GetPlayerFormData(localPlayer);
 
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
+    bool changeState = playerDecross && (formData.selectedForm != -1);
 
     if (changeState) {
       formData.selectedForm = -1;

@@ -860,6 +860,7 @@ void Entity::SetTeam(Team _team) {
 void Entity::SetPassthrough(bool state)
 {
   passthrough = state;
+  Reveal();
 }
 
 bool Entity::IsPassthrough()
@@ -939,6 +940,9 @@ void Entity::Delete()
   if (deleted) return;
 
   deleted = true;
+
+  // zero all blocking statuses
+  freezeCooldown = stunCooldown = rootCooldown = blindCooldown = frames(0);
 
   OnDelete();
 }
@@ -1202,7 +1206,46 @@ const bool Entity::Hit(Hit::Properties props) {
     props.damage *= 2;
   }
 
-  SetHealth(GetHealth() - props.damage);
+  int tileDamage = 0;
+  int extraDamage = 0;
+
+  // Calculate elemental damage if the tile the character is on is super effective to it
+  if (props.element == Element::fire
+    && GetTile()->GetState() == TileState::grass) {
+    tileDamage = props.damage;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  // TODO: Replace with Sea state check when Sea panels 
+  // are added. Disabling bonus damage for now.
+  if (false && props.element == Element::elec
+    && GetTile()->GetState() == TileState::ice) {
+    tileDamage = props.damage;
+  }
+
+  /*
+  if (props.element == Element::aqua
+    && GetTile()->GetState() == TileState::ice
+    && !frameFreezeCancel) {
+    willFreeze = true;
+    GetTile()->SetState(TileState::normal);
+  }
+
+  if ((props.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
+    extraDamage = props.damage;
+    frameFreezeCancel = true;
+  }
+  */
+
+  int totalDamage = props.damage + (tileDamage + extraDamage);
+
+  // Broadcast the hit before we apply statuses and change the entity's state flags
+  if (totalDamage > 0) {
+    SetHealth(GetHealth() - (tileDamage + extraDamage));
+    HitPublisher::Broadcast(*this, props);
+  }
+
+  SetHealth(GetHealth() - totalDamage);
 
   if (IsTimeFrozen()) {
     props.flags |= Hit::no_counter;
@@ -1293,38 +1336,6 @@ void Entity::ResolveFrameBattleDamage()
       }
     };
 
-    int tileDamage = 0;
-    int extraDamage = 0;
-
-    // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.filtered.element == Element::fire
-      && GetTile()->GetState() == TileState::grass) {
-      tileDamage = props.filtered.damage;
-      GetTile()->SetState(TileState::normal);
-    }
-    
-    if (props.filtered.element == Element::elec
-      && GetTile()->GetState() == TileState::ice) {
-      tileDamage = props.filtered.damage;
-    }
-
-    if (props.filtered.element == Element::aqua 
-      && GetTile()->GetState() == TileState::ice 
-      && !frameFreezeCancel) {
-      willFreeze = true;
-      GetTile()->SetState(TileState::normal);
-    }
-
-    if ((props.filtered.flags & Hit::breaking) == Hit::breaking && IsIceFrozen()) {
-      extraDamage = props.filtered.damage;
-      frameFreezeCancel = true;
-    }
-
-    // Broadcast the hit before we apply statuses and change the entity's state flags
-    if (props.filtered.damage > 0) {
-      SetHealth(GetHealth() - (tileDamage + extraDamage));
-      HitPublisher::Broadcast(*this, props.filtered);
-    }
 
     // start of new scope
     {
@@ -1342,6 +1353,9 @@ void Entity::ResolveFrameBattleDamage()
         OnCountered();
         flagCheckThunk(Hit::impact);
       }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::impact;
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.filtered.flags & Hit::drag) == Hit::drag) {
@@ -1364,10 +1378,10 @@ void Entity::ResolveFrameBattleDamage()
         }
 
         flagCheckThunk(Hit::drag);
-
-        // exclude this from the next processing step
-        props.filtered.flags &= ~Hit::drag;
       }
+
+      // exclude this from the next processing step
+      props.filtered.flags &= ~Hit::drag;
 
       bool flashAndFlinch = ((props.filtered.flags & Hit::flash) == Hit::flash) && ((props.filtered.flags & Hit::flinch) == Hit::flinch);
       frameFreezeCancel = frameFreezeCancel || flashAndFlinch;
@@ -1386,13 +1400,6 @@ void Entity::ResolveFrameBattleDamage()
           append.push({ props.hitbox, { 0, props.filtered.flags } });
         }
         else {
-          // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
-          /*for (auto&& d : this->defenses) {
-            hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
-          }*/
-
-          // assume some defense rule strips out flinch, prevent abuse of stun
-          frameStunCancel = frameStunCancel ||(props.filtered.flags & Hit::flinch) == 0 && (props.hitbox.flags & Hit::flinch) == Hit::flinch;
 
           if ((props.filtered.flags & Hit::flash) == Hit::flash && frameStunCancel) {
             // cancel stun
@@ -1420,7 +1427,7 @@ void Entity::ResolveFrameBattleDamage()
           // this will strip out flash in the next step
           frameFlashCancel = true;
           willFreeze = true;
-          flagCheckThunk(Hit::flinch);
+          flagCheckThunk(Hit::freeze);
         }
       }
 
@@ -1507,11 +1514,6 @@ void Entity::ResolveFrameBattleDamage()
       // exclude blind from the next processing step
       props.filtered.flags &= ~Hit::blind;
 
-      // todo: for confusion
-      //if ((props.filtered.flags & Hit::confusion) == Hit::confusion) {
-      //  frameStunCancel = true;
-      //}
-
       /*
       flags already accounted for:
       - impact
@@ -1548,20 +1550,28 @@ void Entity::ResolveFrameBattleDamage()
       slideFromDrag = true;
       Battle::Tile* dest = GetTile() + postDragEffect.dir;
 
-      if (CanMoveTo(dest)) {
-        // Enqueue a move action at the top of our priorities
-        actionQueue.Add(MoveEvent{ frames(4), frames(0), frames(0), 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
+      if (!CanMoveTo(dest)) {
+        dest = GetTile();
+        postDragEffect.count = 0;
+      }
 
-        std::queue<CombatHitProps> oldQueue = statusQueue;
-        statusQueue = {};
-        // Re-queue the drag status to be re-considered FIRST in our next combat checks
-        statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+      // The final drag event applies endlag
+      // 22 frames matches the amount of fixed frames applied to player recoil
+      const frame_time_t endlag = 
+        postDragEffect.count == 0 ? frames(22) : frames(0);
+     
+      // Enqueue a move action at the top of our priorities
+      actionQueue.Add(MoveEvent{ frames(4), frames(0), endlag, 0, dest, {}, true }, ActionOrder::immediate, ActionDiscardOp::until_resolve);
 
-        // append the old queue items after
-        while (!oldQueue.empty()) {
-          statusQueue.push(oldQueue.front());
-          oldQueue.pop();
-        }
+      std::queue<CombatHitProps> oldQueue = statusQueue;
+      statusQueue = {};
+      // Re-queue the drag status to be re-considered FIRST in our next combat checks
+      statusQueue.push({ {}, { 0, Hit::drag, Element::none, 0, postDragEffect } });
+
+      // append the old queue items after
+      while (!oldQueue.empty()) {
+        statusQueue.push(oldQueue.front());
+        oldQueue.pop();
       }
     }
   }

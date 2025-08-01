@@ -115,7 +115,7 @@ private:
   std::weak_ptr<Character> userWeak;
   Attachments attachments;
   std::shared_ptr<AnimationComponent> anim{ nullptr };
-  Battle::Card::Properties meta;
+  Battle::Card meta;
   std::vector<std::pair<int, FrameCallback>> animActions;
   Battle::Tile* startTile{ nullptr };
 
@@ -145,7 +145,7 @@ public:
   void SetLockout(const LockoutProperties& props);
   void SetLockoutGroup(const LockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
-  void SetMetaData(const Battle::Card::Properties& props);
+  void SetMetaData(const Battle::Card& card);
   void Execute(std::shared_ptr<Character> user);
   void EndAction();
   void UseStuntDouble(std::shared_ptr<Character> stuntDouble); // can cause GetActor to return nullptr
@@ -155,7 +155,7 @@ public:
   const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
-  const Battle::Card::Properties& GetMetaData() const;
+  const Battle::Card& GetMetaData() const;
   const bool CanExecute() const;
   std::shared_ptr<Character> GetActor(); // may return nullptr
   const std::shared_ptr<Character> GetActor() const; // may return nullptr

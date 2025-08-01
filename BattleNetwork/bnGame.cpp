@@ -531,44 +531,44 @@ void Game::SetSubtitle(const std::string& subtitle)
   window.SetSubtitle(subtitle);
 }
 
-const std::string Game::AppDataPath()
+const std::filesystem::path Game::AppDataPath()
 {
-  return sago::getDataHome() + "/" + window.GetTitle();
+  return std::filesystem::u8path(sago::getDataHome()) / appName;
 }
 
-const std::string Game::CacheDataPath()
+const std::filesystem::path Game::CacheDataPath()
 {
-  return sago::getCacheDir() + "/" + window.GetTitle();
+  return std::filesystem::u8path(sago::getCacheDir()) / appName;
 }
 
-const std::string Game::DesktopPath()
+const std::filesystem::path Game::DesktopPath()
 {
-  return sago::getDesktopFolder();
+  return std::filesystem::u8path(sago::getDesktopFolder());
 }
 
-const std::string Game::DownloadsPath()
+const std::filesystem::path Game::DownloadsPath()
 {
-  return sago::getDownloadFolder();
+  return std::filesystem::u8path(sago::getDownloadFolder());
 }
 
-const std::string Game::DocumentsPath()
+const std::filesystem::path Game::DocumentsPath()
 {
-  return sago::getDocumentsFolder();
+  return std::filesystem::u8path(sago::getDocumentsFolder());
 }
 
-const std::string Game::VideosPath()
+const std::filesystem::path Game::VideosPath()
 {
-  return sago::getVideoFolder();
+  return std::filesystem::u8path(sago::getVideoFolder());
 }
 
-const std::string Game::PicturesPath()
+const std::filesystem::path Game::PicturesPath()
 {
-  return sago::getPicturesFolder();
+  return std::filesystem::u8path(sago::getPicturesFolder());
 }
 
-const std::string Game::SaveGamesPath()
+const std::filesystem::path Game::SaveGamesPath()
 {
-  return sago::getSaveGamesFolder1();
+  return std::filesystem::u8path(sago::getSaveGamesFolder1());
 }
 
 CardPackagePartitioner& Game::CardPackagePartitioner()

@@ -76,6 +76,7 @@ void Player::Init() {
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
+  Charge(false);
   FinishConstructor();
 }
 
@@ -155,7 +156,7 @@ void Player::Attack() {
     if (action) {
       action->PreventCounters();
 
-      Battle::Card::Properties props = action->GetMetaData();
+      Battle::Card::Properties props = action->GetMetaData().GetProps();
 
       if (!fullyCharged) {
         props.timeFreeze = false;
@@ -221,6 +222,7 @@ int Player::GetMoveCount() const
   return Entity::GetMoveCount();
 }
 
+
 void Player::Charge(bool state)
 {
   frame_time_t maxCharge = CalculateChargeTime(GetChargeLevel());
@@ -245,6 +247,13 @@ const unsigned Player::GetAttackLevel()
 void Player::SetChargeLevel(unsigned lvl)
 {
   stats.charge = std::min(PlayerStats::MAX_CHARGE_LEVEL, lvl);
+
+  frame_time_t maxCharge = CalculateChargeTime(stats.charge);
+  if (activeForm) {
+    maxCharge = activeForm->CalculateChargeTime(GetChargeLevel());
+  }
+
+  chargeEffect->SetMaxChargeTime(maxCharge);
 }
 
 const unsigned Player::GetChargeLevel()
@@ -381,6 +390,10 @@ void Player::ActivateFormAt(int index)
       animationComponent->Refresh();
     }
   }
+
+  // Cancel charging. This will also refresh charge times 
+  // for the new form.
+  Charge(false);
 
   // Find nodes that do not have tags, those are newly added
   for (std::shared_ptr<SceneNode>& node : GetChildNodes()) {

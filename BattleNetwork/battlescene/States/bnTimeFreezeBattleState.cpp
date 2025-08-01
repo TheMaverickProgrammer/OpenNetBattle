@@ -64,6 +64,10 @@ void TimeFreezeBattleState::ProcessInputs()
   for (std::shared_ptr<Player>& p : this->GetScene().GetAllPlayers()) {
     p->InputState().Process();
 
+    if (summonTick < tfcStartFrame) {
+      continue;
+    }
+
     if (p->InputState().Has(InputEvents::pressed_use_chip)) {
       Logger::Logf(LogLevel::info, "InputEvents::pressed_use_chip for player %i", player_idx);
       std::shared_ptr<PlayerSelectedCardsUI> cardsUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
@@ -75,14 +79,12 @@ void TimeFreezeBattleState::ProcessInputs()
           const Battle::Card& card = *maybe_card;
 
           if (card.IsTimeFreeze() && CanCounter(p)) {
-            if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.props)) {
+            if (std::shared_ptr<CardAction> action = CardToAction(card, p, &GetScene().getController().CardPackagePartitioner(), card.GetProps())) {
               OnCardActionUsed(action, CurrentTime::AsMilli());
               cardsUI->DropNextCard();
             }
           }
         }
-
-        p->GetChargeComponent().SetCharging(false);
       }
     }
     player_idx++;
@@ -101,7 +103,7 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   if (tfEvents.empty()) return;
 
   const auto& first = tfEvents.begin();
-  if (first->action && first->action->GetMetaData().skipTimeFreezeIntro) {
+  if (first->action && first->action->GetMetaData().GetProps().skipTimeFreezeIntro) {
     SkipToAnimateState();
   }
 }
@@ -170,6 +172,12 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     for (TimeFreezeBattleState::EventData& e : tfEvents) {
       if (e.animateCounter) {
         e.alertFrameCount += frames(1);
+        //Set animation to false if we're done animating.
+        if (e.alertFrameCount.value > alertAnimFrames.value) {
+          e.animateCounter = false;
+        }
+        //Delay while animating. We can't counter right now.
+        summonTick = frames(0);
       }
     }
   }
@@ -196,6 +204,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
       else{
         first->user->Reveal();
+        first->action->EndAction();
         scene.UntrackMobCharacter(first->stuntDouble);
         scene.GetField()->DeallocEntity(first->stuntDouble->GetID());
 
@@ -216,6 +225,11 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     }
     break;
   }
+
+  for (std::shared_ptr<Player>& player : GetScene().GetAllPlayers()) {
+    ChargeEffectSceneNode& chargeNode = player->GetChargeComponent();
+    chargeNode.Animate(elapsed);
+  }
 }
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
@@ -228,56 +242,61 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   BattleSceneBase& scene = GetScene();
   const auto& first = tfEvents.begin();
 
-  double tfcTimerScale = swoosh::ease::linear(summonTick.asSeconds().value, summonTextLength.asSeconds().value, 1.0);
+  double tfcTimerScale = 0;
+
+  double summonTickSeconds = summonTick.asSeconds().value;
+  double fadeSeconds = fadeInOutLength.asSeconds().value;
+
+
+  if (summonTickSeconds > fadeSeconds) {
+    tfcTimerScale = swoosh::ease::linear((summonTickSeconds - fadeSeconds), (double)(summonTextLength.asSeconds().value - fadeSeconds), 1.0);
+  }
+
   double scale = swoosh::ease::linear(summonTick.asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
   scale = std::min(scale, 1.0);
 
   bar = sf::RectangleShape({ 100.f * static_cast<float>(1.0 - tfcTimerScale), 2.f });
   bar.setScale(2.f, 2.f);
 
-  if (summonTick >= summonTextLength - fadeInOutLength) {
-    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeInOutLength.asSeconds().value, 1.0);
+  if (summonTick >= summonTextLength) {
+    scale = swoosh::ease::linear((summonTextLength - summonTick).asSeconds().value, fadeSeconds, 1.0);
     scale = std::max(scale, 0.0);
   }
 
-  sf::Vector2f position = sf::Vector2f(66.f, 82.f);
+  sf::Vector2f position = sf::Vector2f(64.f, 82.f);
 
-  if (first->team == Team::blue) {
+  Team leftTeam = scene.IsPerspectiveFlipped() ? Team::blue : Team::red;
+  bool flip = first->team != leftTeam;
+  
+  // Set position for DrawCardData based on perspective. DrawCardData
+  // cannot use DrawWithPerspective because the text positions will be 
+  // incorrect, so this handles it.
+  if (flip) {
     position = sf::Vector2f(416.f, 82.f);
     bar.setOrigin(bar.getLocalBounds().width, 0.0f);
   }
 
-  summonsLabel.setScale(2.0f, 2.0f*(float)scale);
-
-  if (first->team == Team::red) {
-    summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height*0.5f);
-  }
-  else {
-    summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height*0.5f);
-  }
+  
+  DrawCardData(position, sf::Vector2f(2.f, scale * 2.f), surface);
 
   scene.DrawCustGauage(surface);
   surface.draw(scene.GetCardSelectWidget());
 
-  summonsLabel.SetColor(sf::Color::Black);
-  summonsLabel.setPosition(position.x + 2.f, position.y + 2.f);
-  scene.DrawWithPerspective(summonsLabel, surface);
-
-  summonsLabel.SetColor(sf::Color::White);
-  summonsLabel.setPosition(position);
-  scene.DrawWithPerspective(summonsLabel, surface);
-
-  if (currState == state::display_name) {
-    // draw TF bar underneath
+  if (currState == state::display_name && first->action->GetMetaData().GetProps().counterable && summonTick > tfcStartFrame) {
+    // draw TF bar underneath if conditions are met
     bar.setPosition(position + sf::Vector2f(0.f + 2.f, 12.f + 2.f));
     bar.setFillColor(sf::Color::Black);
-    scene.DrawWithPerspective(bar, surface);
+
+    // Avoid drawing with perspective, because origin and position 
+    // were already set based on perspective
+    surface.draw(bar);
 
     bar.setPosition(position + sf::Vector2f(0.f, 12.f));
 
     sf::Uint8 b = (sf::Uint8)swoosh::ease::interpolate((1.0-tfcTimerScale), 0.0, 255.0);
+
     bar.setFillColor(sf::Color(255, 255, b));
-    scene.DrawWithPerspective(bar, surface);
+    surface.draw(bar);
   }
 
   // draw the !! sprite
@@ -310,12 +329,12 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   if (tfEvents.empty()) return;
 
-  auto first = tfEvents.begin();
+  TimeFreezeBattleState::EventData& first = *tfEvents.begin();
 
-  if (first->action && first->action->CanExecute()) {
-    first->user->Hide();
-    if (GetScene().GetField()->AddEntity(first->stuntDouble, *first->user->GetTile()) != Field::AddEntityStatus::deleted) {
-      first->action->Execute(first->user);
+  if (first.action && first.action->CanExecute()) {
+    first.user->Hide();
+    if (GetScene().GetField()->AddEntity(first.stuntDouble, *first.user->GetTile()) != Field::AddEntityStatus::deleted) {
+      first.action->Execute(first.user);
     }
     else {
       currState = state::fadeout;
@@ -327,28 +346,55 @@ bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
 }
 
-/*
-void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
-{
+void TimeFreezeBattleState::DrawCardData(const sf::Vector2f& pos, const sf::Vector2f& scale, sf::RenderTarget& target) {
+  TimeFreezeBattleState::EventData& event = *tfEvents.begin();
   const auto orange = sf::Color(225, 140, 0);
   bool canBoost{};
+  float multiplierOffset = 0.f;
+  float dmgOffset = 0.f;
 
-  summonsLabel.SetString("");
+  BattleSceneBase& scene = GetScene();
+  Team leftTeam = scene.IsPerspectiveFlipped() ? Team::blue : Team::red;
+  bool flip = event.team != leftTeam;
+
+  // helper function
+  auto setSummonLabelOrigin = [flip](Team team, Text& text) {
+    if (!flip) {
+      text.setOrigin(0, text.GetLocalBounds().height * 0.5f);
+    }
+    else {
+      text.setOrigin(text.GetLocalBounds().width, text.GetLocalBounds().height * 0.5f);
+    }
+  };
+
+  // We want the other text to use the origin of the 
+  // summons label for the y so that they are all 
+  // sitting on the same line when they render
+  auto setOrigin = [setSummonLabelOrigin, this](Team team, Text& text) {
+    setSummonLabelOrigin(team, text);
+    text.setOrigin(text.getOrigin().x, this->summonsLabel.getOrigin().y);
+  };
+
+  summonsLabel.SetString(event.name);
+  summonsLabel.setScale(scale);
+  setSummonLabelOrigin(event.team, summonsLabel);
+
   dmg.SetString("");
   multiplier.SetString("");
 
-  TimeFreezeBattleState::EventData& event = *tfEvents.begin();
-  Battle::Card::Properties cardProps = event.action->GetMetaData();
-  canBoost = cardProps.canBoost;
+  const Battle::Card& card = event.action->GetMetaData();
+  canBoost = card.CanBoost();
 
-  // Text sits at the bottom-left of the screen
-  summonsLabel.SetString(event.name);
-  summonsLabel.setOrigin(0, 0);
-  summonsLabel.setPosition(2.0f, 296.0f);
+  // Calculate the delta damage values to correctly draw the modifiers
+  const unsigned int multiplierValue = card.GetMultiplier();
+  int unmodDamage = card.GetBaseProps().damage;
+  int damage = card.GetProps().damage;
 
-  // Text sits at the bottom-left of the screen
-  int unmodDamage = event.unmoddedProps.damage; // TODO: get unmodded properties??
-  int delta = cardProps.damage - unmodDamage;
+  if (multiplierValue) {
+    damage /= multiplierValue;
+  }
+
+  int delta = damage - unmodDamage;
   sf::String dmgText = std::to_string(unmodDamage);
 
   if (delta != 0) {
@@ -358,17 +404,30 @@ void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
   // attacks that normally show no damage will show if the modifer adds damage
   if (delta > 0 || unmodDamage > 0) {
     dmg.SetString(dmgText);
-    dmg.setOrigin(0, 0);
-    dmg.setPosition((summonsLabel.GetLocalBounds().width * summonsLabel.getScale().x) + 10.f, 296.f);
+    dmg.setScale(scale);
+    setOrigin(event.team, dmg);
+    dmgOffset = 10.0f;
   }
-  
-  // TODO: multiplierValue needs to come from where?
+
   if (multiplierValue != 1 && unmodDamage != 0) {
     // add "x N" where N is the multiplier
     std::string multStr = "x" + std::to_string(multiplierValue);
     multiplier.SetString(multStr);
-    multiplier.setOrigin(0, 0);
-    multiplier.setPosition(dmg.getPosition().x + (dmg.GetLocalBounds().width * dmg.getScale().x) + 3.0f, 296.0f);
+    multiplier.setScale(scale);
+    setOrigin(event.team, multiplier);
+    multiplierOffset = 3.0f;
+  }
+
+  // based on team, render the text from left-to-right or right-to-left alignment
+  if (!flip) {
+    summonsLabel.setPosition(pos);
+    dmg.setPosition(summonsLabel.getPosition().x + summonsLabel.GetWorldBounds().width + dmgOffset, pos.y);
+    multiplier.setPosition(dmg.getPosition().x + dmg.GetWorldBounds().width + multiplierOffset, pos.y);
+  }
+  else { /* team == Team::blue or other */
+    multiplier.setPosition(pos);
+    dmg.setPosition(multiplier.getPosition().x - multiplier.GetWorldBounds().width - multiplierOffset, pos.y);
+    summonsLabel.setPosition(dmg.getPosition().x - dmg.GetWorldBounds().width - dmgOffset, pos.y);
   }
 
   // shadow beneath
@@ -398,14 +457,14 @@ void TimeFreezeBattleState::DrawCardData(sf::RenderTarget& target)
     target.draw(multiplier);
   }
 }
-*/
 
 void TimeFreezeBattleState::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", action->GetMetaData().shortname.c_str(), summonTick.count(), summonTextLength.count());
+  const Battle::Card::Properties& props = action->GetMetaData().GetProps();
+  Logger::Logf(LogLevel::info, "OnCardActionUsed(): %s, summonTick: %i, summonTextLength: %i", props.shortname.c_str(), summonTick.count(), summonTextLength.count());
 
-  if (!(action && action->GetMetaData().timeFreeze)) return;
- 
+  if (!(action && action->GetMetaData().GetProps().timeFreeze)) return;
+
   if (CanCounter(action->GetActor())) {
     HandleTimeFreezeCounter(action, timestamp);
   }
@@ -416,28 +475,39 @@ const bool TimeFreezeBattleState::CanCounter(std::shared_ptr<Character> user)
   // tfc window ended
   if (summonTick > summonTextLength) return false;
 
-  bool addEvent = true;
+  // bool addEvent = true;
 
   if (!tfEvents.empty()) {
+    // Don't counter during alert symbol. BN6 accurate. See notes from Alrysc.
+    std::shared_ptr<CardAction> action = tfEvents.begin()->action;
+
+    for (TimeFreezeBattleState::EventData& e : tfEvents) {
+      if (e.animateCounter) {
+        return false;
+      }
+    }
+    // some actions cannot be countered
+    if (!action->GetMetaData().GetProps().counterable) return false;
+
     // only opposing players can counter
-    std::shared_ptr<Character> lastActor = tfEvents.begin()->action->GetActor();
+    std::shared_ptr<Character> lastActor = action->GetActor();
     if (!lastActor->Teammate(user->GetTeam())) {
       playerCountered = true;
       Logger::Logf(LogLevel::info, "Player was countered!");
     }
     else {
-      addEvent = false;
+      return false;
     }
   }
 
-  return addEvent;
+  return true;
 }
 
 void TimeFreezeBattleState::HandleTimeFreezeCounter(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
   TimeFreezeBattleState::EventData data;
   data.action = action;
-  data.name = action->GetMetaData().shortname;
+  data.name = action->GetMetaData().GetProps().shortname;
   data.team = action->GetActor()->GetTeam();
   data.user = action->GetActor();
   lockedTimestamp = timestamp;

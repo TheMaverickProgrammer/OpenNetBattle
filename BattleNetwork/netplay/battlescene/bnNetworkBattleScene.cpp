@@ -7,7 +7,7 @@
 #include "../bnBufferReader.h"
 #include "../bnBufferWriter.h"
 #include "../../bnFadeInState.h"
-#include "../../bnElementalDamage.h"
+#include "../../bnAlertSymbol.h"
 #include "../../bnBlockPackageManager.h"
 #include "../../bnPlayerHealthUI.h"
 
@@ -216,7 +216,7 @@ void NetworkBattleScene::OnHit(Entity& victim, const Hit::Properties& props) {
   bool superEffective = victim.IsSuperEffective(props.element) && props.damage > 0;
 
   if (freezeBreak || superEffective) {
-    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<AlertSymbol> seSymbol = std::make_shared<AlertSymbol>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight() + (victim.getLocalBounds().height * 0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
@@ -598,11 +598,11 @@ void NetworkBattleScene::ReceiveHandshakeSignal(const Poco::Buffer<char>& buffer
 
       if (packageManager.HasPackage(addr.packageId)) {
         card = packageManager.FindPackageByID(addr.packageId).GetCardProperties();
-        card.props.uuid = packageManager.WithNamespace(card.props.uuid);
+        card.GetProps().uuid = packageManager.WithNamespace(card.GetProps().uuid);
       }
       else if (localPackageManager.HasPackage(addr.packageId)) {
         card = localPackageManager.FindPackageByID(addr.packageId).GetCardProperties();
-        card.props.uuid = localPackageManager.WithNamespace(card.props.uuid);
+        card.GetProps().uuid = localPackageManager.WithNamespace(card.GetProps().uuid);
       }
 
       remoteHand.push_back(card);
@@ -771,14 +771,6 @@ std::function<bool()> NetworkBattleScene::HookPlayerDecrosses(CharacterTransform
     for (std::shared_ptr<Player> player : GetAllPlayers()) {
       TrackedFormData& formData = GetPlayerFormData(player);
 
-      bool decross = player->GetHealth() == 0 && (formData.selectedForm != -1);
-
-      // ensure we decross if their HP is zero and they have not yet
-      if (decross) {
-        formData.selectedForm = -1;
-        formData.animationComplete = false;
-      }
-
       // If the anim form data is configured to decross, then we will
       bool myChangeState = (formData.selectedForm == -1 && formData.animationComplete == false);
 
@@ -810,8 +802,8 @@ std::function<bool()> NetworkBattleScene::HookOnCardSelectEvent() {
 
 std::function<bool()> NetworkBattleScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect) {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool localTriggered = (GetLocalPlayer()->GetHealth() == 0 || localPlayerDecross);
-    bool remoteTriggered = (remotePlayer->GetHealth() == 0 || remotePlayerDecross);
+    bool localTriggered = localPlayerDecross;
+    bool remoteTriggered = remotePlayerDecross;
     bool triggered = form.IsFinished() && (localTriggered || remoteTriggered);
 
     if (triggered) {

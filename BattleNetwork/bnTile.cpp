@@ -23,18 +23,18 @@
 #define START_X 0.0f
 #define START_Y 144.f
 #define Y_OFFSET 10.0f
-#define COOLDOWN 10.0
-#define FLICKER 3.0
+#define COOLDOWN frames(1800)
+#define FLICKER frames(180)
 
 namespace Battle {
-  double Tile::brokenCooldownLength = COOLDOWN;
-  double Tile::teamCooldownLength = COOLDOWN;
-  double Tile::flickerTeamCooldownLength = FLICKER;
+  frame_time_t Tile::brokenCooldownLength = COOLDOWN;
+  frame_time_t Tile::teamCooldownLength = COOLDOWN;
+  frame_time_t Tile::flickerTeamCooldownLength = FLICKER;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
     animation() {
-    totalElapsed = 0;
+    totalElapsed = frames(0);
     x = _x;
     y = _y;
 
@@ -54,11 +54,11 @@ namespace Battle {
     willHighlight = false;
     isTimeFrozen = true;
     isBattleOver = false;
-    brokenCooldown = 0;
-    flickerTeamCooldown = teamCooldown = 0;
+    brokenCooldown = frames(0);
+    flickerTeamCooldown = teamCooldown = frames(0);
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
 
-    burncycle = 0.12; // milliseconds
+    burncycle = frames(1); // milliseconds
     elapsedBurnTime = burncycle;
 
     highlightMode = TileHighlight::none;
@@ -66,10 +66,10 @@ namespace Battle {
     volcanoSprite = std::make_shared<SpriteProxyNode>();
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
-    auto resetVolcanoThunk = [this](int seconds) {
+    auto resetVolcanoThunk = [this](int frames) {
       if (!isBattleOver) {
         this->volcanoErupt.SetFrame(1, this->volcanoSprite->getSprite()); // start over
-        volcanoEruptTimer = seconds;
+        volcanoEruptTimer = ::frames(frames);
         
         std::shared_ptr<Field> field = fieldWeak.lock();
 
@@ -83,15 +83,15 @@ namespace Battle {
     };
 
     if (team == Team::blue) {
-      resetVolcanoThunk(1); // blue goes first
+      resetVolcanoThunk(60); // blue goes first
     }
     else {
-      resetVolcanoThunk(2); // then red
+      resetVolcanoThunk(120); // then red
     }
 
     // On anim end, reset the timer
     volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(2);
+      resetVolcanoThunk(120);
     };
 
     volcanoSprite->setTexture(Textures().LoadFromFile("resources/tiles/volcano.png"));
@@ -241,7 +241,7 @@ namespace Battle {
           flickerTeamCooldown = flickerTeamCooldownLength;
         }
         else {
-          flickerTeamCooldown = 0; // cancel 
+          flickerTeamCooldown = frames(0); // cancel 
           teamCooldown = teamCooldownLength;
         }
       }
@@ -327,11 +327,11 @@ namespace Battle {
     Team otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
     std::string prevAnimState = animState;
 
-    ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
+    (((flickerTeamCooldown.count() % 4) < 2) && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
     if (state == TileState::broken) {
       // Broken tiles flicker when they regen
-      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
+      animState = (((brokenCooldown.count() % 4) < 2) && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
     }
     else {
       animState = std::move(GetAnimState(state));
@@ -504,16 +504,21 @@ namespace Battle {
 
   void Tile::Update(Field& field, double _elapsed) {
     willHighlight = false;
-    totalElapsed += _elapsed;
+
+    totalElapsed += from_seconds(_elapsed);
 
     if (!isTimeFrozen && isBattleStarted) {
+      // Grass Tiles
+      grassHealCooldown1 -= from_seconds(_elapsed);
+      grassHealCooldown2 -= from_seconds(_elapsed);
+
       // LAVA TILES
-      elapsedBurnTime -= _elapsed;
+      elapsedBurnTime -= from_seconds(_elapsed);
 
       // VOLCANO 
-      volcanoEruptTimer -= _elapsed;
+      volcanoEruptTimer -= from_seconds(_elapsed);
 
-      if (volcanoEruptTimer <= 0) {
+      if (volcanoEruptTimer <= frames(0)) {
         volcanoErupt.Update(_elapsed, volcanoSprite->getSprite());
       }
 
@@ -531,25 +536,25 @@ namespace Battle {
 
     // Update our tile animation and texture
     if (!isTimeFrozen) {
-      if (teamCooldown > 0) {
-        teamCooldown -= 1.0 * _elapsed;
-        if (teamCooldown < 0) teamCooldown = 0;
+      if (teamCooldown > frames(0)) {
+        teamCooldown -= frames(1);
+        if (teamCooldown < frames(0)) teamCooldown = frames(0);
       }
 
-      if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1.0 * _elapsed;
-        if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
+      if (flickerTeamCooldown > frames(0)) {
+        flickerTeamCooldown -= frames(1);
+        if (flickerTeamCooldown < frames(0)) flickerTeamCooldown = frames(0);
       }
 
       if (state == TileState::broken) {
-        brokenCooldown -= 1.0f* _elapsed;
+        brokenCooldown -= frames(1);
 
-        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
+        if (brokenCooldown < frames(0)) { brokenCooldown = frames(0); state = TileState::normal; }
       }
     }
 
     RefreshTexture();
-    animation.SyncTime(from_seconds(totalElapsed));
+    animation.SyncTime(totalElapsed);
     animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
@@ -557,7 +562,7 @@ namespace Battle {
       willHighlight = true;
       break;
     case TileHighlight::flash:
-      willHighlight = (int)(totalElapsed * 15) % 2 == 0;
+      willHighlight = (totalElapsed.count() % 4 < 2);
       break;
     default:
       willHighlight = false;
@@ -578,6 +583,9 @@ namespace Battle {
         HandleTileBehaviors(field, *character);
       }
     }
+
+    if (grassHealCooldown1 <= frames(0)) grassHealCooldown1 = frames(20);
+    if (grassHealCooldown2 <= frames(0)) grassHealCooldown1 = frames(180);
   }
 
   void Tile::ToggleTimeFreeze(bool state)
@@ -675,18 +683,18 @@ namespace Battle {
       // LAVA & POISON TILES
       if (!character.HasFloatShoe()) {
         if (GetState() == TileState::poison) {
-          if (elapsedBurnTime <= 0) {
+          if (elapsedBurnTime <= frames(0)) {
             if (character.Hit(Hit::Properties({ 1, Hit::pierce, Element::none, 0, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
         }
         else {
-          elapsedBurnTime = 0;
+          elapsedBurnTime = frames(0);
         }
 
-        if (GetState() == TileState::lava) {
-          Hit::Properties props = { 50, Hit::flash | Hit::flinch, Element::none, 0, Direction::none };
+        if (GetState() == TileState::lava && character.GetElement() != Element::fire) {
+          Hit::Properties props = { 50, Hit::flash | Hit::flinch | Hit::impact, Element::none, 0, Direction::none };
           if (character.HasCollision(props)) {
             character.Hit(props);
             field.AddEntity(std::make_shared<Explosion>(), GetX(), GetY());
@@ -724,6 +732,23 @@ namespace Battle {
           }
         }
       }
+    }
+    const int health = character.GetHealth();
+    const Element charElement = character.GetElement();
+
+    const bool doGrassCheck =
+      charElement == Element::wood
+      && state == TileState::grass;
+
+    const bool heal = doGrassCheck &&
+      (
+        (grassHealCooldown1 == frames(0) && health <= 9)
+        ||
+        (grassHealCooldown2 == frames(0) && health > 9)
+      );
+
+    if (heal) {
+      character.SetHealth(health + 1);
     }
   }
 
@@ -959,24 +984,31 @@ namespace Battle {
     // Spells dont cause damage when the battle is over
     if (isBattleOver) return;
 
+    bool hitByWind{}, hitByFire{}, hitByAqua{};
+
     // Now that spells and characters have updated and moved, they are due to check for attack outcomes
     std::vector<std::shared_ptr<Character>> characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (std::shared_ptr<Character>& character : characters_copy) {
-      // the entity is a character (can be hit) and the team isn't the same
-      // we see if it passes defense checks, then call attack
+    for (Entity::ID_t ID: queuedAttackers) {
+      std::shared_ptr<Entity> attacker = field.GetEntity(ID);
+
+      if (!attacker) {
+        Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
+        continue;
+      }
+
+      Hit::Properties props = attacker->GetHitboxProperties();
+
+      hitByWind = hitByWind || props.element == Element::wind;
+      hitByFire = hitByFire || props.element == Element::fire;
+      hitByAqua = hitByAqua || props.element == Element::aqua;
 
       bool retangible = false;
       DefenseFrameStateJudge judge; // judge for this character's defenses
 
-      for (Entity::ID_t ID : queuedAttackers) {
-        std::shared_ptr<Entity> attacker = field.GetEntity(ID);
-
-        if (!attacker) {
-          Logger::Logf(LogLevel::debug, "Attacker %d missing from field", ID);
-          continue;
-        }
-
+      for (std::shared_ptr<Character>& character : characters_copy) {
+        // the entity is a character (can be hit) and the team isn't the same
+        // we see if it passes defense checks, then call attack
         if (!character->IsHitboxAvailable())
           continue;
 
@@ -1006,7 +1038,6 @@ namespace Battle {
 
         // Collision here means "we are able to hit" 
         // either with a hitbox that can pierce a defense or by tangibility
-        Hit::Properties props = attacker->GetHitboxProperties();
         if (!character->HasCollision(props)) continue;
 
         // Obstacles can hit eachother, even on the same team
@@ -1035,6 +1066,7 @@ namespace Battle {
           // We make sure to apply any tile bonuses at this stage
           if (GetState() == TileState::holy) {
             Hit::Properties props = attacker->GetHitboxProperties();
+            props.damage += 1; // rounds integer damage up -> `1 / 2 = 0`, but `(1 + 1) / 2 = 1`
             props.damage /= 2;
             attacker->SetHitboxProperties(props);
           }
@@ -1048,21 +1080,38 @@ namespace Battle {
 
           attacker->Attack(character);
 
+          // Special case: highlight the tile when attacking on a frame
+          if (attacker->GetTileHighlightMode() == TileHighlight::automatic) {
+            highlightMode = TileHighlight::solid;
+          }
+
           // we restore the hitbox properties
           attacker->SetHitboxProperties(props);
         }
+
+        if (retangible) character->SetPassthrough(false);
 
         judge.PrepareForNextAttack();
       } // end each spell loop
 
       judge.ExecuteAllTriggers();
 
-      if (retangible) character->SetPassthrough(false);
     } // end each character loop
 
     // empty previous frame queue to be used this current frame
     queuedAttackers.clear();
-    // taggedAttackers.clear();
+
+    // TODO: Uncomment when Sand is in.
+//    if (GetState() == TileState::sand && hitByWind) {
+//      SetState(TileState::normal);
+//    }
+//    else
+    if (GetState() == TileState::grass && hitByFire) {
+      SetState(TileState::normal);
+    }
+    else if (GetState() == TileState::volcano && hitByAqua) {
+      SetState(TileState::normal);
+    }
   }
 
   void Tile::UpdateSpells(Field& field, const double elapsed)
@@ -1074,11 +1123,6 @@ namespace Battle {
       if (!spell->IsTimeFrozen()) {
         if (request > (int)highlightMode) {
           highlightMode = (TileHighlight)request;
-        }
-
-        Element hitboxElement = spell->GetElement();
-        if (hitboxElement == Element::aqua && state == TileState::volcano) {
-          SetState(TileState::normal);
         }
 
         field.UpdateEntityOnce(*spell, elapsed);

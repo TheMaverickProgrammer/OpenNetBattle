@@ -142,9 +142,8 @@ bool SelectedCardsUI::UseNextCard() {
 
   if (card.CanBoost()) {
     card.MultiplyDamage(multiplierValue);
+    multiplierValue = 1; // multiplier is reset because it has been consumed 
   }
-
-  multiplierValue = 1; // reset 
 
   // add a peek event to the action queue
   owner->AddAction(PeekCardEvent{ this }, ActionOrder::voluntary);
@@ -178,7 +177,7 @@ bool SelectedCardsUI::HandlePlayEvent(std::shared_ptr<Character> from)
     // could act on metadata later:
     // from->OnCard(card)
 
-    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.props)) {
+    if (std::shared_ptr<CardAction> action = CardToAction(card, from, partition, card.GetProps())) {
       Broadcast(action); // tell the rest of the subsystems
     }
 

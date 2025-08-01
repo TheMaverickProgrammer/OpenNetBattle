@@ -58,7 +58,7 @@ void BusterCardAction::OnExecute(std::shared_ptr<Character> user) {
 
     std::shared_ptr<SpriteProxyNode> flare = attachment.GetSpriteNode();
     flare->setTexture(Textures().LoadFromFile(NODE_PATH));
-    flare->SetLayer(-1);
+    flare->SetLayer(-2);
 
     Animation& flareAnim = attachment.GetAnimationObject();
     flareAnim = Animation(NODE_ANIM);

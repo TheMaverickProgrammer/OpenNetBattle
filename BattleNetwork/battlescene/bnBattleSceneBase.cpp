@@ -230,27 +230,7 @@ void BattleSceneBase::OnCounter(Entity& victim, Entity& aggressor)
     victim.ToggleCounter(false); // disable counter frame for the victim
     victim.Stun(frames(150));
 
-    if (p->IsInForm() == false && p->GetEmotion() != Emotion::evil) {
-      if (p == localPlayer) {
-        field->RevealCounterFrames(true);
-      }
-
-      // node positions are relative to the parent node's origin
-      sf::FloatRect bounds = p->getLocalBounds();
-      counterReveal->setPosition(0, -bounds.height / 4.0f);
-      p->AddNode(counterReveal);
-
-      std::shared_ptr<PlayerSelectedCardsUI> cardUI = p->GetFirstComponent<PlayerSelectedCardsUI>();
-
-      if (cardUI) {
-        cardUI->SetMultiplier(2);
-      }
-
-      p->SetEmotion(Emotion::full_synchro);
-
-      // when players get hit by impact, battle scene takes back counter blessings
-      p->AddDefenseRule(counterCombatRule);
-    }
+    PreparePlayerFullSynchro(p);
   }
 }
 
@@ -410,7 +390,9 @@ std::shared_ptr<Player> BattleSceneBase::GetPlayerFromEntityID(Entity::ID_t ID)
 
 void BattleSceneBase::OnCardActionUsed(std::shared_ptr<CardAction> action, uint64_t timestamp)
 {
-  HandleCounterLoss(*action->GetActor(), true);
+  if (action->GetMetaData().GetProps().canBoost) {
+    HandleCounterLoss(*action->GetActor(), true);
+  }
 }
 
 sf::Vector2f BattleSceneBase::PerspectiveOffset(const sf::Vector2f& pos)
@@ -472,6 +454,10 @@ void BattleSceneBase::SpawnLocalPlayer(int x, int y)
   allPlayerTeamHash[localPlayer.get()] = team;
 
   HitListener::Subscribe(*localPlayer);
+
+  if (localPlayer->GetEmotion() == Emotion::full_synchro) {
+    PreparePlayerFullSynchro(localPlayer);
+  }
 }
 
 void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, int y)
@@ -498,6 +484,10 @@ void BattleSceneBase::SpawnOtherPlayer(std::shared_ptr<Player> player, int x, in
   allPlayerTeamHash[player.get()] = team;
 
   HitListener::Subscribe(*player);
+
+  if (player->GetEmotion() == Emotion::full_synchro) {
+    PreparePlayerFullSynchro(player);
+  }
 }
 
 void BattleSceneBase::LoadRedTeamMob(Mob& mob)
@@ -552,32 +542,53 @@ void BattleSceneBase::FilterSupportCards(const std::shared_ptr<Player>& player, 
 
           if (i > 0 && cards[i - 1u].CanBoost()) {
             adjCards.hasCardToLeft = true;
-            adjCards.leftCard = &cards[i - 1u].props;
+            adjCards.leftCard = &cards[i - 1u].GetProps();
           }
 
           if (i < cards.size() - 1 && cards[i + 1u].CanBoost()) {
             adjCards.hasCardToRight = true;
-            adjCards.rightCard = &cards[i + 1u].props;
+            adjCards.rightCard = &cards[i + 1u].GetProps();
           }
 
           CardMeta& meta = cardPackageManager.FindPackageByID(addr.packageId);
 
           if (meta.filterHandStep) {
-            meta.filterHandStep(cards[i].props, adjCards);
+            meta.filterHandStep(cards[i].GetProps(), adjCards);
           }
 
+          size_t this_card = i;
+          /* 
+            Whether or not to do another loop on this index.
+            True when left, right, or this card were deleted.
+
+            By setting true on left and right delete, the filter 
+            step will run for this card again so that it can run 
+            with the new adjacent cards.
+
+            By setting true when deleting itself, the new card 
+            coming into this index won't be skipped.
+          */
+          bool check_again = false;
+
           if (adjCards.deleteLeft) {
-            cards.erase(cards.begin() + i - 1u);
-            i--;
+            cards.erase(cards.begin() + this_card - 1u);
+            this_card--;
+            check_again = true;
           }
 
           if (adjCards.deleteRight) {
-            cards.erase(cards.begin() + i + 1u);
-            i--;
+            cards.erase(cards.begin() + this_card + 1u);
+            // This card index hasn't changed
+
+            check_again = true;
           }
 
           if (adjCards.deleteThisCard) {
-            cards.erase(cards.begin() + i);
+            cards.erase(cards.begin() + this_card);
+            check_again = true;
+          }
+
+          if (check_again) {
             i--;
           }
         }
@@ -1035,6 +1046,30 @@ void BattleSceneBase::DrawWithPerspective(sf::Shape& shape, sf::RenderTarget& su
   shape.setOrigin(origin);
 }
 
+void BattleSceneBase::PreparePlayerFullSynchro(const std::shared_ptr<Player>& player) {
+  if (player->IsInForm() == true || player->GetEmotion() == Emotion::evil) return;
+
+  if (player == localPlayer) {
+    field->RevealCounterFrames(true);
+  }
+
+  // node positions are relative to the parent node's origin
+  sf::FloatRect bounds = player->getLocalBounds();
+  counterReveal->setPosition(0, -bounds.height / 4.0f);
+  player->AddNode(counterReveal);
+
+  std::shared_ptr<PlayerSelectedCardsUI> cardUI = player->GetFirstComponent<PlayerSelectedCardsUI>();
+
+  if (cardUI) {
+    cardUI->SetMultiplier(2);
+  }
+
+  player->SetEmotion(Emotion::full_synchro);
+
+  // when players get hit by impact, battle scene takes back counter blessings
+  player->AddDefenseRule(counterCombatRule);
+}
+
 void BattleSceneBase::DrawWithPerspective(sf::Sprite& sprite, sf::RenderTarget& surf)
 {
   sf::Vector2f position = sprite.getPosition();
@@ -1072,6 +1107,10 @@ void BattleSceneBase::PerspectiveFlip(bool flipped)
   perspectiveFlip = flipped;
 }
 
+bool BattleSceneBase::IsPerspectiveFlipped() {
+  return perspectiveFlip;
+}
+
 bool BattleSceneBase::IsPlayerDeleted() const
 {
   return isPlayerDeleted;
@@ -1095,6 +1134,18 @@ std::vector<std::shared_ptr<Player>> BattleSceneBase::GetAllPlayers()
   std::vector<std::shared_ptr<Player>> result = otherPlayers;
   result.insert(result.begin(), localPlayer);
   return result;
+}
+
+Mob& BattleSceneBase::GetRedTeamMob() {
+  assert(redTeamMob != nullptr && "redTeamMob was nullptr!");
+
+  return *redTeamMob;
+}
+
+Mob& BattleSceneBase::GetBlueTeamMob() {
+  assert(blueTeamMob != nullptr && "blueTeamMob was nullptr!");
+
+  return *blueTeamMob;
 }
 
 
@@ -1249,10 +1300,11 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
     current = nullptr;
   }
 
+  quitting = true;
+
   // NOTE: swoosh quirk
   if (getController().getStackSize() == 1) {
     getController().pop();
-    quitting = true;
     return;
   }
 
@@ -1268,8 +1320,6 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
     // mode == FadeOut::pixelate
     getController().pop<segue<PixelateBlackWashFade>>();
   }
-
-  quitting = true;
 }
 
 

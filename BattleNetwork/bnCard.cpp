@@ -4,7 +4,7 @@
 #include <tuple>
 
 namespace Battle {
-  Card::Card() : props(), unmodded(props) 
+  Card::Card() 
   { }
 
   Card::Card(const Card::Properties& props) : props(props), unmodded(props)
@@ -17,8 +17,19 @@ namespace Battle {
     props = unmodded = Card::Properties();
   }
 
-  const Card::Properties& Card::GetUnmoddedProps() const
-  {
+  Card::Properties& Card::GetProps() {
+    return props;
+  }
+
+  const Card::Properties& Card::GetProps() const {
+    return props;
+  }
+
+  Card::Properties& Card::GetBaseProps() {
+    return unmodded;
+  }
+
+  const Card::Properties& Card::GetBaseProps() const {
     return unmodded;
   }
 

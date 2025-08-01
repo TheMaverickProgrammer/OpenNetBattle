@@ -51,6 +51,7 @@ private:
 };
 
 class PlayerHealthUIComponent : public UIComponent {
+  BattleSceneBase* scene{ nullptr };
   PlayerHealthUI ui;
   int startHP{}; /*!< HP of target when this component was attached */
   bool isBattleOver{}; /*!< flag when battle scene ends to stop beeping */

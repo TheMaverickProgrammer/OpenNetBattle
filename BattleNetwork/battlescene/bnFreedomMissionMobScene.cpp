@@ -1,6 +1,6 @@
 #include "bnFreedomMissionMobScene.h"
 #include "../bnMob.h"
-#include "../bnElementalDamage.h"
+#include "../bnAlertSymbol.h"
 #include "../../bnPlayer.h"
 
 #include "States/bnTimeFreezeBattleState.h"
@@ -135,6 +135,7 @@ void FreedomMissionMobScene::Init()
   }
   else {
     SpawnLocalPlayer(2, 2);
+    LoadBlueTeamMob(mob);
   }
 
   // Run block programs on the remote player now that they are spawned
@@ -169,7 +170,7 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
   }
 
   if (victim.IsSuperEffective(props.element) && props.damage > 0) {
-    std::shared_ptr<ElementalDamage> seSymbol = std::make_shared<ElementalDamage>();
+    std::shared_ptr<AlertSymbol> seSymbol = std::make_shared<AlertSymbol>();
     seSymbol->SetLayer(-100);
     seSymbol->SetHeight(victim.GetHeight()+(victim.getLocalBounds().height*0.5f)); // place it at sprite height
     GetField()->AddEntity(seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
@@ -178,10 +179,14 @@ void FreedomMissionMobScene::OnHit(Entity& victim, const Hit::Properties& props)
 
 void FreedomMissionMobScene::onUpdate(double elapsed)
 {
-  if (GetCurrentState() == combatPtr) {
+  const BattleSceneState* cur = GetCurrentState();
+
+  // Must process inputs for combat and subcombat states, 
+  // but only the combat state lets player flip.
+  if (combatPtr->IsStateCombat(cur)) {
     ProcessLocalPlayerInputQueue();
 
-    if (playerCanFlip) {
+    if (cur == combatPtr && playerCanFlip) {
       std::shared_ptr<Player> localPlayer = GetLocalPlayer();
       if (localPlayer->IsActionable() && localPlayer->InputState().Has(InputEvents::pressed_option)) {
         localPlayer->SetFacing(localPlayer->GetFacingAway());
@@ -212,6 +217,14 @@ void FreedomMissionMobScene::onResume()
 void FreedomMissionMobScene::onLeave()
 {
   BattleSceneBase::onLeave();
+}
+
+int FreedomMissionMobScene::GetPlayerHitCount() {
+  return playerHitCount;
+}
+
+FreedomMissionProps& FreedomMissionMobScene::GetProps() {
+  return props;
 }
 
 void FreedomMissionMobScene::IncrementTurnCount()
@@ -249,7 +262,7 @@ std::function<bool()> FreedomMissionMobScene::HookIntro(MobIntroBattleState& int
 std::function<bool()> FreedomMissionMobScene::HookFormChangeEnd(CharacterTransformBattleState& form, CardSelectBattleState& cardSelect)
 {
   auto lambda = [&form, &cardSelect, this]() mutable {
-    bool triggered = form.IsFinished() && (GetLocalPlayer()->GetHealth() == 0 || playerDecross);
+    bool triggered = form.IsFinished() && playerDecross;
 
     if (triggered) {
       playerDecross = false; // reset our decross flag
@@ -272,9 +285,7 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
     std::shared_ptr<Player> localPlayer = GetLocalPlayer();
     TrackedFormData& formData = GetPlayerFormData(localPlayer);
 
-    bool changeState = localPlayer->GetHealth() == 0;
-    changeState = changeState || playerDecross;
-    changeState = changeState && (formData.selectedForm != -1);
+    bool changeState = playerDecross && (formData.selectedForm != -1);
 
     if (changeState) {
       formData.selectedForm = -1;
@@ -291,6 +302,24 @@ std::function<bool()> FreedomMissionMobScene::HookFormChangeStart(CharacterTrans
 std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 {
   auto outOfTurns = [this]() mutable {
+    Mob& redTeam = GetRedTeamMob();
+    Mob& blueTeam = GetBlueTeamMob();
+
+    /*
+      Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
+      This makes a distinction on whether or not to watch for Entities which
+      are currently being deleted.
+
+      By using this, the battle will not end while all enemies are untracked
+      but still deleting.
+    */
+    bool redTeamCleared = redTeam.IsCleared();
+    bool blueTeamCleared = blueTeam.IsCleared();
+
+    if (redTeamCleared || blueTeamCleared) {
+      return false;
+    }
+
     if (GetCustomBarProgress() >= GetCustomBarDuration() && GetTurnCount() == FreedomMissionMobScene::props.maxTurns) {
       overStatePtr->context = FreedomMissionOverState::Conditions::player_failed;
       return true;
@@ -305,6 +334,23 @@ std::function<bool()> FreedomMissionMobScene::HookTurnLimitReached()
 std::function<bool()> FreedomMissionMobScene::HookTurnTimeout()
 {
   auto cardGaugeIsFull = [this]() mutable {
+    Mob& redTeam = GetRedTeamMob();
+    Mob& blueTeam = GetBlueTeamMob();
+  
+    /*
+      Explicitly check Mob::IsCleared instead of BattleSceneBase's Cleared functions.
+      This makes a distinction on whether or not to watch for Entities which 
+      are currently being deleted.
+      
+      By using this, the turn will not time out while all enemies are untracked 
+      but still deleting. 
+    */
+    bool redTeamCleared = redTeam.IsCleared();
+    bool blueTeamCleared = blueTeam.IsCleared();
+
+    if (redTeamCleared || blueTeamCleared) {
+      return false;
+    }
     return GetCustomBarProgress() >= GetCustomBarDuration();
   };
 

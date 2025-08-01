@@ -55,6 +55,8 @@ class FreedomMissionMobScene final : public BattleSceneBase {
   void onEnter() override;
   void onResume() override;
   void onLeave() override;
+  FreedomMissionProps& GetProps();
+  int GetPlayerHitCount();
 
   // 
   // override

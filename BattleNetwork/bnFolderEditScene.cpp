@@ -7,6 +7,7 @@
 #include <Swoosh/Timer.h>
 
 #include "bnFolderEditScene.h"
+#include "bnGameSession.h"
 #include "Segues/BlackWashFade.h"
 #include "bnCardFolder.h"
 #include "bnCardPackageManager.h"
@@ -34,14 +35,16 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   cardDescFont(Font::Style::thin),
   cardDesc("", cardDescFont),
   numberFont(Font::Style::thick),
-  numberLabel(Font::Style::gradient)
-{
+  numberLabel(Font::Style::gradient) {
   // Move card data into their appropriate containers for easier management
   PlaceFolderDataIntoCardSlots();
   PlaceLibraryDataIntoBuckets();
 
   // We must account for existing card data to accurately represent what's left from our pool
   ExcludeFolderDataFromPool();
+
+  // Add sort options
+  ComposeSortOptions();
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
@@ -92,6 +95,8 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   packCursor.setPosition((2.f * 90.f) + 480.0f, 64.0f);
   packSwapCursor = packCursor;
 
+  sortCursor = folderCursor;
+
   folderNextArrow = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_NEXT_ARROW));
   folderNextArrow.setScale(2.f, 2.f);
 
@@ -104,10 +109,16 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController& controller, CardFol
   folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
   cardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+  cardHolder.setPosition(16.f, 35.f);
   cardHolder.setScale(2.f, 2.f);
 
   packCardHolder = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_CHIP_HOLDER));
+  packCardHolder.setPosition(310.f + 480.f, 35.f);
   packCardHolder.setScale(2.f, 2.f);
+
+  folderSort = sf::Sprite(*Textures().LoadFromFile(TexturePaths::FOLDER_SORT));
+  folderSort.setScale(2.f, 2.f);
+  folderSort.setPosition(cardHolder.getPosition() + sf::Vector2f(11 * 2, 5 * 2));
 
   element = sf::Sprite(*Textures().LoadFromFile(TexturePaths::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
@@ -166,15 +177,91 @@ void FolderEditScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   setView(camera.GetView());
 
+  // update the folder sort cursor
+  sf::Vector2f sortCursorOffset = sf::Vector2f(-10.f, 2.0 * (14.0 + (cursorSortIndex * 16.0)));
+  sortCursor.setPosition(folderSort.getPosition() + sortCursorOffset);
+
   // Scene keyboard controls
   if (canInteract) {
-    CardView* view = nullptr;
+    if (isInSortMenu) {
+      ISortOptions<ICardView, 7u>* options = &poolSortOptions;
 
-    if (currViewMode == ViewMode::folder) {
-      view = &folderView;
+      if (currViewMode == ViewMode::folder) {
+        options = &folderSortOptions;
+      }
+
+      if (Input().Has(InputEvents::pressed_ui_up)) {
+        if (cursorSortIndex > 0) {
+          cursorSortIndex--;
+        }
+        else {
+          cursorSortIndex = options->size() - 1;
+        }
+      }
+      if (Input().Has(InputEvents::pressed_ui_down)) {
+        if (cursorSortIndex + 1 < options->size()) {
+          cursorSortIndex++;
+        }
+        else {
+          cursorSortIndex = 0;
+        }
+      }
+
+      if (Input().Has(InputEvents::pressed_confirm)) {
+        options->SelectOption(cursorSortIndex);
+        Audio().Play(AudioType::CHIP_DESC);
+      }
+
+      if (Input().Has(InputEvents::pressed_cancel)) {
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
+        isInSortMenu = false;
+      }
+      return;
     }
-    else if (currViewMode == ViewMode::pool) {
+    else if (Input().Has(InputEvents::pressed_pause)) {
+      Audio().Play(AudioType::CHIP_DESC);
+      isInSortMenu = true;
+      cursorSortIndex = 0;
+      return;
+    }
+
+    CardView* view = &folderView;
+
+    if (currViewMode == ViewMode::pool) {
       view = &packView;
+    }
+
+    // If CTRL+C is pressed during this scene, copy the folder contents in discord-friendly format
+    if (Input().HasSystemCopyEvent()) {
+      std::string buffer;
+      const std::string& nickname = getController().Session().GetNick();
+      const CardPackageManager& manager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
+
+      buffer += "```\n";
+      buffer += "# Folder by " + nickname + "\n";
+
+      if (folderView.numOfCards == 0) {
+        buffer += "# [NONE] \n";
+      }
+
+      for (int i = 0; i < folderView.numOfCards; i++) {
+        const Battle::Card& card = folderCardSlots[i].ViewCard();
+        const std::string& uuid = card.GetUUID();
+
+        if (!manager.HasPackage(uuid)) continue;
+
+        const CardMeta& meta = manager.FindPackageByID(uuid);
+        buffer += uuid + " " + meta.GetPackageFingerprint() + " " + card.GetCode() + "\n";
+      }
+
+      buffer += "```";
+
+      if (buffer != Input().GetClipboard()) {
+        Input().SetClipboard(buffer);
+        Audio().Play(AudioType::NEW_GAME);
+      }
+
+      return;
     }
 
     if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
@@ -185,22 +272,22 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       selectInputCooldown -= elapsed;
 
-
       if (selectInputCooldown <= 0) {
         if (!extendedHold) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
-
-        if (--view->currCardIndex >= 0) {
+        //Set the index.
+        view->currCardIndex = std::max(0, view->currCardIndex - 1);
+        //Check the index's validity. If proper, play the sound and reset the timer.
+        if (view->currCardIndex >= 0) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
-
-        if (view->currCardIndex < view->lastCardOnScreen) {
-          --view->lastCardOnScreen;
+        //Condition: if we're at the top of the screen, decrement the last card on screen.
+        if (view->currCardIndex < view->firstCardOnScreen) {
+          --view->firstCardOnScreen;
         }
-
       }
     }
     else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
@@ -216,52 +303,65 @@ void FolderEditScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
           extendedHold = true;
         }
+        //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
+        //Otherwise, if available, increment the index by 1.
+        view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + 1);
 
-        if (++view->currCardIndex < view->numOfCards) {
+        if (view->currCardIndex < view->numOfCards) {
           Audio().Play(AudioType::CHIP_SELECT);
           cardRevealTimer.reset();
         }
-
-        if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
-          ++view->lastCardOnScreen;
+        //Condition: If we're at the bottom of the menu, increment the last card on screen.
+        if (view->currCardIndex > view->firstCardOnScreen + view->maxCardsOnScreen - 1) {
+          ++view->firstCardOnScreen;
         }
       }
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_left)) {
-      extendedHold = false;
+    else if (Input().Has(InputEvents::pressed_shoulder_left) || Input().Has(InputEvents::held_shoulder_left)) {
+      if (lastKey != InputEvents::pressed_shoulder_left) {
+        lastKey = InputEvents::pressed_shoulder_left;
+        extendedHold = false;
+      }
 
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex -= view->maxCardsOnScreen;
-
-        view->currCardIndex = std::max(view->currCardIndex, 0);
-
-        Audio().Play(AudioType::CHIP_SELECT);
-
-        while (view->currCardIndex < view->lastCardOnScreen) {
-          --view->lastCardOnScreen;
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
         }
+        //Adjust the math to use std::max so that the current card index is always set to 0 at least.
+        view->currCardIndex = std::max(view->currCardIndex - view->maxCardsOnScreen, 0);
 
-        cardRevealTimer.reset();
+        if (view->currCardIndex < view->numOfCards) {
+          Audio().Play(AudioType::CHIP_SELECT);
+          cardRevealTimer.reset();
+        }
+        //Set last card to either the current last card minus the amount of cards on screen, or the first card in the pool.
+        view->firstCardOnScreen = std::max(view->firstCardOnScreen - view->maxCardsOnScreen, 0);
       }
     }
-    else if (Input().Has(InputEvents::pressed_shoulder_right)) {
-      extendedHold = false;
+    else if (Input().Has(InputEvents::pressed_shoulder_right) || Input().Has(InputEvents::held_shoulder_right)) {
+      if (lastKey != InputEvents::pressed_shoulder_right) {
+        lastKey = InputEvents::pressed_shoulder_right;
+        extendedHold = false;
+      }
 
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex += view->maxCardsOnScreen;
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
+        }
+
         Audio().Play(AudioType::CHIP_SELECT);
 
-        view->currCardIndex = std::min(view->currCardIndex, view->numOfCards - 1);
+        //Adjust the math to use std::min so that the current card index is always set to numOfCards-1 at most.
+        view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex + view->maxCardsOnScreen);
 
-        while (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
-          ++view->lastCardOnScreen;
-        }
+        //Set the last card on screen to be one page down or the true final card in the pack.
+        view->firstCardOnScreen = std::min(view->firstCardOnScreen + view->maxCardsOnScreen, view->numOfCards - view->maxCardsOnScreen);
 
         cardRevealTimer.reset();
       }
@@ -523,28 +623,12 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    switch (currViewMode) {
-    case ViewMode::folder:
-    {
-      using SlotType = decltype(folderCardSlots)::value_type;
-      RefreshCurrentCardDock<SlotType>(*view, folderCardSlots);
-    }
-    break;
-    case ViewMode::pool:
-    {
-      using SlotType = decltype(poolCardBuckets)::value_type;
-      RefreshCurrentCardDock<SlotType>(*view, poolCardBuckets);
-    }
-    break;
-    default:
-      Logger::Logf(LogLevel::critical, "No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
-      break;
-    }
+    RefreshCurrentCardSelection();
 
     view->prevIndex = view->currCardIndex;
 
-    view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
-    view->lastCardOnScreen = std::min(view->numOfCards - 1, view->lastCardOnScreen);
+    view->firstCardOnScreen = std::max(0, view->firstCardOnScreen);
+    view->firstCardOnScreen = std::min(view->numOfCards - 1, view->firstCardOnScreen);
 
     bool gotoLastScene = false;
 
@@ -585,6 +669,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         else {
           prevViewMode = currViewMode;
           canInteract = true;
+          folderSort.setPosition(cardHolder.getPosition() + sf::Vector2f(11 * 2, 5 * 2));
         }
       }
       else if (currViewMode == ViewMode::pool) {
@@ -594,6 +679,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         else {
           prevViewMode = currViewMode;
           canInteract = true;
+          folderSort.setPosition(packCardHolder.getPosition() + sf::Vector2f(11 * 2, 5 * 2));
         }
       }
       else {
@@ -608,14 +694,12 @@ void FolderEditScene::onLeave() {
 
 }
 
-void FolderEditScene::onExit()
-{
+void FolderEditScene::onExit() {
 }
 
-void FolderEditScene::onEnter()
-{
+void FolderEditScene::onEnter() {
   folderView.currCardIndex = 0;
-  RefreshCurrentCardDock(folderView, folderCardSlots);
+  RefreshCardDock(folderView, folderCardSlots);
 }
 
 void FolderEditScene::onResume() {
@@ -631,8 +715,8 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(folderCardCountBox);
 
   if (int(0.5 + folderCardCountBox.getScale().y) == 2) {
-    auto nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
-    auto iter = std::copy_if(folderCardSlots.begin(), folderCardSlots.end(), nonempty.begin(), [](auto in) { return !in.IsEmpty(); });
+    std::vector<FolderEditScene::FolderSlot> nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
+    auto iter = std::copy_if(folderCardSlots.begin(), folderCardSlots.end(), nonempty.begin(), [](const auto& in) { return !in.IsEmpty(); });
     nonempty.resize(std::distance(nonempty.begin(), iter));  // shrink container to new size
 
     std::string str = std::to_string(nonempty.size());
@@ -691,21 +775,25 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
   DrawFolder(surface);
   DrawPool(surface);
+
+  if (isInSortMenu) {
+    surface.draw(folderSort);
+    surface.draw(sortCursor);
+  }
 }
 
 void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(26.f, 175.0f));
   scrollbar.setPosition(410.f, 60.f);
-  cardHolder.setPosition(16.f, 32.f);
   element.setPosition(2.f * 28.f, 136.f);
-  card.setPosition(96.f, 88.f);
+  card.setPosition(96.f, 93.f);
 
   surface.draw(folderDock);
   surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)folderView.lastCardOnScreen / (float)folderView.numOfCards) * bottom;
+  float top = 60.0f; float bottom = 260.0f;
+  float depth = (bottom - top) * (((float)folderView.firstCardOnScreen) / ((float)folderView.numOfCards - 7));
   scrollbar.setPosition(452.f, top + depth);
 
   surface.draw(scrollbar);
@@ -713,14 +801,14 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
 
-  for (int j = 0; j < folderView.lastCardOnScreen; j++) {
+  for (int j = 0; j < folderView.firstCardOnScreen; j++) {
     iter++;
 
     if (iter == folderCardSlots.end()) return;
   }
 
   // Now that we are at the viewing range, draw each card in the list
-  for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
+  for (int i = 0; i < folderView.maxCardsOnScreen && folderView.firstCardOnScreen + i < folderView.numOfCards; i++) {
     if (!iter->IsEmpty()) {
       const Battle::Card& copy = iter->ViewCard();
       bool hasID = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition).HasPackage(copy.GetUUID());
@@ -769,10 +857,10 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       surface.draw(limitLabel2);
     }
     // Draw card at the cursor
-    if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
-      auto y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
-      auto bounce = std::sin((float)totalTimeElapsed * 10.0f) * 5.0f;
-      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
+    if (folderView.firstCardOnScreen + i == folderView.currCardIndex) {
+      float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().y, 64.0f + (32.f * i));
+      float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 5.0f;
+      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds() + 0.01f, 0.25f, 1.0f); // +0.01 to start partially open 
       float xscale = scaleFactor * 2.f;
 
       auto interp_position = [scaleFactor, this](sf::Vector2f pos) {
@@ -782,7 +870,10 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
       };
 
       folderCursor.setPosition((2.f * 90.f) + bounce, y);
-      surface.draw(folderCursor);
+
+      if (!isInSortMenu) {
+        surface.draw(folderCursor);
+      }
 
       if (!iter->IsEmpty()) {
         const Battle::Card& copy = iter->ViewCard();
@@ -796,13 +887,13 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
           cardLabel.SetString(std::to_string(copy.GetDamage()));
           cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
           cardLabel.setScale(xscale, 2.f);
-          cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 80.f, 142.f }));
+          cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 77.f, 145.f }));
           surface.draw(cardLabel);
         }
 
         cardLabel.setOrigin(0, 0);
         cardLabel.SetColor(sf::Color::Yellow);
-        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 16.f, 142.f }));
+        cardLabel.setPosition(interp_position(sf::Vector2f{ 2.f * 20.f, 145.f }));
         cardLabel.SetString(std::string() + copy.GetCode());
         cardLabel.setScale(xscale, 2.f);
         surface.draw(cardLabel);
@@ -813,13 +904,13 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-        element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 138.f }));
+        element.setPosition(interp_position(sf::Vector2f{ 2.f * 32.f, 142.f }));
         element.setScale(xscale, 2.f);
         surface.draw(element);
       }
     }
-    if (folderView.lastCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
-      auto y = 64.0f + (32.f * i);
+    if (folderView.firstCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
+      float y = 64.0f + (32.f * i);
 
       folderSwapCursor.setPosition((2.f * 95.f) + 2.0f, y);
       folderSwapCursor.setColor(sf::Color(255, 255, 255, 200));
@@ -834,31 +925,32 @@ void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
 
 void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(320.f + 480.f, 175.0f));
-  packCardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f * 20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
 
   surface.draw(packDock);
   surface.draw(packCardHolder);
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
-  float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards) * bottom;
-  scrollbar.setPosition(292.f + 480.f, top + depth);
-
-  surface.draw(scrollbar);
-
   if (packView.numOfCards == 0) return;
+
+  // Per BN6, don't draw the scrollbar itself if you can't scroll in the pack.
+  if (packView.numOfCards > 7) {
+    // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
+    float top = 60.0f; float bottom = 260.0f;
+    float depth = (bottom - top) * (((float)packView.firstCardOnScreen) / ((float)packView.numOfCards - 7));
+    scrollbar.setPosition(292.f + 480.f, top + depth);
+    surface.draw(scrollbar);
+  }
 
   // Move the card library iterator to the current highlighted card
   auto iter = poolCardBuckets.begin();
 
-  for (int j = 0; j < packView.lastCardOnScreen; j++) {
+  for (int j = 0; j < packView.firstCardOnScreen; j++) {
     iter++;
   }
 
   // Now that we are at the viewing range, draw each card in the list
-  for (int i = 0; i < packView.maxCardsOnScreen && packView.lastCardOnScreen + i < packView.numOfCards; i++) {
+  for (int i = 0; i < packView.maxCardsOnScreen && packView.firstCardOnScreen + i < packView.numOfCards; i++) {
     int count = iter->GetCount();
     const Battle::Card& copy = iter->ViewCard();
 
@@ -907,10 +999,10 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
     surface.draw(cardLabel);
 
     // This draws the currently highlighted card
-    if (packView.lastCardOnScreen + i == packView.currCardIndex) {
+    if (packView.firstCardOnScreen + i == packView.currCardIndex) {
       float y = swoosh::ease::interpolate((float)frameElapsed * 7.f, packCursor.getPosition().y, 64.0f + (32.f * i));
       float bounce = std::sin((float)totalTimeElapsed * 10.0f) * 2.0f;
-      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f);
+      float scaleFactor = (float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds() + 0.01f, 0.25f, 1.0f); // + 0.01 to start partially open 
       float xscale = scaleFactor * 2.f;
 
       auto interp_position = [scaleFactor, this](sf::Vector2f pos) {
@@ -918,10 +1010,13 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
         pos.x = ((scaleFactor * pos) + ((1.0f - scaleFactor) * center)).x;
         return pos;
       };
-        
+
       // draw the cursor where the entry is located and bounce
       packCursor.setPosition(bounce + 480.f + 2.f, y);
-      surface.draw(packCursor);
+
+      if (!isInSortMenu) {
+        surface.draw(packCursor);
+      }
 
       card.setTexture(*GetPreviewForCard(poolCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
       card.setTextureRect(sf::IntRect{ 0,0,56,48 });
@@ -955,8 +1050,8 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
       surface.draw(cardDesc);
     }
 
-    if (packView.lastCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
-      auto y = 64.0f + (32.f * i);
+    if (packView.firstCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed * 1000) % 2 == 0)) {
+      float y = 64.0f + (32.f * i);
 
       packSwapCursor.setPosition(485.f + 2.f + 2.f, y);
       packSwapCursor.setColor(sf::Color(255, 255, 255, 200));
@@ -968,11 +1063,134 @@ void FolderEditScene::DrawPool(sf::RenderTarget& surface) {
   }
 }
 
+void FolderEditScene::ComposeSortOptions() {
+  auto sortByID = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    return std::tie(a.GetUUID(), a.GetShortName()) < std::tie(b.GetUUID(), b.GetShortName());
+  };
+
+  auto sortByAlpha = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(a.GetShortName(), codeA) < std::tie(b.GetShortName(), codeB);
+  };
+
+  auto sortByCode = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(codeA, a.GetShortName()) < std::tie(codeB, b.GetShortName());
+  };
+
+  auto sortByAttack = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    int attackA = a.GetDamage();
+    int attackB = b.GetDamage();
+    return std::tie(attackA, a.GetShortName()) < std::tie(attackB, b.GetShortName());
+  };
+
+  auto sortByElement = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    Element elementA = a.GetElement();
+    Element elementB = b.GetElement();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+    return std::tie(elementA, a.GetShortName(), codeA) < std::tie(elementB, b.GetShortName(), codeB);
+  };
+
+  auto sortByFolderCopies = [this](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+
+    size_t firstCount{}, secondCount{};
+
+    for (size_t i = 0; i < folderCardSlots.size(); i++) {
+      const auto& el = folderCardSlots[i];
+      if (el.ViewCard().GetUUID() == first.ViewCard().GetUUID()) {
+        firstCount++;
+
+      }
+
+      if (el.ViewCard().GetUUID() == second.ViewCard().GetUUID()) {
+        secondCount++;
+      }
+    }
+
+    return std::tie(firstCount, a.GetShortName(), codeA) < std::tie(secondCount, b.GetShortName(), codeB);
+  };
+
+  auto sortByPoolCopies = [this](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    char codeA = a.GetCode();
+    char codeB = b.GetCode();
+
+    size_t firstCount{}, secondCount{};
+    bool firstCountFound{}, secondCountFound{};
+
+    for (size_t i = 0; i < poolCardBuckets.size(); i++) {
+      const auto& el = poolCardBuckets[i];
+
+      if (el.ViewCard() == first.ViewCard()) {
+        firstCount = el.GetCount();
+        firstCountFound = true;
+      }
+
+      if (el.ViewCard() == second.ViewCard()) {
+        secondCount = el.GetCount();
+        secondCountFound = true;
+      }
+
+      if (firstCountFound && secondCountFound) break;
+    }
+
+    return std::tie(firstCount, a.GetShortName(), codeA) < std::tie(secondCount, b.GetShortName(), codeB);
+  };
+
+  auto sortByClass = [](const ICardView& first, const ICardView& second) -> bool {
+    const Battle::Card& a = first.ViewCard();
+    const Battle::Card& b = second.ViewCard();
+    Battle::CardClass classA = a.GetClass();
+    Battle::CardClass classB = b.GetClass();
+    return std::tie(classA, a.GetShortName()) < std::tie(classB, b.GetShortName());
+  };
+
+  // push empty slots at the bottom
+  auto pivoter = [](const ICardView& el) {
+    return !el.IsEmpty();
+  };
+
+  folderSortOptions.SetPivotPredicate(pivoter);
+
+  folderSortOptions.AddOption(sortByID);
+  folderSortOptions.AddOption(sortByAlpha);
+  folderSortOptions.AddOption(sortByCode);
+  folderSortOptions.AddOption(sortByAttack);
+  folderSortOptions.AddOption(sortByElement);
+  folderSortOptions.AddOption(sortByFolderCopies);
+  folderSortOptions.AddOption(sortByClass);
+
+  poolSortOptions.AddOption(sortByID);
+  poolSortOptions.AddOption(sortByAlpha);
+  poolSortOptions.AddOption(sortByCode);
+  poolSortOptions.AddOption(sortByAttack);
+  poolSortOptions.AddOption(sortByElement);
+  poolSortOptions.AddOption(sortByPoolCopies);
+  poolSortOptions.AddOption(sortByClass);
+}
+
 void FolderEditScene::onEnd() {
 }
 
-void FolderEditScene::ExcludeFolderDataFromPool()
-{
+void FolderEditScene::ExcludeFolderDataFromPool() {
   Battle::Card mock; // will not be used
   for (auto& f : folderCardSlots) {
     auto iter = std::find_if(poolCardBuckets.begin(), poolCardBuckets.end(), [&f](PoolBucket& pack) { return pack.ViewCard() == f.ViewCard(); });
@@ -982,8 +1200,7 @@ void FolderEditScene::ExcludeFolderDataFromPool()
   }
 }
 
-void FolderEditScene::PlaceFolderDataIntoCardSlots()
-{
+void FolderEditScene::PlaceFolderDataIntoCardSlots() {
   CardFolder::Iter iter = folder.Begin();
 
   while (iter != folder.End() && folderCardSlots.size() < 30) {
@@ -998,8 +1215,7 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
   }
 }
 
-void FolderEditScene::PlaceLibraryDataIntoBuckets()
-{
+void FolderEditScene::PlaceLibraryDataIntoBuckets() {
   auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
   std::string packageId = packageManager.FirstValidPackage();
 
@@ -1020,8 +1236,7 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
   } while (packageId != packageManager.FirstValidPackage());
 }
 
-void FolderEditScene::WriteNewFolderData()
-{
+void FolderEditScene::WriteNewFolderData() {
   folder = CardFolder();
 
   for (auto iter = folderCardSlots.begin(); iter != folderCardSlots.end(); iter++) {
@@ -1031,8 +1246,7 @@ void FolderEditScene::WriteNewFolderData()
   }
 }
 
-std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& uuid)
-{
+std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& uuid) {
   auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   if (!packageManager.HasPackage(uuid))
@@ -1041,8 +1255,7 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetIconForCard(const std::string& 
   auto& meta = packageManager.FindPackageByID(uuid);
   return meta.GetIconTexture();
 }
-std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::string& uuid)
-{
+std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::string& uuid) {
   auto& packageManager = getController().CardPackagePartitioner().GetPartition(Game::LocalPartition);
 
   if (!packageManager.HasPackage(uuid))
@@ -1050,6 +1263,26 @@ std::shared_ptr<sf::Texture> FolderEditScene::GetPreviewForCard(const std::strin
 
   auto& meta = packageManager.FindPackageByID(uuid);
   return meta.GetPreviewTexture();
+}
+
+void FolderEditScene::RefreshCurrentCardSelection() {
+  switch (currViewMode) {
+  case ViewMode::folder:
+  {
+    using SlotType = decltype(folderCardSlots)::value_type;
+    RefreshCardDock<SlotType>(folderView, folderCardSlots);
+  }
+  break;
+  case ViewMode::pool:
+  {
+    using SlotType = decltype(poolCardBuckets)::value_type;
+    RefreshCardDock<SlotType>(packView, poolCardBuckets);
+  }
+  break;
+  default:
+    Logger::Logf(LogLevel::critical, "No applicable view mode for folder edit scene: %i", static_cast<int>(currViewMode));
+    break;
+  }
 }
 
 #ifdef __ANDROID__
@@ -1061,13 +1294,13 @@ void FolderEditScene::StartupTouchControls() {
 
   rightSide.onTouch([]() {
     INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
-    });
+  });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
     if (!releasedB) {
       INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
     }
-    });
+  });
 
   rightSide.onDrag([this](sf::Vector2i delta) {
     if (delta.x < -25 && !releasedB) {
@@ -1075,7 +1308,7 @@ void FolderEditScene::StartupTouchControls() {
       INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
       releasedB = true;
     }
-    });
+  });
 }
 
 void FolderEditScene::ShutdownTouchControls() {
